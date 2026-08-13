@@ -150,7 +150,12 @@ Three decisions worth knowing:
 
 ## Deliberately not doing
 
-**Migrating from MySQL to PostgreSQL.** It has been suggested, and it is not unreasonable — Postgres is the more common default in this ecosystem. But the schema carries 142 MySQL-specific native type annotations, there is raw SQL in two routes, and the migration lock is pinned to MySQL. A port means regenerating the entire migration history and re-verifying 81 models against the full test suite, in exchange for no capability this project currently lacks. If Postgres support arrives it should be as an _additional_ supported database, driven by real demand from people self-hosting, not as a replacement.
+~~**Migrating from MySQL to PostgreSQL.**~~ This earlier decision has been superseded.
+The target backend is now FastAPI with PostgreSQL, SQLAlchemy, and Alembic. MySQL and
+Prisma remain only during the vertical migration of existing workflows. See
+[`BACKEND_MIGRATION.md`](BACKEND_MIGRATION.md) for the dependency order and deletion
+rule. The migration history is intentionally being rebuilt for PostgreSQL rather than
+pretending the MySQL-specific Prisma migrations are portable.
 
 **Bundling an identity provider.** Keycloak in the Compose stack would make SSO look easy and self-hosting hard. The plan is to support any OIDC provider through configuration, which is strictly more useful and costs a fraction of the operational weight.
 

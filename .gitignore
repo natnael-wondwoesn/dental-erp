@@ -1,5 +1,11 @@
 # Dependencies
 /node_modules
+**/.venv/
+**/.uv-cache/
+**/__pycache__/
+**/.pytest_cache/
+**/.ruff_cache/
+*.py[cod]
 /.pnp
 .pnp.js
 .yarn/install-state.gz

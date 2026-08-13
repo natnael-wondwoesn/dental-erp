@@ -67,7 +67,7 @@ cp .env.example .env
 docker compose -f docker-compose.dev.yml up -d
 
 # Set DATABASE_URL in .env to match the container:
-#   DATABASE_URL="mysql://root:dental@localhost:3306/dental_erp"
+#   DATABASE_URL="mysql://root:dental@localhost:13306/dental_erp"
 
 npx prisma migrate deploy   # create the schema
 npx prisma db seed          # sample data (optional)
@@ -88,12 +88,16 @@ better. `docker-compose.dev.yml` is a convenience for contributors and is
 
 ### What Compose gives you
 
-| Service | Port       | What it is for                                                    |
-| ------- | ---------- | ----------------------------------------------------------------- |
-| MySQL   | 3306       | The application database                                          |
-| Redis   | 6379       | Reserved for caching and queues; nothing uses it yet              |
-| MinIO   | 9000, 9001 | S3-compatible storage; reserved for Phase 3. Console on 9001      |
-| Mailpit | 1025, 8025 | Captures every outbound email. Read them at http://localhost:8025 |
+| Service | Host port    | What it is for                                                |
+| ------- | ------------ | ------------------------------------------------------------- |
+| MySQL   | 13306        | The application database                                      |
+| Redis   | 16379        | Reserved for caching and queues; nothing uses it yet          |
+| MinIO   | 19000, 19001 | S3-compatible storage; reserved for Phase 3. Console on 19001 |
+| Mailpit | 11025, 18025 | Captures outbound email. Read it at http://localhost:18025    |
+
+These project-specific ports bind only to `127.0.0.1`. Override the
+`DENTAL_ERP_DEV_*_PORT` values in `.env` if one is occupied; container ports
+and service-to-service addresses remain unchanged.
 
 Mailpit is the useful one right away. Point the `SMTP_*` variables at it (the
 values are commented into `.env.example`) and you can exercise password resets,
@@ -111,9 +115,9 @@ docker compose -f docker-compose.dev.yml down         # stop, keep the data
 docker compose -f docker-compose.dev.yml down -v      # stop and wipe the data
 ```
 
-**Port 3306 already in use?** You have MySQL installed locally. Either stop it,
-or change the host port in `docker-compose.dev.yml` to `'3307:3306'` and update
-`DATABASE_URL` to match.
+**Port 13306 already in use?** Change `DENTAL_ERP_DEV_MYSQL_PORT` in `.env` and
+update the port in `DATABASE_URL` to match. The other published ports can be
+changed through their adjacent `DENTAL_ERP_DEV_*_PORT` variables.
 
 > **If you were running this stack before August 2026**, its compose project was
 > renamed from `dental-erp` to `dental-erp-dev`, so that a production stack on

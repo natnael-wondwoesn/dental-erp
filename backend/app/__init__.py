@@ -1,0 +1,1 @@
+"""DentalERP FastAPI backend."""
