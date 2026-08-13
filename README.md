@@ -1,0 +1,382 @@
+# DentalERP - Ethiopian Dental Clinic Management Platform
+
+A bilingual, clinic-first **dental hospital management system** for Ethiopian dental clinics and multi-branch groups. The target architecture uses a FastAPI/PostgreSQL backend with RBAC and a Next.js frontend, with English/Amharic UX, ETB-ready finance, Ethiopian patient data conventions, and low-bandwidth-friendly workflows.
+
+See the [Ethiopian product and delivery plan](docs/ETHIOPIA_PRODUCT_PLAN.md) for localization requirements, module scope, RBAC permissions, and business-dependency sequencing.
+
+## Features
+
+### Core Modules
+
+- **Patient Management** — Records, medical history, dental charting, document uploads
+- **Appointment Scheduling** — Calendar view, slot management, reminders, no-show prediction
+- **Treatment Plans** — Treatment tracking, procedure catalog, AI-assisted treatment advice
+- **Billing & Invoicing** — GST-compliant invoicing, payment tracking, payment plans (EMI)
+- **Prescriptions** — Digital prescriptions, medication database, print/PDF export
+- **Inventory Management** — Stock tracking, low-stock alerts, AI-powered demand forecasting
+- **Lab Integration** — Lab order management, status tracking, work coordination
+- **Staff Management** — Roles & permissions, attendance, doctor schedules
+
+### Advanced Features
+
+- **AI Skills (16 built-in)** — Treatment advisor, smart scheduler, billing agent, patient intake, inventory forecaster, cashflow forecaster, patient segmentation, claim analyzer, consent generator, dynamic pricing, and more
+- **Patient Portal** — Online booking, medical records access, digital intake forms
+- **Insurance & Claims** — Insurance verification, claim submission, auto-adjudication
+- **CRM & Loyalty** — Patient segmentation, loyalty points, referral tracking
+- **Communications** — SMS/Email/WhatsApp messaging, campaign management, marketing automation
+- **Tele-Dentistry** — Video consultations via Jitsi Meet integration
+- **Sterilization Tracking** — Instrument management, sterilization logs, compliance reporting
+- **Dental Imaging** — Interactive SVG dental arch viewer with condition mapping
+- **IoT Device Integration** — Medical device data logging and monitoring
+- **Payment Gateways** — Razorpay, PhonePe, Paytm integration (encrypted credentials)
+- **Reports & Analytics** — Revenue, appointments, treatment stats, exportable to Excel
+- **Audit Logging** — Full audit trail for compliance
+- **Multi-branch Support** — Hospital-scoped data isolation via NextAuth
+
+## Tech Stack
+
+| Layer     | Technology                                                                                                               |
+| --------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Framework | [Next.js 16](https://nextjs.org/) (App Router)                                                                           |
+| Language  | [TypeScript 5](https://www.typescriptlang.org/)                                                                          |
+| Database  | [MySQL 8](https://www.mysql.com/) via [Prisma 5](https://www.prisma.io/) ORM                                             |
+| Auth      | [NextAuth v5](https://authjs.dev/) (beta) with credentials provider                                                      |
+| UI        | [Tailwind CSS 3](https://tailwindcss.com/) + [Radix UI](https://www.radix-ui.com/) + [shadcn/ui](https://ui.shadcn.com/) |
+| Charts    | [Recharts](https://recharts.org/)                                                                                        |
+| Forms     | [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/) validation                                     |
+| AI        | [OpenRouter](https://openrouter.ai/) (multi-model gateway)                                                               |
+| Email     | Nodemailer (SMTP)                                                                                                        |
+| Testing   | [Vitest](https://vitest.dev/) + [Playwright](https://playwright.dev/) + [Testing Library](https://testing-library.com/)  |
+| CI/CD     | GitHub Actions                                                                                                           |
+
+## Prerequisites
+
+- **Node.js** 20 or later
+- **npm** 10 or later
+- **Docker** with Compose v2 — recommended, but [optional](#alternative-setup-without-docker)
+
+## Getting Started
+
+```bash
+git clone https://github.com/abinauv/dental-erp.git
+cd dental-erp
+npm install
+cp .env.example .env
+
+# Start MySQL, Redis, MinIO and Mailpit
+docker compose -f docker-compose.dev.yml up -d
+
+# Set DATABASE_URL in .env to match the container:
+#   DATABASE_URL="mysql://root:dental@localhost:13306/dental_erp"
+
+npx prisma migrate deploy   # create the schema
+npx prisma db seed          # sample data (optional)
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+You still need to fill in `NEXTAUTH_SECRET`, `ENCRYPTION_KEY` and `CRON_SECRET`
+in `.env` — the app will not start without them. Each one has a
+`node -e "..."` command beside it in `.env.example` that prints a valid value.
+
+**The app runs on your machine, not in Docker.** Compose brings up the backing
+services only. Bind-mounting `node_modules` into a container is slow enough on
+Windows and macOS to spoil the edit-reload loop, and native hot reload is
+better. `docker-compose.dev.yml` is a convenience for contributors and is
+**never** suitable for production — every credential in it is weak and public.
+
+### What Compose gives you
+
+| Service | Host port    | What it is for                                                |
+| ------- | ------------ | ------------------------------------------------------------- |
+| MySQL   | 13306        | The application database                                      |
+| Redis   | 16379        | Reserved for caching and queues; nothing uses it yet          |
+| MinIO   | 19000, 19001 | S3-compatible storage; reserved for Phase 3. Console on 19001 |
+| Mailpit | 11025, 18025 | Captures outbound email. Read it at http://localhost:18025    |
+
+These project-specific ports bind only to `127.0.0.1`. Override the
+`DENTAL_ERP_DEV_*_PORT` values in `.env` if one is occupied; container ports
+and service-to-service addresses remain unchanged.
+
+Mailpit is the useful one right away. Point the `SMTP_*` variables at it (the
+values are commented into `.env.example`) and you can exercise password resets,
+invitations and reminders with no credentials and no risk of emailing a real
+person.
+
+`createbuckets` runs once, creates the MinIO bucket and exits. Seeing it as
+`Exited (0)` in `docker compose ps` is success, not a failure.
+
+Useful commands:
+
+```bash
+docker compose -f docker-compose.dev.yml logs -f      # tail the services
+docker compose -f docker-compose.dev.yml down         # stop, keep the data
+docker compose -f docker-compose.dev.yml down -v      # stop and wipe the data
+```
+
+**Port 13306 already in use?** Change `DENTAL_ERP_DEV_MYSQL_PORT` in `.env` and
+update the port in `DATABASE_URL` to match. The other published ports can be
+changed through their adjacent `DENTAL_ERP_DEV_*_PORT` variables.
+
+> **If you were running this stack before August 2026**, its compose project was
+> renamed from `dental-erp` to `dental-erp-dev`, so that a production stack on
+> the same machine cannot end up sharing volumes with it. Your old containers
+> and volumes are still there under the previous name; clean them up once with:
+>
+> ```bash
+> docker compose -p dental-erp -f docker-compose.dev.yml down -v
+> ```
+
+### Alternative setup: without Docker
+
+<details>
+<summary>Install MySQL 8 yourself</summary>
+
+Docker is not a requirement. With MySQL 8.0+ installed locally:
+
+```bash
+# Verify MySQL is accessible
+mysql -u root -p -e "SELECT 1"
+
+# Create the database
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS dental_erp"
+```
+
+Then set `DATABASE_URL` in `.env` to your own credentials and continue from
+`npx prisma migrate deploy` above.
+
+</details>
+
+### About the database setup
+
+`prisma migrate deploy` is the recommended path — it is repeatable and safe to
+re-run when you upgrade. `npx prisma db push` also works and is handy while
+developing, but it applies the schema without recording it in
+`prisma/_prisma_migrations`, so later `migrate deploy` runs will fail against
+that database.
+
+<details>
+<summary>Upgrading a database that was created with <code>prisma db push</code></summary>
+
+Tell Prisma the existing migrations are already reflected in your schema, then
+deploy as normal from that point on:
+
+```bash
+npx prisma migrate resolve --applied 20260127152236_multi_tenancy
+npx prisma migrate resolve --applied 20260728120000_sync_schema_with_models
+npx prisma migrate resolve --applied 20260801150000_inventory_lab_prisma_models
+npx prisma migrate deploy
+```
+
+</details>
+
+### Default Credentials (after seeding)
+
+| Role        | Email                   | Password    |
+| ----------- | ----------------------- | ----------- |
+| Super Admin | `admin@demo-dental.com` | `Admin@123` |
+
+> **Warning**: Change the default password immediately in production.
+
+## Environment Variables
+
+See [`.env.example`](.env.example) for all available variables. Key ones:
+
+| Variable                                    | Required | Description                                   |
+| ------------------------------------------- | -------- | --------------------------------------------- |
+| `DATABASE_URL`                              | Yes      | MySQL connection string                       |
+| `NEXTAUTH_URL`                              | Yes      | App URL (e.g., `http://localhost:3000`)       |
+| `NEXTAUTH_SECRET`                           | Yes      | Random secret for session encryption          |
+| `ENCRYPTION_KEY`                            | Yes      | 64-char hex string for AES-256-GCM encryption |
+| `CRON_SECRET`                               | Yes      | Secret for securing cron job endpoints        |
+| `OPENROUTER_API_KEY`                        | No       | Required for AI features                      |
+| `SMTP_HOST` / `SMTP_USER` / `SMTP_PASSWORD` | No       | Required for email features                   |
+| `SMS_API_KEY`                               | No       | Required for SMS features                     |
+
+## Available Scripts
+
+```bash
+npm run dev          # Start development server
+npm run build        # Production build
+npm run start        # Start production server
+npm run lint         # Run ESLint
+npm run test         # Run unit/integration tests (Vitest)
+npm run test:watch   # Run tests in watch mode
+npm run test:coverage # Run tests with coverage report
+npm run test:e2e     # Run end-to-end tests (Playwright)
+npm run test:all     # Run all tests
+
+# Database
+npm run db:generate  # Generate Prisma client
+npm run db:push      # Push schema without recording a migration (dev only)
+npm run db:migrate   # Create a migration from schema changes (development)
+npm run db:migrate:deploy  # Apply pending migrations (setup and deploys)
+npm run db:seed      # Seed sample data
+npm run db:studio    # Open Prisma Studio (DB GUI)
+```
+
+## Project Structure
+
+```
+dental-erp/
+├── app/                    # Next.js App Router
+│   ├── (auth)/             # Authentication pages (login, signup, etc.)
+│   ├── (dashboard)/        # Dashboard pages (all modules)
+│   └── api/                # API routes
+├── components/             # Reusable React components
+│   ├── layout/             # Dashboard shell, sidebar, header
+│   ├── ui/                 # shadcn/ui components
+│   └── imaging/            # Dental imaging components
+├── config/                 # App configuration (navigation, etc.)
+├── lib/                    # Utilities, helpers, AI skills
+│   ├── ai/                 # AI skill definitions
+│   ├── api-helpers.ts      # Auth & API utilities
+│   └── prisma.ts           # Prisma client singleton
+├── prisma/
+│   ├── schema.prisma       # Database schema
+│   └── seed.ts             # Database seeder
+├── __tests__/              # Test files
+│   ├── unit/               # Unit tests
+│   ├── integration/        # Integration tests (API routes)
+│   ├── components/         # Component tests
+│   ├── e2e/                # Playwright E2E tests
+│   └── accessibility/      # Accessibility tests
+├── .github/
+│   └── workflows/ci.yml    # CI pipeline
+└── public/                 # Static assets
+```
+
+## Testing
+
+The project has comprehensive test coverage:
+
+- **Unit tests** — Business logic, utilities, AI skills
+- **Integration tests** — API route handlers with mocked Prisma
+- **Component tests** — React components with Testing Library
+- **E2E tests** — Full user flows with Playwright
+- **Accessibility tests** — WCAG 2.1 compliance with axe-core
+
+```bash
+# Run all unit/integration tests
+npm test
+
+# Run with coverage
+npm run test:coverage
+
+# Run E2E tests (requires running server)
+npm run test:e2e
+```
+
+## Deployment
+
+**[SELF_HOSTING.md](SELF_HOSTING.md) is the full guide** — the short version is
+that you do not need a checkout, Node.js, or a build step:
+
+```bash
+mkdir -p /opt/dental-erp && cd /opt/dental-erp
+curl -fsSLO https://raw.githubusercontent.com/abinauv/dental-erp/main/docker-compose.yml
+curl -fsSL  https://raw.githubusercontent.com/abinauv/dental-erp/main/.env.production.example -o .env
+# fill in .env, then
+docker compose up -d
+```
+
+That pulls a published multi-architecture image (`linux/amd64` and
+`linux/arm64`) from `ghcr.io/abinauv/dental-erp`, waits for MySQL, runs the
+database migrations as a one-shot container, and starts the app. Add
+`-f docker-compose.caddy.yml` for HTTPS with automatic certificates.
+
+SELF_HOSTING.md also covers backups and restores, upgrading, and what to do
+when something is wrong.
+
+### Running the image directly
+
+```bash
+docker run -p 3000:3000 --env-file .env -v dental-uploads:/app/uploads   ghcr.io/abinauv/dental-erp:latest
+```
+
+> **Mount a volume at `/app/uploads`.** On the default `STORAGE_DRIVER=local`,
+> uploaded files — patient documents, scans, signed consent forms — are written
+> to the container filesystem. Without a volume they are destroyed the moment
+> the container is replaced, which is every single redeploy. The `-v` flag above
+> is not optional in any deployment you care about.
+>
+> **Already running without one?** Copy your files out before you next redeploy:
+>
+> ```bash
+> docker cp <container>:/app/uploads ./uploads-backup
+> ```
+>
+> then recreate the container with the volume mounted and copy them back.
+> Setting `STORAGE_DRIVER=s3` removes this whole class of problem by getting
+> uploads off the container filesystem — see [docs/STORAGE.md](docs/STORAGE.md).
+
+Running the image this way does not migrate the database. The image carries the
+Prisma CLI so it can do that itself:
+
+```bash
+docker run --rm --env-file .env ghcr.io/abinauv/dental-erp:latest   node node_modules/prisma/build/index.js migrate deploy
+```
+
+### Health checks
+
+Two endpoints, and the distinction between them matters:
+
+| Endpoint      | Purpose   | Checks the database | Use for                             |
+| ------------- | --------- | ------------------- | ----------------------------------- |
+| `/api/health` | Liveness  | No                  | "Is this process alive?"            |
+| `/api/ready`  | Readiness | Yes                 | "Should this instance get traffic?" |
+
+Point liveness probes at `/api/health` and readiness probes at `/api/ready`.
+Pointing a liveness probe at `/api/ready` means a brief database outage will
+make your orchestrator kill and restart otherwise-healthy containers, turning a
+short blip into a restart loop. `/api/ready` returns `503` when the database is
+unreachable — it never throws.
+
+The image carries a `HEALTHCHECK` against `/api/health`, so `docker ps` reports
+container health with no extra configuration.
+
+### Manual
+
+```bash
+npm run build
+npm start
+```
+
+### Environment Requirements
+
+Deploying from the published image, all you need is Docker Engine 24+ with the
+Compose plugin. Building or developing from source needs:
+
+- Node.js 20+
+- MySQL 8.0+ (with a dedicated database)
+- Reverse proxy (nginx/Caddy) for HTTPS in production —
+  [`docker-compose.caddy.yml`](docker-compose.caddy.yml) is a working example
+- A persistent volume mounted at `/app/uploads`
+
+## Documentation
+
+- [Self-hosting](SELF_HOSTING.md) — running DentalERP on your own server from a published image, with backups, TLS and upgrades.
+- [Infrastructure Roadmap](docs/INFRASTRUCTURE.md) — how DentalERP is packaged and deployed, and what is planned next. Feedback welcome, especially on the phases not yet built.
+- [File storage](docs/STORAGE.md) — local disk vs S3, and how to move between them without losing files.
+- [Localization](docs/LOCALIZATION.md) — locale support and the message catalogue.
+
+## Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## Security
+
+If you discover a security vulnerability, please follow our [Security Policy](SECURITY.md). Do **not** open a public issue for security vulnerabilities.
+
+## License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- [Next.js](https://nextjs.org/) by Vercel
+- [Prisma](https://www.prisma.io/) for database ORM
+- [shadcn/ui](https://ui.shadcn.com/) for UI components
+- [Radix UI](https://www.radix-ui.com/) for accessible primitives
+- [OpenRouter](https://openrouter.ai/) for AI model access
