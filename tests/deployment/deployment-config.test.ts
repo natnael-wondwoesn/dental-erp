@@ -44,12 +44,12 @@ describe('9.1 Build Testing', () => {
       expect(config.experimental.serverActions.bodySizeLimit).toBe('10mb')
     })
 
-    it('FastAPI rewrites default to the local backend compose port', () => {
+    it('core API routes are served locally instead of proxied to FastAPI', () => {
       const nextConfig = fs.readFileSync(path.resolve(__dirname, '../../next.config.js'), 'utf8')
 
-      expect(nextConfig).toContain("process.env.FASTAPI_URL || 'http://127.0.0.1:18000'")
-      expect(nextConfig).toContain("source: '/api/auth/login'")
-      expect(nextConfig).toContain('destination: `${fastApiUrl}/api/auth/login`')
+      expect(nextConfig).not.toContain('FASTAPI_URL')
+      expect(nextConfig).not.toContain("source: '/api/auth/login'")
+      expect(nextConfig).not.toContain("source: '/api/dashboard/stats'")
     })
   })
 

@@ -1,0 +1,3 @@
+dental-clinic-cms.duckdns.org {
+    reverse_proxy dental-web:3000
+}

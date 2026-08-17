@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { authenticateCredentials, signAccessToken } from '@/lib/auth-compat'
+import { authenticateCredentials, signAccessToken, toAuthenticatedUser } from '@/lib/auth-compat'
 
-// Mobile-specific login endpoint that returns a JWT token directly
-// instead of setting cookies (which don't work well in native apps)
 export async function POST(req: NextRequest) {
   try {
     const result = await authenticateCredentials(await req.json())
@@ -10,28 +8,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: result.error }, { status: result.status })
     }
 
-    const token = await signAccessToken(result.user)
-
+    const accessToken = await signAccessToken(result.user)
     return NextResponse.json({
-      token,
-      user: {
-        id: result.user.id,
-        email: result.user.email,
-        name: result.user.name,
-        role: result.user.role,
-        hospitalId: result.user.hospitalId,
-        hospitalName: result.user.hospital.name,
-        staffId: result.user.staff?.id,
-        image: result.user.image,
-      },
+      accessToken,
+      user: toAuthenticatedUser(result.user),
     })
   } catch (error) {
-    console.error('Mobile auth error:', error)
+    console.error('Auth login error:', error)
     return NextResponse.json({ error: 'Authentication failed' }, { status: 500 })
   }
 }
 
-// Handle CORS preflight
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,

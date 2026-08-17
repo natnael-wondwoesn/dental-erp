@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext } from 'react'
 
 import { useLanguage } from '@/lib/i18n'
 import type { ProductTier } from '@/lib/product-tier'
-import { localize, type Localized, type SiteConfig } from '@/lib/site-config'
+import { localize, type Localized, type SiteConfig } from '@/lib/site-config.shared'
 
 interface SiteContextValue {
   config: SiteConfig

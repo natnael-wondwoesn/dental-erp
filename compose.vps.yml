@@ -1,0 +1,97 @@
+name: dental-erp
+
+services:
+  dental-mysql:
+    image: mysql:8.4
+    container_name: dental-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD is required}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-dental_erp}
+      MYSQL_USER: ${MYSQL_USER:-dental}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?MYSQL_PASSWORD is required}
+    command:
+      - --max-connections=${MYSQL_MAX_CONNECTIONS:-151}
+    volumes:
+      - dental-mysql-data:/var/lib/mysql
+    networks:
+      - dental_erp_internal
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 45s
+
+  dental-frontend-migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: dental-erp-web:local
+    restart: "no"
+    command: ["node", "node_modules/prisma/build/index.js", "migrate", "deploy"]
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: mysql://${MYSQL_USER:-dental}:${MYSQL_PASSWORD}@dental-mysql:3306/${MYSQL_DATABASE:-dental_erp}
+    depends_on:
+      dental-mysql:
+        condition: service_healthy
+    networks:
+      - dental_erp_internal
+
+  dental-frontend-seed:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: deps
+    image: dental-erp-web-seed:local
+    restart: "no"
+    profiles: ["seed"]
+    command: ["npx", "tsx", "prisma/seed.ts"]
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: mysql://${MYSQL_USER:-dental}:${MYSQL_PASSWORD}@dental-mysql:3306/${MYSQL_DATABASE:-dental_erp}
+    depends_on:
+      dental-mysql:
+        condition: service_healthy
+      dental-frontend-migrate:
+        condition: service_completed_successfully
+    networks:
+      - dental_erp_internal
+
+  dental-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: dental-erp-web:local
+    container_name: dental-web
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PRODUCT_TIER: full
+      DATABASE_URL: mysql://${MYSQL_USER:-dental}:${MYSQL_PASSWORD}@dental-mysql:3306/${MYSQL_DATABASE:-dental_erp}?connection_limit=${DB_CONNECTION_LIMIT:-10}&pool_timeout=20
+      MYSQL_ROOT_PASSWORD: ''
+    depends_on:
+      dental-mysql:
+        condition: service_healthy
+      dental-frontend-migrate:
+        condition: service_completed_successfully
+    volumes:
+      - dental-uploads:/app/uploads
+    networks:
+      - dental_erp_internal
+      - kora_default
+
+networks:
+  dental_erp_internal:
+    driver: bridge
+  kora_default:
+    external: true
+
+volumes:
+  dental-mysql-data:
+  dental-uploads:

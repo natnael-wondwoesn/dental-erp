@@ -29,27 +29,6 @@ const nextConfig = {
       fullUrl: false,
     },
   },
-  async rewrites() {
-    const fastApiUrl = process.env.FASTAPI_URL || 'http://127.0.0.1:18000'
-    return [
-      {
-        source: '/api/auth/login',
-        destination: `${fastApiUrl}/api/auth/login`,
-      },
-      {
-        source: '/api/auth/me',
-        destination: `${fastApiUrl}/api/auth/me`,
-      },
-      {
-        source: '/api/patients/:path*',
-        destination: `${fastApiUrl}/api/patients/:path*`,
-      },
-      {
-        source: '/api/dashboard/stats',
-        destination: `${fastApiUrl}/api/dashboard/stats`,
-      },
-    ]
-  },
   // CORS for mobile app
   async headers() {
     return [
