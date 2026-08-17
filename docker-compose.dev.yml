@@ -2,7 +2,11 @@
 #
 #   docker compose -f docker-compose.dev.yml up -d
 #
-# This brings up MySQL, Redis, MinIO and Mailpit. It does NOT run the app —
+# Host ports use a project-specific 13xxx range and bind to loopback so this
+# stack can run alongside projects using the usual service ports. Override any
+# of them in .env if the chosen port is already occupied on your machine.
+#
+# This brings up PostgreSQL, legacy MySQL, Redis, MinIO and Mailpit. It does NOT run the app —
 # start that on the host with `npm run dev`. Bind-mounting node_modules into a
 # container is slow enough on Windows and macOS to ruin the edit-reload loop,
 # and native hot reload is meaningfully better. A containerised app service can
@@ -28,6 +32,28 @@
 name: dental-erp-dev
 
 services:
+  # Target database for the FastAPI backend. MySQL remains below only while
+  # unmigrated Next.js routes still depend on Prisma.
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: dental_erp
+      POSTGRES_USER: dental
+      POSTGRES_PASSWORD: dental
+    ports:
+      - '127.0.0.1:${DENTAL_ERP_DEV_POSTGRES_PORT:-15432}:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U dental -d dental_erp']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  # Temporary compatibility database. Delete this service with Prisma after
+  # the last TypeScript route module is migrated.
   mysql:
     image: mysql:8.4
     restart: unless-stopped
@@ -35,10 +61,7 @@ services:
       MYSQL_ROOT_PASSWORD: dental
       MYSQL_DATABASE: dental_erp
     ports:
-      # If you already run MySQL locally this will fail to bind. Either stop the
-      # local server, or change the host side to e.g. '3307:3306' and update
-      # DATABASE_URL to match.
-      - '3306:3306'
+      - '127.0.0.1:${DENTAL_ERP_DEV_MYSQL_PORT:-13306}:3306'
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:
@@ -52,7 +75,7 @@ services:
     image: redis:7-alpine
     restart: unless-stopped
     ports:
-      - '6379:6379'
+      - '127.0.0.1:${DENTAL_ERP_DEV_REDIS_PORT:-16379}:6379'
     volumes:
       - redis-data:/data
     healthcheck:
@@ -63,7 +86,7 @@ services:
 
   # S3-compatible object storage. Nothing uses this yet — it is here so the
   # storage work in Phase 3 has somewhere to point without every contributor
-  # needing an AWS account. Console at http://localhost:9001
+  # needing an AWS account. Console at http://localhost:19001 by default.
   minio:
     image: minio/minio:latest
     restart: unless-stopped
@@ -72,8 +95,8 @@ services:
       MINIO_ROOT_USER: dentalerp
       MINIO_ROOT_PASSWORD: dentalerp123
     ports:
-      - '9000:9000'
-      - '9001:9001'
+      - '127.0.0.1:${DENTAL_ERP_DEV_MINIO_PORT:-19000}:9000'
+      - '127.0.0.1:${DENTAL_ERP_DEV_MINIO_CONSOLE_PORT:-19001}:9001'
     volumes:
       - minio-data:/data
     healthcheck:
@@ -103,13 +126,13 @@ services:
       "
 
   # Catches all outbound SMTP so email can be tested with no credentials and no
-  # risk of mailing a real patient. Web UI at http://localhost:8025
+  # risk of mailing a real patient. Web UI at http://localhost:18025 by default.
   mailpit:
     image: axllent/mailpit:latest
     restart: unless-stopped
     ports:
-      - '1025:1025'
-      - '8025:8025'
+      - '127.0.0.1:${DENTAL_ERP_DEV_SMTP_PORT:-11025}:1025'
+      - '127.0.0.1:${DENTAL_ERP_DEV_MAILPIT_UI_PORT:-18025}:8025'
     healthcheck:
       test: ['CMD', '/mailpit', 'readyz']
       interval: 5s
@@ -117,6 +140,7 @@ services:
       retries: 10
 
 volumes:
+  postgres-data:
   mysql-data:
   redis-data:
   minio-data:
