@@ -233,14 +233,14 @@ export default function OnboardingPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="city">City *</Label>
-                      <Input id="city" placeholder="Chennai" {...register('city')} />
+                      <Input id="city" placeholder="Addis Ababa" {...register('city')} />
                       {errors.city && (
                         <p className="text-sm text-destructive">{errors.city.message}</p>
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="state">State *</Label>
-                      <Input id="state" placeholder="Tamil Nadu" {...register('state')} />
+                      <Label htmlFor="state">Region *</Label>
+                      <Input id="state" placeholder="Addis Ababa" {...register('state')} />
                       {errors.state && (
                         <p className="text-sm text-destructive">{errors.state.message}</p>
                       )}
@@ -249,8 +249,8 @@ export default function OnboardingPage() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="pincode">Pincode *</Label>
-                      <Input id="pincode" placeholder="600001" {...register('pincode')} />
+                      <Label htmlFor="pincode">Postal Code *</Label>
+                      <Input id="pincode" placeholder="1000" {...register('pincode')} />
                       {errors.pincode && (
                         <p className="text-sm text-destructive">{errors.pincode.message}</p>
                       )}
@@ -259,7 +259,7 @@ export default function OnboardingPage() {
                       <Label htmlFor="alternatePhone">Alternate Phone</Label>
                       <Input
                         id="alternatePhone"
-                        placeholder="9876543210"
+                        placeholder="0911234568"
                         {...register('alternatePhone')}
                       />
                     </div>
@@ -268,15 +268,11 @@ export default function OnboardingPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="website">Website</Label>
-                      <Input id="website" placeholder="www.myclinic.com" {...register('website')} />
+                      <Input id="website" placeholder="www.dentix.et" {...register('website')} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="gstNumber">GST Number</Label>
-                      <Input
-                        id="gstNumber"
-                        placeholder="33AAACX1234X1ZX"
-                        {...register('gstNumber')}
-                      />
+                      <Label htmlFor="gstNumber">Tax ID</Label>
+                      <Input id="gstNumber" placeholder="0012345678" {...register('gstNumber')} />
                     </div>
                   </div>
 
@@ -284,7 +280,7 @@ export default function OnboardingPage() {
                     <Label htmlFor="registrationNo">Registration Number</Label>
                     <Input
                       id="registrationNo"
-                      placeholder="MED-2024-12345"
+                      placeholder="AA-DEN-2024-0142"
                       {...register('registrationNo')}
                     />
                   </div>
@@ -372,14 +368,14 @@ export default function OnboardingPage() {
                           />
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="bankAccountName">Account Holder Name</Label>
-                        <Input
-                          id="bankAccountName"
-                          placeholder="Dr. John Smith"
-                          {...register('bankAccountName')}
-                        />
-                      </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="bankAccountName">Account Holder Name</Label>
+                          <Input
+                            id="bankAccountName"
+                            placeholder="Dr. Selam Abebe"
+                            {...register('bankAccountName')}
+                          />
+                        </div>
                     </div>
                   </div>
                 </div>

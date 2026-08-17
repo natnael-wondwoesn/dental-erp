@@ -84,7 +84,7 @@ export default function ClinicSettingsPage() {
     website: '',
     address: '',
     city: '',
-    state: 'Tamil Nadu',
+    state: 'Addis Ababa',
     pincode: '',
     registrationNo: '',
     gstNumber: '',
@@ -120,7 +120,7 @@ export default function ClinicSettingsPage() {
           website: result.data.website || '',
           address: result.data.address || '',
           city: result.data.city || '',
-          state: result.data.state || 'Tamil Nadu',
+          state: result.data.state || 'Addis Ababa',
           pincode: result.data.pincode || '',
           registrationNo: result.data.registrationNo || '',
           gstNumber: result.data.gstNumber || '',
@@ -434,28 +434,29 @@ export default function ClinicSettingsPage() {
                   id="city"
                   value={formData.city}
                   onChange={(e) => handleChange('city', e.target.value)}
-                  placeholder="Chennai"
+                  placeholder="Addis Ababa"
                   required
                 />
               </div>
 
               <div>
-                <Label htmlFor="state">State *</Label>
+                <Label htmlFor="state">Region *</Label>
                 <Input
                   id="state"
                   value={formData.state}
                   onChange={(e) => handleChange('state', e.target.value)}
+                  placeholder="Addis Ababa"
                   required
                 />
               </div>
 
               <div>
-                <Label htmlFor="pincode">Pincode *</Label>
+                <Label htmlFor="pincode">Postal Code *</Label>
                 <Input
                   id="pincode"
                   value={formData.pincode}
                   onChange={(e) => handleChange('pincode', e.target.value)}
-                  placeholder="600023"
+                  placeholder="1000"
                   required
                 />
               </div>
@@ -477,17 +478,17 @@ export default function ClinicSettingsPage() {
                   id="registrationNo"
                   value={formData.registrationNo}
                   onChange={(e) => handleChange('registrationNo', e.target.value)}
-                  placeholder="REG123456"
+                  placeholder="AA-DEN-2024-0142"
                 />
               </div>
 
               <div>
-                <Label htmlFor="gstNumber">GST Number</Label>
+                <Label htmlFor="gstNumber">Tax ID</Label>
                 <Input
                   id="gstNumber"
                   value={formData.gstNumber}
                   onChange={(e) => handleChange('gstNumber', e.target.value)}
-                  placeholder="29XXXXX1234X1ZX"
+                  placeholder="0012345678"
                 />
               </div>
 
@@ -578,7 +579,7 @@ export default function ClinicSettingsPage() {
                   id="bankName"
                   value={formData.bankName}
                   onChange={(e) => handleChange('bankName', e.target.value)}
-                  placeholder="State Bank of India"
+                  placeholder="Commercial Bank of Ethiopia"
                 />
               </div>
 
@@ -598,17 +599,17 @@ export default function ClinicSettingsPage() {
                   id="bankIfsc"
                   value={formData.bankIfsc}
                   onChange={(e) => handleChange('bankIfsc', e.target.value)}
-                  placeholder="SBIN0001234"
+                  placeholder="CBETETAA"
                 />
               </div>
 
               <div>
-                <Label htmlFor="upiId">UPI ID</Label>
+                <Label htmlFor="upiId">Mobile Money ID</Label>
                 <Input
                   id="upiId"
                   value={formData.upiId}
                   onChange={(e) => handleChange('upiId', e.target.value)}
-                  placeholder="clinic@upi"
+                  placeholder="dentix@telebirr"
                 />
               </div>
             </div>

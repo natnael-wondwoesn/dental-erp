@@ -11,24 +11,24 @@ export const metadata: Metadata = {
   description:
     'Production dental clinic operations for Ethiopia: patient care, scheduling, treatment, ETB billing, laboratory workflows, finance and reporting.',
   keywords: [
-    'dental software India',
-    'dental clinic management software',
-    'dental hospital management system',
+    'ethiopian dental software',
+    'ethiopia dental clinic management software',
+    'ethiopian dental hospital management system',
     'dental ERP',
     'dental practice management',
     'open source dental software',
-    'free dental software India',
-    'dental billing software GST',
+    'free dental software Ethiopia',
+    'ETB dental billing software',
     'patient management system dental',
     'appointment scheduling dental',
     'dental clinic software free',
-    'hospital management system India',
-    'HMS India',
+    'hospital management system Ethiopia',
+    'Habesha clinic software',
     'dental records software',
     'AI dental software',
-    'tele-dentistry India',
+    'tele-dentistry Ethiopia',
     'dental inventory management',
-    'dental insurance claims India',
+    'dental insurance claims Ethiopia',
     'dental lab management',
     'multi-branch dental software',
   ],
@@ -44,9 +44,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'DentalERP - Open Source Dental Hospital Management Software',
+    title: 'Dentix - Ethiopian Dental Clinic ERP',
     description:
-      'Free, AI-powered dental clinic management system for India. 16 AI skills, GST billing, patient portal, tele-dentistry.',
+      'Dental clinic operations for Ethiopia with patient workflows, ETB billing, and multilingual communication.',
   },
   robots: {
     index: true,
@@ -55,7 +55,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'DentalERP',
+    title: 'Dentix',
   },
 }
 

@@ -4,17 +4,17 @@ import { test as base, expect, Page } from '@playwright/test'
 // Every authenticated spec logs in through these fixtures, so a mismatch fails
 // the entire suite at fixture setup rather than in any one test.
 const TEST_ADMIN = {
-  email: 'admin@demo-dental.com',
+  email: 'admin@dentix.et',
   password: 'Admin@123',
 }
 
 const TEST_DOCTOR = {
-  email: 'doctor@demo-dental.com',
+  email: 'doctor@dentix.et',
   password: 'Doctor@123',
 }
 
 const TEST_RECEPTIONIST = {
-  email: 'reception@demo-dental.com',
+  email: 'reception@dentix.et',
   password: 'Reception@123',
 }
 

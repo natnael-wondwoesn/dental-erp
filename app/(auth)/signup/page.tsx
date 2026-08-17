@@ -88,15 +88,17 @@ export default function SignupPage() {
   }
 
   return (
-    <Card className="shadow-lg">
+    <Card className="border-white/70 bg-white/95 shadow-[0_18px_48px_rgba(15,45,85,0.12)] backdrop-blur">
       <CardHeader className="space-y-1 text-center">
         <div className="flex justify-center mb-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
             <Building2 className="h-6 w-6" />
           </div>
         </div>
-        <CardTitle className="text-2xl font-bold">Create your clinic</CardTitle>
-        <CardDescription>Start your free trial with up to 100 patients</CardDescription>
+        <CardTitle className="text-2xl font-bold tracking-tight">Create your clinic</CardTitle>
+        <CardDescription>
+          Start an Ethiopian-ready workspace for reception, treatment, and billing.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -104,7 +106,7 @@ export default function SignupPage() {
             <Label htmlFor="hospitalName">Hospital/Clinic Name</Label>
             <Input
               id="hospitalName"
-              placeholder="Dr. Smith's Dental Clinic"
+              placeholder="Dentix Bole Dental Clinic"
               {...register('hospitalName')}
               disabled={isLoading}
             />
@@ -117,7 +119,7 @@ export default function SignupPage() {
             <Label htmlFor="adminName">Your Name</Label>
             <Input
               id="adminName"
-              placeholder="Dr. John Smith"
+              placeholder="Dr. Selam Abebe"
               {...register('adminName')}
               disabled={isLoading}
             />
@@ -131,7 +133,7 @@ export default function SignupPage() {
             <Input
               id="email"
               type="email"
-              placeholder="doctor@clinic.com"
+              placeholder="selam@dentix.et"
               {...register('email')}
               disabled={isLoading}
             />
@@ -143,7 +145,7 @@ export default function SignupPage() {
             <Input
               id="phone"
               type="tel"
-              placeholder="9876543210"
+              placeholder="0911234567"
               {...register('phone')}
               disabled={isLoading}
             />
@@ -180,7 +182,7 @@ export default function SignupPage() {
 
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Create Account
+            Create workspace
           </Button>
         </form>
 
@@ -195,7 +197,7 @@ export default function SignupPage() {
         </div>
 
         <div className="mt-4 text-center text-xs text-muted-foreground">
-          By signing up, you agree to our Terms of Service and Privacy Policy.
+          By signing up, you agree to the terms, privacy policy, and clinic data handling rules.
         </div>
       </CardContent>
     </Card>

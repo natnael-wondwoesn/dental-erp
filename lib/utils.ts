@@ -25,6 +25,12 @@ export function formatDateTime(date: Date | string, locale?: string): string {
 export function formatPhone(phone: string): string {
   if (!phone) return ''
   const cleaned = phone.replace(/\D/g, '')
+  if (cleaned.length === 10 && cleaned.startsWith('0')) {
+    return `+251 ${cleaned.slice(1, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6)}`
+  }
+  if (cleaned.length === 12 && cleaned.startsWith('251')) {
+    return `+251 ${cleaned.slice(3, 5)} ${cleaned.slice(5, 8)} ${cleaned.slice(8)}`
+  }
   if (cleaned.length === 10) {
     return `+91 ${cleaned.slice(0, 5)} ${cleaned.slice(5)}`
   }

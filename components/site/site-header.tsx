@@ -56,7 +56,7 @@ export function SiteHeader() {
               href="/login"
               className="hidden rounded-full bg-[#0877ea] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#0663c5] md:block"
             >
-              {t('Open workspace')}
+              {t('Staff sign in')}
             </Link>
           )}
           <button
@@ -82,7 +82,7 @@ export function SiteHeader() {
                 href="/login"
                 className="rounded-full bg-[#0877ea] px-5 py-3 text-center text-white"
               >
-                {t('Open workspace')}
+                {t('Staff sign in')}
               </Link>
             )}
           </nav>

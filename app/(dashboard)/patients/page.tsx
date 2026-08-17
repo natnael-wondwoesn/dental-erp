@@ -43,6 +43,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { ErpModuleOverview } from '@/components/dashboard/erp-overview'
 import { ExportMenu } from '@/components/ui/export-menu'
 
 interface Patient {
@@ -128,11 +129,26 @@ export default function PatientsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      <ErpModuleOverview
+        moduleId="patients"
+        eyebrow="Patient ERP"
+        title="Patient records for intake, follow-up, and longitudinal history"
+        description="Keep registration, family contact details, clinical history, and billing context in one faster-working patient workspace."
+        compact
+        showActions={false}
+      />
+
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
+        <div className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">Patients</h1>
-          <p className="text-muted-foreground">Manage patient records and information</p>
+          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <span>Manage patient records, history, and contact details.</span>
+            {!loading && pagination.total > 0 && (
+              <Badge variant="secondary" className="rounded-full px-3 py-1">
+                {pagination.total} active records
+              </Badge>
+            )}
+          </div>
         </div>
         <div className="flex gap-2">
           <ExportMenu
@@ -154,20 +170,19 @@ export default function PatientsPage() {
           <Link href="/patients/new">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              New Patient
+              Register patient
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* Filters */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center">
+        <CardContent className="p-4 sm:p-5">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search by name, patient ID, phone, or email..."
+                placeholder="Search by name, patient ID, phone, or email"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
@@ -175,7 +190,7 @@ export default function PatientsPage() {
             </div>
             <div className="flex gap-2">
               <Select value={genderFilter} onValueChange={setGenderFilter}>
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="w-full sm:w-[160px]">
                   <SelectValue placeholder="Gender" />
                 </SelectTrigger>
                 <SelectContent>
@@ -186,7 +201,7 @@ export default function PatientsPage() {
                 </SelectContent>
               </Select>
               <Select value={bloodGroupFilter} onValueChange={setBloodGroupFilter}>
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="w-full sm:w-[160px]">
                   <SelectValue placeholder="Blood Group" />
                 </SelectTrigger>
                 <SelectContent>
@@ -202,6 +217,9 @@ export default function PatientsPage() {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          <div className="mt-3 text-sm text-muted-foreground">
+            Search with local phone numbers, patient IDs, or family names to reach records faster.
           </div>
         </CardContent>
       </Card>

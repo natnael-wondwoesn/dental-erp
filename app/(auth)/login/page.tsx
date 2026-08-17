@@ -68,15 +68,17 @@ function LoginForm() {
   }
 
   return (
-    <Card className="shadow-lg">
+    <Card className="border-white/70 bg-white/95 shadow-[0_18px_48px_rgba(15,45,85,0.12)] backdrop-blur">
       <CardHeader className="space-y-1 text-center">
         <div className="flex justify-center mb-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground text-xl font-bold">
-            D
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground text-xl font-bold shadow-lg shadow-primary/20">
+            Dn
           </div>
         </div>
-        <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-        <CardDescription>Sign in to your DentalERP account</CardDescription>
+        <CardTitle className="text-2xl font-bold tracking-tight">Welcome back</CardTitle>
+        <CardDescription>
+          Sign in to your clinic workspace for appointments, records, and ETB billing.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -85,7 +87,7 @@ function LoginForm() {
             <Input
               id="email"
               type="email"
-              placeholder="admin@demo-dental.com"
+              placeholder="admin@dentix.et"
               {...register('email')}
               disabled={isLoading}
             />
@@ -114,14 +116,14 @@ function LoginForm() {
           <p className="text-muted-foreground">
             Don&apos;t have an account?{' '}
             <a href="/signup" className="text-primary hover:underline">
-              Sign up for free
+              Create a clinic workspace
             </a>
           </p>
         </div>
 
-        <div className="mt-4 text-center text-xs text-muted-foreground border-t pt-4">
-          <p>Demo credentials:</p>
-          <p className="font-mono mt-1">admin@demo-dental.com / Admin@123</p>
+        <div className="mt-4 rounded-2xl border border-[#e7edf5] bg-[#f8fbff] p-4 text-center text-xs text-muted-foreground">
+          <p className="font-medium text-slate-700">Demo workspace credentials</p>
+          <p className="font-mono mt-1">admin@dentix.et / Admin@123</p>
         </div>
       </CardContent>
     </Card>
@@ -136,7 +138,7 @@ export default function LoginPage() {
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground text-xl font-bold">
-                D
+                Dn
               </div>
             </div>
             <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
