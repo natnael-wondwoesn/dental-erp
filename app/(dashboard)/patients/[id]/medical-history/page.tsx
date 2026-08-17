@@ -8,9 +8,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -139,11 +152,7 @@ const documentTypes = [
   'OTHER',
 ]
 
-export default function PatientMedicalHistoryPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default function PatientMedicalHistoryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const { toast } = useToast()
   const [loading, setLoading] = useState(true)
@@ -190,7 +199,10 @@ export default function PatientMedicalHistoryPage({
     return () => window.clearTimeout(timeoutId)
   }, [fetchHistory])
 
-  const updateField = <K extends keyof MedicalHistoryForm>(key: K, value: MedicalHistoryForm[K]) => {
+  const updateField = <K extends keyof MedicalHistoryForm>(
+    key: K,
+    value: MedicalHistoryForm[K]
+  ) => {
     setForm((current) => ({ ...current, [key]: value }))
   }
 
@@ -297,26 +309,29 @@ export default function PatientMedicalHistoryPage({
             <ArrowLeft className="h-4 w-4" />
             Back to patient
           </Link>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight">
-            Medical & dental history
-          </h1>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight">Medical & dental history</h1>
           <p className="text-muted-foreground">
             {patient.firstName} {patient.lastName} ({patient.patientId})
           </p>
         </div>
         <Button onClick={handleSave} disabled={saving}>
-          {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+          {saving ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="mr-2 h-4 w-4" />
+          )}
           Save history
         </Button>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.15fr_.85fr]">
-        <div className="space-y-6">
+      <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,.85fr)]">
+        <div className="min-w-0 space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Medical history</CardTitle>
               <CardDescription>
-                Persistent clinical history used during assessments, diagnosis, and treatment planning.
+                Persistent clinical history used during assessments, diagnosis, and treatment
+                planning.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -528,8 +543,8 @@ export default function PatientMedicalHistoryPage({
                 Completed and in-flight procedures for historical review and follow-up planning.
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-0">
-              <Table>
+            <CardContent className="min-w-0 overflow-x-auto p-0">
+              <Table className="min-w-[760px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Treatment</TableHead>
@@ -572,12 +587,18 @@ export default function PatientMedicalHistoryPage({
                         </TableCell>
                         <TableCell>
                           {treatment.followUpRequired ? (
-                            <span>{treatment.followUpDate ? formatDate(treatment.followUpDate) : 'Required'}</span>
+                            <span>
+                              {treatment.followUpDate
+                                ? formatDate(treatment.followUpDate)
+                                : 'Required'}
+                            </span>
                           ) : (
                             <span className="text-muted-foreground">Not required</span>
                           )}
                         </TableCell>
-                        <TableCell className="text-right">{formatCurrency(treatment.cost)}</TableCell>
+                        <TableCell className="text-right">
+                          {formatCurrency(treatment.cost, { locale: 'en-US', currency: 'ETB' })}
+                        </TableCell>
                       </TableRow>
                     ))
                   )}
@@ -587,7 +608,7 @@ export default function PatientMedicalHistoryPage({
           </Card>
         </div>
 
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Patient summary</CardTitle>
@@ -611,7 +632,9 @@ export default function PatientMedicalHistoryPage({
           <Card>
             <CardHeader>
               <CardTitle>Patient records</CardTitle>
-              <CardDescription>Upload radiographs, consent forms, reports, photos, and supporting records.</CardDescription>
+              <CardDescription>
+                Upload radiographs, consent forms, reports, photos, and supporting records.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -673,11 +696,14 @@ export default function PatientMedicalHistoryPage({
                           <p className="truncate font-medium">{document.originalName}</p>
                         </div>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          {document.documentType.replaceAll('_', ' ')} · {formatDate(document.createdAt)} ·{' '}
+                          {document.documentType.replaceAll('_', ' ')} ·{' '}
+                          {formatDate(document.createdAt)} ·{' '}
                           {Math.max(1, Math.round(document.fileSize / 1024))} KB
                         </p>
                         {document.description && (
-                          <p className="mt-1 text-xs text-muted-foreground">{document.description}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {document.description}
+                          </p>
                         )}
                       </div>
                       <a

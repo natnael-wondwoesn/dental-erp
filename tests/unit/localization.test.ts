@@ -66,9 +66,9 @@ describe('Section 10.1 — Current Locale (India)', () => {
       expect(result).toContain('₹')
     })
 
-    it('billingFormatCurrency displays ₹ with 2 decimal places', () => {
+    it('billingFormatCurrency displays ETB with 2 decimal places', () => {
       const result = billingFormatCurrency(500)
-      expect(result).toContain('₹')
+      expect(result).toContain('ETB')
       expect(result).toMatch(/500\.00/)
     })
 
@@ -90,10 +90,9 @@ describe('Section 10.1 — Current Locale (India)', () => {
       expect(result).toMatch(/0/)
     })
 
-    it('large amounts use crore formatting in billing', () => {
+    it('large amounts use international grouping in billing', () => {
       const result = billingFormatCurrency(25000000)
-      // 2,50,00,000.00
-      expect(result).toContain('2,50,00,000')
+      expect(result).toContain('25,000,000.00')
     })
 
     it('negative amounts are handled', () => {
@@ -102,8 +101,8 @@ describe('Section 10.1 — Current Locale (India)', () => {
       expect(result).toContain('1,500')
     })
 
-    it('discountTypeConfig.FIXED.symbol is ₹', () => {
-      expect(discountTypeConfig.FIXED.symbol).toBe('₹')
+    it('discountTypeConfig.FIXED.symbol is ETB', () => {
+      expect(discountTypeConfig.FIXED.symbol).toBe('ETB')
     })
   })
 
