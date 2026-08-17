@@ -56,6 +56,7 @@ import {
   formatToothNumbers,
   parseToothNumbers,
 } from '@/lib/treatment-utils'
+import { ErpModuleOverview } from '@/components/dashboard/erp-overview'
 import { ExportMenu } from '@/components/ui/export-menu'
 
 interface Treatment {
@@ -201,6 +202,13 @@ export default function TreatmentsPage() {
 
   return (
     <div className="space-y-6">
+      <ErpModuleOverview
+        moduleId="treatments"
+        eyebrow="Clinical ERP"
+        title="Assessment, diagnosis and treatment planning in one clinical lane"
+        description="Use this area to move from assessment and diagnosis into planned procedures, chairside execution, follow-up commitments and the documentation needed for billing and reporting."
+      />
+
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>

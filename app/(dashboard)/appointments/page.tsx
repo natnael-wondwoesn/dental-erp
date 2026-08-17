@@ -62,6 +62,7 @@ import {
   getPatientName,
   getDoctorName,
 } from '@/lib/appointment-utils'
+import { ErpModuleOverview } from '@/components/dashboard/erp-overview'
 import { ExportMenu } from '@/components/ui/export-menu'
 
 interface Appointment {
@@ -281,6 +282,13 @@ export default function AppointmentsPage() {
   return (
     <TooltipProvider>
       <div className="space-y-6">
+        <ErpModuleOverview
+          moduleId="appointments"
+          eyebrow="Scheduling ERP"
+          title="Appointments that connect booking, chair flow and follow-up"
+          description="Scheduling, chair allocation, patient arrival, no-show handling and rebooking stay tied to the same patient and doctor record so front desk and clinical teams work from one queue."
+        />
+
         {/* Header */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>

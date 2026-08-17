@@ -122,6 +122,12 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
             <ArrowLeft className="h-4 w-4" /> {t('Patient list')}
           </button>
           <div className="flex items-center gap-2">
+            <Link
+              href={`/patients/${patient.id}/medical-history`}
+              className="inline-flex items-center gap-2 rounded-xl border bg-white px-4 py-2 text-sm font-semibold shadow-sm"
+            >
+              <FileText className="h-4 w-4" /> {t('Medical history')}
+            </Link>
             <label className="hidden items-center gap-2 rounded-full border bg-white px-4 py-2 text-sm text-slate-400 shadow-sm sm:flex">
               <Search className="h-4 w-4" />
               <input className="w-36 bg-transparent outline-none" placeholder="Search records" />
@@ -129,9 +135,9 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
             <Link
               href={`/patients/${patient.id}/edit`}
               className="inline-flex items-center gap-2 rounded-xl border bg-white px-4 py-2 text-sm font-semibold shadow-sm"
-            >
-              <Edit3 className="h-4 w-4" /> {t('Edit patient')}
-            </Link>
+          >
+            <Edit3 className="h-4 w-4" /> {t('Edit patient')}
+          </Link>
           </div>
         </div>
 

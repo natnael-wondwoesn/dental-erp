@@ -10,6 +10,7 @@ import {
   TrendingUp,
   WalletCards,
 } from 'lucide-react'
+import { ErpModuleOverview } from '@/components/dashboard/erp-overview'
 
 type FinanceOverview = {
   thisMonthRevenue: number
@@ -18,40 +19,57 @@ type FinanceOverview = {
   netCashFlow: number
 }
 
-const money = (value: number) =>
+type FinanceDashboardStats = {
+  overview: FinanceOverview
+  currency: string
+}
+
+const money = (value: number, currency = 'ETB') =>
   new Intl.NumberFormat('en-ET', {
     style: 'currency',
-    currency: 'ETB',
+    currency,
     maximumFractionDigits: 0,
   }).format(value)
 
 export default function FinancePage() {
   const [overview, setOverview] = useState<FinanceOverview | null>(null)
+  const [currency, setCurrency] = useState('ETB')
 
   useEffect(() => {
     fetch('/api/dashboard/stats')
       .then((response) => (response.ok ? response.json() : Promise.reject()))
-      .then((data) => setOverview(data.overview))
-      .catch(() => setOverview(null))
+      .then((data: FinanceDashboardStats) => {
+        setOverview(data.overview)
+        setCurrency(data.currency || 'ETB')
+      })
+      .catch(() => {
+        setOverview(null)
+        setCurrency('ETB')
+      })
   }, [])
 
   const cards = [
     [
       'Revenue / income',
-      overview ? money(overview.thisMonthRevenue) : '—',
+      overview ? money(overview.thisMonthRevenue, currency) : '—',
       CircleDollarSign,
       'Collected this month',
     ],
-    ['Expenses', overview ? money(overview.monthExpenses) : '—', ReceiptText, 'Posted this month'],
+    [
+      'Expenses',
+      overview ? money(overview.monthExpenses, currency) : '—',
+      ReceiptText,
+      'Posted this month',
+    ],
     [
       'Net cash flow',
-      overview ? money(overview.netCashFlow) : '—',
+      overview ? money(overview.netCashFlow, currency) : '—',
       TrendingUp,
       'Income less expenses',
     ],
     [
       'Receivables',
-      overview ? money(overview.pendingPayments) : '—',
+      overview ? money(overview.pendingPayments, currency) : '—',
       WalletCards,
       'Outstanding patient balances',
     ],
@@ -59,18 +77,12 @@ export default function FinancePage() {
 
   return (
     <div className="mx-auto max-w-[1540px] space-y-5 pb-8 text-[#13233a]">
-      <section className="rounded-[28px] bg-[#10233f] px-7 py-8 text-white sm:px-10">
-        <p className="text-xs font-semibold uppercase tracking-[.16em] text-blue-200">
-          Accounting & finance
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-[-.04em]">
-          A clear ETB view of clinic cash
-        </h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
-          Revenue, expenses, dentist commissions, cash flow and financial reporting share the same
-          posted transactions and audit trail.
-        </p>
-      </section>
+      <ErpModuleOverview
+        moduleId="finance"
+        eyebrow="Finance ERP"
+        title="A finance view that reconciles cash, expenses and receivables"
+        description="Revenue, expenses, cash flow and receivables all derive from the same posted ERP transactions, giving finance and leadership one auditable operating picture."
+      />
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map(([label, value, Icon, detail]) => (
           <article
@@ -91,12 +103,12 @@ export default function FinancePage() {
           [
             'Billing & receipts',
             'Issue invoices, allocate cash, bank and mobile-money payments, then print traceable receipts.',
-            '/billing',
+            '/billing/receipts',
           ],
           [
             'Dentist commissions',
             'Configure commission rules and produce reviewable statements from performed procedures.',
-            '/staff',
+            '/finance/commissions',
           ],
           [
             'Financial reports',

@@ -48,6 +48,7 @@ import {
 } from 'recharts'
 
 import { ReportBuilder } from '@/components/ai/report-builder'
+import { ErpModuleOverview } from '@/components/dashboard/erp-overview'
 
 // Chart colors
 const CHART_COLORS = [
@@ -258,6 +259,13 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
+      <ErpModuleOverview
+        moduleId="reports"
+        eyebrow="Analytics ERP"
+        title="Reports that read across patient, clinical, billing and operations data"
+        description="These analytics consolidate the shared ERP data model into patient, clinical, financial and operational views so management decisions aren’t trapped inside separate modules."
+      />
+
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>

@@ -6,19 +6,15 @@ import {
   ArrowRight,
   CalendarDays,
   CircleDollarSign,
-  Clock3,
-  FlaskConical,
-  LayoutGrid,
   Plus,
   ReceiptText,
   RefreshCw,
   Stethoscope,
-  TrendingUp,
   UserPlus,
   Users,
-  WalletCards,
 } from 'lucide-react'
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
+import { ErpCommandCenter } from '@/components/dashboard/erp-overview'
 import { useLanguage } from '@/lib/i18n'
 
 type DashboardStats = {
@@ -70,58 +66,6 @@ type DashboardStats = {
   generatedAt: string
 }
 
-const modules = [
-  {
-    title: 'Patient management',
-    description: 'Registration, profile, history and records',
-    href: '/patients',
-    icon: Users,
-    tone: 'bg-blue-50 text-blue-700',
-  },
-  {
-    title: 'Appointments',
-    description: 'Booking, schedules, changes and history',
-    href: '/appointments',
-    icon: CalendarDays,
-    tone: 'bg-cyan-50 text-cyan-700',
-  },
-  {
-    title: 'Assessment & treatment',
-    description: 'Charting, diagnosis, plans and follow-up',
-    href: '/treatments',
-    icon: Stethoscope,
-    tone: 'bg-violet-50 text-violet-700',
-  },
-  {
-    title: 'Billing & payments',
-    description: 'Invoices, receipts, discounts and balances',
-    href: '/billing',
-    icon: ReceiptText,
-    tone: 'bg-emerald-50 text-emerald-700',
-  },
-  {
-    title: 'Dental laboratory',
-    description: 'Cases, appliances, status and lab cost',
-    href: '/lab',
-    icon: FlaskConical,
-    tone: 'bg-amber-50 text-amber-700',
-  },
-  {
-    title: 'Accounting & finance',
-    description: 'Income, expenses, commissions and cash flow',
-    href: '/finance',
-    icon: WalletCards,
-    tone: 'bg-rose-50 text-rose-700',
-  },
-  {
-    title: 'Reports & performance',
-    description: 'Clinical, revenue, dentist and clinic reporting',
-    href: '/reports',
-    icon: TrendingUp,
-    tone: 'bg-indigo-50 text-indigo-700',
-  },
-]
-
 const statusStyle: Record<string, string> = {
   CHECKED_IN: 'bg-amber-50 text-amber-700 ring-amber-600/10',
   IN_CHAIR: 'bg-violet-50 text-violet-700 ring-violet-600/10',
@@ -130,10 +74,10 @@ const statusStyle: Record<string, string> = {
   COMPLETED: 'bg-slate-100 text-slate-600 ring-slate-600/10',
 }
 
-function formatMoney(value: number) {
+function formatMoney(value: number, currency = 'ETB') {
   return new Intl.NumberFormat('en-ET', {
     style: 'currency',
-    currency: 'ETB',
+    currency,
     maximumFractionDigits: 0,
   }).format(value)
 }
@@ -251,6 +195,7 @@ export default function DashboardPage() {
 
   const overview = stats.overview
   const appointments = stats.recentActivity.upcomingAppointments
+  const currency = stats.currency || 'ETB'
 
   return (
     <div className="clinic-dashboard mx-auto max-w-[1540px] space-y-5 pb-8 text-[#13233a]">
@@ -303,14 +248,14 @@ export default function DashboardPage() {
         />
         <MetricCard
           label={t('Revenue this month')}
-          value={formatMoney(overview.thisMonthRevenue)}
-          detail={`${formatMoney(overview.todayRevenue)} ${t('collected today')}`}
+          value={formatMoney(overview.thisMonthRevenue, currency)}
+          detail={`${formatMoney(overview.todayRevenue, currency)} ${t('collected today')}`}
           icon={CircleDollarSign}
           accent="bg-emerald-50 text-emerald-700"
         />
         <MetricCard
           label={t('Outstanding balance')}
-          value={formatMoney(overview.pendingPayments)}
+          value={formatMoney(overview.pendingPayments, currency)}
           detail={`${overview.activeLabOrders} ${t('active lab cases')}`}
           icon={ReceiptText}
           accent="bg-amber-50 text-amber-700"
@@ -398,7 +343,7 @@ export default function DashboardPage() {
               </h2>
             </div>
             <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
-              ETB
+              {currency}
             </span>
           </div>
           <div className="mt-5 h-52">
@@ -418,7 +363,7 @@ export default function DashboardPage() {
                   tick={{ fontSize: 11, fill: '#94a3b8' }}
                 />
                 <Tooltip
-                  formatter={(value) => formatMoney(Number(value))}
+                  formatter={(value) => formatMoney(Number(value), currency)}
                   contentStyle={{
                     borderRadius: 14,
                     borderColor: '#e6edf7',
@@ -438,62 +383,17 @@ export default function DashboardPage() {
           <div className="mt-4 grid grid-cols-2 gap-3">
             <div className="rounded-2xl bg-[#f4f8fd] p-4">
               <p className="text-xs text-slate-500">{t('Net cash flow')}</p>
-              <p className="mt-1 font-semibold">{formatMoney(overview.netCashFlow)}</p>
+              <p className="mt-1 font-semibold">{formatMoney(overview.netCashFlow, currency)}</p>
             </div>
             <div className="rounded-2xl bg-[#f4f8fd] p-4">
               <p className="text-xs text-slate-500">{t('Month expenses')}</p>
-              <p className="mt-1 font-semibold">{formatMoney(overview.monthExpenses)}</p>
+              <p className="mt-1 font-semibold">{formatMoney(overview.monthExpenses, currency)}</p>
             </div>
           </div>
         </article>
       </section>
 
-      <section className="rounded-[24px] border border-[#e6edf7] bg-white p-6 shadow-[0_12px_34px_rgba(31,60,102,0.055)] sm:p-7">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#0769e7]">
-              <LayoutGrid className="h-4 w-4" /> {t('Clinic workspaces')}
-            </div>
-            <h2 className="mt-2 text-xl font-semibold tracking-[-0.025em]">
-              {t('One patient-to-payment workflow')}
-            </h2>
-          </div>
-          <p className="max-w-lg text-sm leading-6 text-slate-500">
-            {t('Clinical care, laboratory work and finance stay connected to one patient record.')}
-          </p>
-        </div>
-        <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {modules.map((module) => {
-            const Icon = module.icon
-            return (
-              <Link
-                key={module.href}
-                href={module.href}
-                className="group rounded-[20px] border border-slate-100 p-4 transition hover:border-blue-200 hover:bg-[#f8fbff]"
-              >
-                <div className="flex items-start gap-4">
-                  <span
-                    className={`grid h-10 w-10 shrink-0 place-items-center rounded-2xl ${module.tone}`}
-                  >
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <div className="min-w-0">
-                    <h3 className="font-semibold">{t(module.title)}</h3>
-                    <p className="mt-1 text-xs leading-5 text-slate-500">{t(module.description)}</p>
-                  </div>
-                  <ArrowRight className="ml-auto mt-1 h-4 w-4 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-[#0769e7]" />
-                </div>
-              </Link>
-            )
-          })}
-          <div className="flex items-center gap-3 rounded-[20px] bg-[#eaf3ff] p-4 text-[#0769e7]">
-            <Clock3 className="h-5 w-5" />
-            <p className="text-xs font-semibold leading-5">
-              {t('Addis Ababa time · ETB reporting · English / Amharic')}
-            </p>
-          </div>
-        </div>
-      </section>
+      <ErpCommandCenter />
     </div>
   )
 }

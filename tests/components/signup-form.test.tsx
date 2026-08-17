@@ -64,6 +64,12 @@ vi.mock('next/link', () => ({
 
 import SignupPage from '@/app/(auth)/signup/page'
 
+const HOSPITAL_PLACEHOLDER = 'Dentix Bole Dental Clinic'
+const ADMIN_PLACEHOLDER = 'Dr. Selam Abebe'
+const EMAIL_PLACEHOLDER = 'selam@dentix.et'
+const PHONE_PLACEHOLDER = '0911234567'
+const SUBMIT_LABEL = 'Create workspace'
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -88,10 +94,10 @@ function fillForm(overrides: Record<string, string> = {}) {
 
 function getPlaceholder(field: string): string {
   const map: Record<string, string> = {
-    hospitalName: "Dr. Smith's Dental Clinic",
-    adminName: 'Dr. John Smith',
-    email: 'doctor@clinic.com',
-    phone: '9876543210',
+    hospitalName: HOSPITAL_PLACEHOLDER,
+    adminName: ADMIN_PLACEHOLDER,
+    email: EMAIL_PLACEHOLDER,
+    phone: PHONE_PLACEHOLDER,
     password: 'At least 8 characters',
     confirmPassword: 'Confirm your password',
   }
@@ -112,17 +118,17 @@ describe('SignupPage', () => {
     it('renders the signup form with all fields', () => {
       render(<SignupPage />)
       expect(screen.getByText('Create your clinic')).toBeInTheDocument()
-      expect(screen.getByPlaceholderText("Dr. Smith's Dental Clinic")).toBeInTheDocument()
-      expect(screen.getByPlaceholderText('Dr. John Smith')).toBeInTheDocument()
-      expect(screen.getByPlaceholderText('doctor@clinic.com')).toBeInTheDocument()
-      expect(screen.getByPlaceholderText('9876543210')).toBeInTheDocument()
+      expect(screen.getByPlaceholderText(HOSPITAL_PLACEHOLDER)).toBeInTheDocument()
+      expect(screen.getByPlaceholderText(ADMIN_PLACEHOLDER)).toBeInTheDocument()
+      expect(screen.getByPlaceholderText(EMAIL_PLACEHOLDER)).toBeInTheDocument()
+      expect(screen.getByPlaceholderText(PHONE_PLACEHOLDER)).toBeInTheDocument()
       expect(screen.getByPlaceholderText('At least 8 characters')).toBeInTheDocument()
       expect(screen.getByPlaceholderText('Confirm your password')).toBeInTheDocument()
     })
 
     it('renders Create Account submit button', () => {
       render(<SignupPage />)
-      expect(screen.getByText('Create Account')).toBeInTheDocument()
+      expect(screen.getByText(SUBMIT_LABEL)).toBeInTheDocument()
     })
 
     it('renders link to login page', () => {
@@ -132,14 +138,14 @@ describe('SignupPage', () => {
 
     it('renders terms of service notice', () => {
       render(<SignupPage />)
-      expect(screen.getByText(/Terms of Service/)).toBeInTheDocument()
+      expect(screen.getByText(/terms, privacy policy, and clinic data handling rules/i)).toBeInTheDocument()
     })
   })
 
   describe('Validation — Hospital Name', () => {
     it('shows error when hospital name is empty', async () => {
       render(<SignupPage />)
-      fireEvent.click(screen.getByText('Create Account'))
+      fireEvent.click(screen.getByText(SUBMIT_LABEL))
       await waitFor(() => {
         expect(screen.getByText('Hospital name must be at least 2 characters')).toBeInTheDocument()
       })
@@ -147,10 +153,10 @@ describe('SignupPage', () => {
 
     it('shows error when hospital name is too short (1 char)', async () => {
       render(<SignupPage />)
-      fireEvent.change(screen.getByPlaceholderText("Dr. Smith's Dental Clinic"), {
+      fireEvent.change(screen.getByPlaceholderText(HOSPITAL_PLACEHOLDER), {
         target: { value: 'A' },
       })
-      fireEvent.click(screen.getByText('Create Account'))
+      fireEvent.click(screen.getByText(SUBMIT_LABEL))
       await waitFor(() => {
         expect(screen.getByText('Hospital name must be at least 2 characters')).toBeInTheDocument()
       })
@@ -160,7 +166,7 @@ describe('SignupPage', () => {
   describe('Validation — Admin Name', () => {
     it('shows error when admin name is empty', async () => {
       render(<SignupPage />)
-      fireEvent.click(screen.getByText('Create Account'))
+      fireEvent.click(screen.getByText(SUBMIT_LABEL))
       await waitFor(() => {
         expect(screen.getByText('Your name must be at least 2 characters')).toBeInTheDocument()
       })
@@ -168,8 +174,8 @@ describe('SignupPage', () => {
 
     it('shows error when admin name is 1 char', async () => {
       render(<SignupPage />)
-      fireEvent.change(screen.getByPlaceholderText('Dr. John Smith'), { target: { value: 'X' } })
-      fireEvent.click(screen.getByText('Create Account'))
+      fireEvent.change(screen.getByPlaceholderText(ADMIN_PLACEHOLDER), { target: { value: 'X' } })
+      fireEvent.click(screen.getByText(SUBMIT_LABEL))
       await waitFor(() => {
         expect(screen.getByText('Your name must be at least 2 characters')).toBeInTheDocument()
       })
@@ -180,16 +186,16 @@ describe('SignupPage', () => {
     it('does not submit with invalid email', async () => {
       render(<SignupPage />)
       // Fill all other fields to isolate email validation
-      fireEvent.change(screen.getByPlaceholderText("Dr. Smith's Dental Clinic"), {
+      fireEvent.change(screen.getByPlaceholderText(HOSPITAL_PLACEHOLDER), {
         target: { value: 'Test Clinic' },
       })
-      fireEvent.change(screen.getByPlaceholderText('Dr. John Smith'), {
+      fireEvent.change(screen.getByPlaceholderText(ADMIN_PLACEHOLDER), {
         target: { value: 'Dr Test' },
       })
-      fireEvent.change(screen.getByPlaceholderText('doctor@clinic.com'), {
+      fireEvent.change(screen.getByPlaceholderText(EMAIL_PLACEHOLDER), {
         target: { value: 'not-an-email' },
       })
-      fireEvent.change(screen.getByPlaceholderText('9876543210'), {
+      fireEvent.change(screen.getByPlaceholderText(PHONE_PLACEHOLDER), {
         target: { value: '9876543210' },
       })
       fireEvent.change(screen.getByPlaceholderText('At least 8 characters'), {
@@ -200,7 +206,7 @@ describe('SignupPage', () => {
       })
 
       await act(async () => {
-        fireEvent.click(screen.getByText('Create Account'))
+        fireEvent.click(screen.getByText(SUBMIT_LABEL))
       })
 
       // Form should not submit with invalid email — fetch should not be called
@@ -211,10 +217,10 @@ describe('SignupPage', () => {
 
     it('shows error for empty email on submit', async () => {
       render(<SignupPage />)
-      fireEvent.click(screen.getByText('Create Account'))
+      fireEvent.click(screen.getByText(SUBMIT_LABEL))
       await waitFor(() => {
         // Email is required, so it should show some validation error
-        const emailInput = screen.getByPlaceholderText('doctor@clinic.com')
+        const emailInput = screen.getByPlaceholderText(EMAIL_PLACEHOLDER)
         expect(emailInput).toBeInTheDocument()
       })
     })
@@ -223,8 +229,8 @@ describe('SignupPage', () => {
   describe('Validation — Phone', () => {
     it('shows error when phone is too short', async () => {
       render(<SignupPage />)
-      fireEvent.change(screen.getByPlaceholderText('9876543210'), { target: { value: '123' } })
-      fireEvent.click(screen.getByText('Create Account'))
+      fireEvent.change(screen.getByPlaceholderText(PHONE_PLACEHOLDER), { target: { value: '123' } })
+      fireEvent.click(screen.getByText(SUBMIT_LABEL))
       await waitFor(() => {
         expect(screen.getByText('Phone number must be at least 10 digits')).toBeInTheDocument()
       })
@@ -237,7 +243,7 @@ describe('SignupPage', () => {
       fireEvent.change(screen.getByPlaceholderText('At least 8 characters'), {
         target: { value: '1234567' },
       })
-      fireEvent.click(screen.getByText('Create Account'))
+      fireEvent.click(screen.getByText(SUBMIT_LABEL))
       await waitFor(() => {
         expect(screen.getByText('Password must be at least 8 characters')).toBeInTheDocument()
       })
@@ -246,16 +252,16 @@ describe('SignupPage', () => {
     it('shows error when passwords do not match', async () => {
       render(<SignupPage />)
       // Fill all fields but mismatch passwords
-      fireEvent.change(screen.getByPlaceholderText("Dr. Smith's Dental Clinic"), {
+      fireEvent.change(screen.getByPlaceholderText(HOSPITAL_PLACEHOLDER), {
         target: { value: 'Test Clinic' },
       })
-      fireEvent.change(screen.getByPlaceholderText('Dr. John Smith'), {
+      fireEvent.change(screen.getByPlaceholderText(ADMIN_PLACEHOLDER), {
         target: { value: 'Dr Test' },
       })
-      fireEvent.change(screen.getByPlaceholderText('doctor@clinic.com'), {
+      fireEvent.change(screen.getByPlaceholderText(EMAIL_PLACEHOLDER), {
         target: { value: 'test@test.com' },
       })
-      fireEvent.change(screen.getByPlaceholderText('9876543210'), {
+      fireEvent.change(screen.getByPlaceholderText(PHONE_PLACEHOLDER), {
         target: { value: '9876543210' },
       })
       fireEvent.change(screen.getByPlaceholderText('At least 8 characters'), {
@@ -265,7 +271,7 @@ describe('SignupPage', () => {
         target: { value: 'different456' },
       })
 
-      fireEvent.click(screen.getByText('Create Account'))
+      fireEvent.click(screen.getByText(SUBMIT_LABEL))
       await waitFor(() => {
         expect(screen.getByText('Passwords do not match')).toBeInTheDocument()
       })
@@ -281,16 +287,16 @@ describe('SignupPage', () => {
 
       render(<SignupPage />)
 
-      fireEvent.change(screen.getByPlaceholderText("Dr. Smith's Dental Clinic"), {
+      fireEvent.change(screen.getByPlaceholderText(HOSPITAL_PLACEHOLDER), {
         target: { value: 'Test Clinic' },
       })
-      fireEvent.change(screen.getByPlaceholderText('Dr. John Smith'), {
+      fireEvent.change(screen.getByPlaceholderText(ADMIN_PLACEHOLDER), {
         target: { value: 'Dr Test' },
       })
-      fireEvent.change(screen.getByPlaceholderText('doctor@clinic.com'), {
+      fireEvent.change(screen.getByPlaceholderText(EMAIL_PLACEHOLDER), {
         target: { value: 'test@test.com' },
       })
-      fireEvent.change(screen.getByPlaceholderText('9876543210'), {
+      fireEvent.change(screen.getByPlaceholderText(PHONE_PLACEHOLDER), {
         target: { value: '9876543210' },
       })
       fireEvent.change(screen.getByPlaceholderText('At least 8 characters'), {
@@ -301,7 +307,7 @@ describe('SignupPage', () => {
       })
 
       await act(async () => {
-        fireEvent.click(screen.getByText('Create Account'))
+        fireEvent.click(screen.getByText(SUBMIT_LABEL))
       })
 
       await waitFor(() => {
@@ -332,16 +338,16 @@ describe('SignupPage', () => {
 
       render(<SignupPage />)
 
-      fireEvent.change(screen.getByPlaceholderText("Dr. Smith's Dental Clinic"), {
+      fireEvent.change(screen.getByPlaceholderText(HOSPITAL_PLACEHOLDER), {
         target: { value: 'Test Clinic' },
       })
-      fireEvent.change(screen.getByPlaceholderText('Dr. John Smith'), {
+      fireEvent.change(screen.getByPlaceholderText(ADMIN_PLACEHOLDER), {
         target: { value: 'Dr Test' },
       })
-      fireEvent.change(screen.getByPlaceholderText('doctor@clinic.com'), {
+      fireEvent.change(screen.getByPlaceholderText(EMAIL_PLACEHOLDER), {
         target: { value: 'test@test.com' },
       })
-      fireEvent.change(screen.getByPlaceholderText('9876543210'), {
+      fireEvent.change(screen.getByPlaceholderText(PHONE_PLACEHOLDER), {
         target: { value: '9876543210' },
       })
       fireEvent.change(screen.getByPlaceholderText('At least 8 characters'), {
@@ -352,7 +358,7 @@ describe('SignupPage', () => {
       })
 
       await act(async () => {
-        fireEvent.click(screen.getByText('Create Account'))
+        fireEvent.click(screen.getByText(SUBMIT_LABEL))
       })
 
       await waitFor(() => {
@@ -371,16 +377,16 @@ describe('SignupPage', () => {
 
       render(<SignupPage />)
 
-      fireEvent.change(screen.getByPlaceholderText("Dr. Smith's Dental Clinic"), {
+      fireEvent.change(screen.getByPlaceholderText(HOSPITAL_PLACEHOLDER), {
         target: { value: 'Test Clinic' },
       })
-      fireEvent.change(screen.getByPlaceholderText('Dr. John Smith'), {
+      fireEvent.change(screen.getByPlaceholderText(ADMIN_PLACEHOLDER), {
         target: { value: 'Dr Test' },
       })
-      fireEvent.change(screen.getByPlaceholderText('doctor@clinic.com'), {
+      fireEvent.change(screen.getByPlaceholderText(EMAIL_PLACEHOLDER), {
         target: { value: 'test@test.com' },
       })
-      fireEvent.change(screen.getByPlaceholderText('9876543210'), {
+      fireEvent.change(screen.getByPlaceholderText(PHONE_PLACEHOLDER), {
         target: { value: '9876543210' },
       })
       fireEvent.change(screen.getByPlaceholderText('At least 8 characters'), {
@@ -391,7 +397,7 @@ describe('SignupPage', () => {
       })
 
       await act(async () => {
-        fireEvent.click(screen.getByText('Create Account'))
+        fireEvent.click(screen.getByText(SUBMIT_LABEL))
       })
 
       await waitFor(() => {
@@ -406,7 +412,7 @@ describe('SignupPage', () => {
 
     it('does not submit when validation fails', async () => {
       render(<SignupPage />)
-      fireEvent.click(screen.getByText('Create Account'))
+      fireEvent.click(screen.getByText(SUBMIT_LABEL))
 
       await waitFor(() => {
         expect(global.fetch).not.toHaveBeenCalled()
@@ -421,16 +427,16 @@ describe('SignupPage', () => {
 
       render(<SignupPage />)
 
-      fireEvent.change(screen.getByPlaceholderText("Dr. Smith's Dental Clinic"), {
+      fireEvent.change(screen.getByPlaceholderText(HOSPITAL_PLACEHOLDER), {
         target: { value: 'Test Clinic' },
       })
-      fireEvent.change(screen.getByPlaceholderText('Dr. John Smith'), {
+      fireEvent.change(screen.getByPlaceholderText(ADMIN_PLACEHOLDER), {
         target: { value: 'Dr Test' },
       })
-      fireEvent.change(screen.getByPlaceholderText('doctor@clinic.com'), {
+      fireEvent.change(screen.getByPlaceholderText(EMAIL_PLACEHOLDER), {
         target: { value: 'test@test.com' },
       })
-      fireEvent.change(screen.getByPlaceholderText('9876543210'), {
+      fireEvent.change(screen.getByPlaceholderText(PHONE_PLACEHOLDER), {
         target: { value: '9876543210' },
       })
       fireEvent.change(screen.getByPlaceholderText('At least 8 characters'), {
@@ -441,7 +447,7 @@ describe('SignupPage', () => {
       })
 
       await act(async () => {
-        fireEvent.click(screen.getByText('Create Account'))
+        fireEvent.click(screen.getByText(SUBMIT_LABEL))
       })
 
       await waitFor(() => {
@@ -460,7 +466,7 @@ describe('SignupPage', () => {
   describe('Multiple validation errors', () => {
     it('shows all validation errors at once', async () => {
       render(<SignupPage />)
-      fireEvent.click(screen.getByText('Create Account'))
+      fireEvent.click(screen.getByText(SUBMIT_LABEL))
 
       await waitFor(() => {
         expect(screen.getByText('Hospital name must be at least 2 characters')).toBeInTheDocument()

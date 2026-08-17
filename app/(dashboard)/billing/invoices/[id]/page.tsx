@@ -535,7 +535,12 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                     {invoice.payments.map((payment) => (
                       <TableRow key={payment.id}>
                         <TableCell>
-                          <div className="font-medium">{payment.paymentNo}</div>
+                          <Link
+                            href={`/billing/receipts/${payment.id}`}
+                            className="font-medium text-primary hover:underline"
+                          >
+                            {payment.paymentNo}
+                          </Link>
                           {payment.transactionId && (
                             <div className="text-sm text-muted-foreground">
                               TXN: {payment.transactionId}

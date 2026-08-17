@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -18,7 +18,6 @@ import {
   CreditCard,
   TrendingUp,
   AlertCircle,
-  IndianRupee,
   ArrowUpRight,
   ArrowDownRight,
   FileText,
@@ -30,8 +29,10 @@ import {
   CalendarClock,
   Brain,
   Loader2,
+  Banknote,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { ErpModuleOverview } from '@/components/dashboard/erp-overview'
 import { formatCurrency, dateRangePresets, getDateRangeFromPreset } from '@/lib/billing-utils'
 import { ExportMenu } from '@/components/ui/export-menu'
 
@@ -105,7 +106,7 @@ export default function BillingPage() {
     }
   }
 
-  const fetchSummary = async () => {
+  const fetchSummary = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -125,9 +126,9 @@ export default function BillingPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [datePreset])
 
-  const fetchRevenueCycle = async () => {
+  const fetchRevenueCycle = useCallback(async () => {
     try {
       const [agingRes, plansRes] = await Promise.all([
         fetch('/api/billing/reports?type=outstanding'),
@@ -144,17 +145,21 @@ export default function BillingPage() {
     } catch {
       // non-critical
     }
-  }
+  }, [])
 
   useEffect(() => {
-    fetchSummary()
-    fetchRevenueCycle()
-  }, [datePreset])
+    const timeoutId = window.setTimeout(() => {
+      void fetchSummary()
+      void fetchRevenueCycle()
+    }, 0)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [fetchRevenueCycle, fetchSummary])
 
   const paymentMethodLabels: Record<string, string> = {
     CASH: 'Cash',
     CARD: 'Card',
-    UPI: 'UPI',
+    UPI: 'Mobile Money',
     BANK_TRANSFER: 'Bank Transfer',
     CHEQUE: 'Cheque',
     INSURANCE: 'Insurance',
@@ -173,6 +178,13 @@ export default function BillingPage() {
 
   return (
     <div className="space-y-6">
+      <ErpModuleOverview
+        moduleId="billing"
+        eyebrow="Revenue cycle ERP"
+        title="Billing that spans invoices, collections, plans and insurance"
+        description="This workspace keeps invoicing, receipts, discounts, outstanding balances, payment plans, insurance claims and pre-authorizations visible in one revenue cycle layer."
+      />
+
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
@@ -304,7 +316,7 @@ export default function BillingPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Collected</CardTitle>
-            <IndianRupee className="h-4 w-4 text-muted-foreground" />
+            <Banknote className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -386,6 +398,12 @@ export default function BillingPage() {
               <Button variant="outline" className="w-full justify-start">
                 <CreditCard className="h-4 w-4 mr-2" />
                 View All Payments
+              </Button>
+            </Link>
+            <Link href="/billing/receipts" className="block">
+              <Button variant="outline" className="w-full justify-start">
+                <Receipt className="h-4 w-4 mr-2" />
+                Receipts
               </Button>
             </Link>
             <Link href="/billing/payment-plans" className="block">

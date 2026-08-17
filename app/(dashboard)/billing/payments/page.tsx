@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -36,7 +36,6 @@ import {
   MoreHorizontal,
   Eye,
   RotateCcw,
-  IndianRupee,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -105,10 +104,10 @@ export default function PaymentsPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [methodFilter, setMethodFilter] = useState('all')
-  const [dateFrom, setDateFrom] = useState('all')
-  const [dateTo, setDateTo] = useState('all')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
 
-  const fetchPayments = async () => {
+  const fetchPayments = useCallback(async () => {
     try {
       setLoading(true)
       const params = new URLSearchParams({
@@ -134,11 +133,15 @@ export default function PaymentsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [dateFrom, dateTo, methodFilter, pagination.limit, pagination.page, search, statusFilter])
 
   useEffect(() => {
-    fetchPayments()
-  }, [pagination.page, search, statusFilter, methodFilter, dateFrom, dateTo])
+    const timeoutId = window.setTimeout(() => {
+      void fetchPayments()
+    }, 0)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [fetchPayments])
 
   const getStatusBadge = (status: string) => {
     const config = paymentStatusConfig[status as keyof typeof paymentStatusConfig] || {
@@ -197,7 +200,7 @@ export default function PaymentsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Received</CardTitle>
-            <IndianRupee className="h-4 w-4 text-muted-foreground" />
+            <Banknote className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -229,7 +232,7 @@ export default function PaymentsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Net Collection</CardTitle>
-            <IndianRupee className="h-4 w-4 text-muted-foreground" />
+            <Banknote className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -278,7 +281,7 @@ export default function PaymentsPage() {
                   <SelectItem value="all">All Methods</SelectItem>
                   <SelectItem value="CASH">Cash</SelectItem>
                   <SelectItem value="CARD">Card</SelectItem>
-                  <SelectItem value="UPI">UPI</SelectItem>
+                  <SelectItem value="UPI">Mobile Money</SelectItem>
                   <SelectItem value="BANK_TRANSFER">Bank Transfer</SelectItem>
                   <SelectItem value="CHEQUE">Cheque</SelectItem>
                   <SelectItem value="INSURANCE">Insurance</SelectItem>
@@ -424,6 +427,14 @@ export default function PaymentsPage() {
                             <Eye className="h-4 w-4 mr-2" />
                             View Invoice
                           </DropdownMenuItem>
+                          {payment.status === 'COMPLETED' && (
+                            <DropdownMenuItem
+                              onClick={() => router.push(`/billing/receipts/${payment.id}`)}
+                            >
+                              <FileText className="h-4 w-4 mr-2" />
+                              View Receipt
+                            </DropdownMenuItem>
+                          )}
                           {payment.status === 'COMPLETED' && (
                             <DropdownMenuItem
                               onClick={() => router.push(`/billing/payments/${payment.id}/refund`)}

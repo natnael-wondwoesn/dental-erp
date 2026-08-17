@@ -237,6 +237,79 @@ const responseLookup: Record<string, any> = {
     inventoryTurnover: 0,
     lowStockItems: 0,
   },
+  '/api/dashboard/modules': {
+    currency: 'ETB',
+    timezone: 'Africa/Addis_Ababa',
+    generatedAt: '2026-08-17T08:00:00.000Z',
+    commandCenter: {
+      metrics: [
+        { label: 'Patients in clinic', value: 0, kind: 'number' },
+        { label: 'Appointments today', value: 0, kind: 'number' },
+        { label: 'Collected this month', value: 0, kind: 'currency' },
+        { label: 'Active treatment plans', value: 0, kind: 'number' },
+        { label: 'Lab cases in progress', value: 0, kind: 'number' },
+      ],
+      notes: ['ERP operating signals appear here once clinic activity is available.'],
+    },
+    modules: {
+      patients: {
+        metrics: [
+          { label: 'Total patients', value: 0, kind: 'number' },
+          { label: 'New this month', value: 0, kind: 'number' },
+          { label: 'Patients with balances', value: 0, kind: 'number' },
+        ],
+        alerts: ['Patient intake and records will appear here once data is available.'],
+      },
+      appointments: {
+        metrics: [
+          { label: 'Today scheduled', value: 0, kind: 'number' },
+          { label: 'Checked in now', value: 0, kind: 'number' },
+          { label: '30-day no-show rate', value: 0, kind: 'percentage' },
+        ],
+        alerts: ['Scheduling signals will appear here once data is available.'],
+      },
+      treatments: {
+        metrics: [
+          { label: 'Plans in progress', value: 0, kind: 'number' },
+          { label: 'Treatments in chair', value: 0, kind: 'number' },
+          { label: 'Completed this month', value: 0, kind: 'number' },
+        ],
+        alerts: ['Treatment signals will appear here once data is available.'],
+      },
+      billing: {
+        metrics: [
+          { label: 'Collected this month', value: 0, kind: 'currency' },
+          { label: 'Open invoices', value: 0, kind: 'number' },
+          { label: 'Outstanding balance', value: 0, kind: 'currency' },
+        ],
+        alerts: ['Billing signals will appear here once data is available.'],
+      },
+      lab: {
+        metrics: [
+          { label: 'Active lab cases', value: 0, kind: 'number' },
+          { label: 'Ready for delivery', value: 0, kind: 'number' },
+          { label: 'Active vendors', value: 0, kind: 'number' },
+        ],
+        alerts: ['Lab signals will appear here once data is available.'],
+      },
+      reports: {
+        metrics: [
+          { label: 'Revenue growth', value: 0, kind: 'percentage' },
+          { label: 'No-show rate', value: 0, kind: 'percentage' },
+          { label: 'Low-stock items', value: 0, kind: 'number' },
+        ],
+        alerts: ['Reporting signals will appear here once data is available.'],
+      },
+      finance: {
+        metrics: [
+          { label: 'Revenue this month', value: 0, kind: 'currency' },
+          { label: 'Expenses this month', value: 0, kind: 'currency' },
+          { label: 'Net cash flow', value: 0, kind: 'currency' },
+        ],
+        alerts: ['Finance signals will appear here once data is available.'],
+      },
+    },
+  },
   '/api/prescriptions': {
     success: true,
     data: [],

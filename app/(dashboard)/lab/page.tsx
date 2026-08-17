@@ -48,6 +48,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ErpModuleOverview } from '@/components/dashboard/erp-overview'
 import { ExportMenu } from '@/components/ui/export-menu'
 
 interface LabOrder {
@@ -292,6 +293,13 @@ export default function LabWorkPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      <ErpModuleOverview
+        moduleId="lab"
+        eyebrow="Lab ERP"
+        title="Lab cases, appliances and vendor coordination in one queue"
+        description="Track outsourced work from case creation through vendor handoff, progress, remake handling, quality checks and final delivery without losing the patient or financial context."
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

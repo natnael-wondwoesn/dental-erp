@@ -63,6 +63,12 @@ type ModuleBlueprint = {
   actions: Array<{ label: string; href: string }>
 }
 
+const emptyMetric = (label: string, kind: MetricKind = 'number'): SummaryMetric => ({
+  label,
+  value: 0,
+  kind,
+})
+
 const moduleBlueprints: Record<ModuleKey, ModuleBlueprint> = {
   patients: {
     title: 'Patient management',
@@ -166,6 +172,74 @@ function formatMetric(metric: SummaryMetric, currency: string) {
   return new Intl.NumberFormat('en-US').format(metric.value)
 }
 
+function getDefaultModuleSnapshot(moduleId: ModuleKey): ModuleSnapshot {
+  switch (moduleId) {
+    case 'patients':
+      return {
+        metrics: [
+          emptyMetric('Total patients'),
+          emptyMetric('New this month'),
+          emptyMetric('Patients with balances'),
+        ],
+        alerts: ['Patient intake and clinical records will appear here once data is available.'],
+      }
+    case 'appointments':
+      return {
+        metrics: [
+          emptyMetric('Today scheduled'),
+          emptyMetric('Checked in now'),
+          emptyMetric('30-day no-show rate', 'percentage'),
+        ],
+        alerts: ['Scheduling signals will appear here once appointment activity is available.'],
+      }
+    case 'treatments':
+      return {
+        metrics: [
+          emptyMetric('Plans in progress'),
+          emptyMetric('Treatments in chair'),
+          emptyMetric('Completed this month'),
+        ],
+        alerts: ['Treatment coordination signals will appear here once procedures are recorded.'],
+      }
+    case 'billing':
+      return {
+        metrics: [
+          emptyMetric('Collected this month', 'currency'),
+          emptyMetric('Open invoices'),
+          emptyMetric('Outstanding balance', 'currency'),
+        ],
+        alerts: ['Billing workflow signals will appear here once revenue-cycle data is available.'],
+      }
+    case 'lab':
+      return {
+        metrics: [
+          emptyMetric('Active lab cases'),
+          emptyMetric('Ready for delivery'),
+          emptyMetric('Active vendors'),
+        ],
+        alerts: ['Lab coordination signals will appear here once case data is available.'],
+      }
+    case 'reports':
+      return {
+        metrics: [
+          emptyMetric('Revenue growth', 'percentage'),
+          emptyMetric('No-show rate', 'percentage'),
+          emptyMetric('Low-stock items'),
+        ],
+        alerts: ['Cross-module reporting signals will appear here once analytics data is available.'],
+      }
+    case 'finance':
+      return {
+        metrics: [
+          emptyMetric('Revenue this month', 'currency'),
+          emptyMetric('Expenses this month', 'currency'),
+          emptyMetric('Net cash flow', 'currency'),
+        ],
+        alerts: ['Finance signals will appear here once collections and expenses are posted.'],
+      }
+  }
+}
+
 function useErpSummary() {
   const [data, setData] = useState<ErpSummaryResponse | null>(null)
   const [loading, setLoading] = useState(true)
@@ -253,6 +327,21 @@ export function ErpCommandCenter() {
   if (loading) return <CommandCenterSkeleton />
   if (error || !data) return null
 
+  const commandCenterMetrics =
+    data.commandCenter?.metrics?.length
+      ? data.commandCenter.metrics
+      : [
+          emptyMetric('Patients in clinic'),
+          emptyMetric('Appointments today'),
+          emptyMetric('Collected this month', 'currency'),
+          emptyMetric('Active treatment plans'),
+          emptyMetric('Lab cases in progress'),
+        ]
+  const commandCenterNotes =
+    data.commandCenter?.notes?.length
+      ? data.commandCenter.notes
+      : ['ERP operating signals will appear here once live clinic activity is available.']
+
   return (
     <div className="space-y-6">
       <Card className="overflow-hidden border-[#dce7f5] bg-[radial-gradient(circle_at_top_left,_rgba(7,105,231,0.18),_transparent_48%),linear-gradient(135deg,#10233f,#173766)] text-white shadow-[0_18px_48px_rgba(16,35,63,0.18)]">
@@ -276,7 +365,7 @@ export function ErpCommandCenter() {
             </Badge>
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-5">
-            {data.commandCenter.metrics.map((metricItem) => (
+            {commandCenterMetrics.map((metricItem) => (
               <OverviewMetric
                 key={metricItem.label}
                 metric={metricItem}
@@ -286,7 +375,7 @@ export function ErpCommandCenter() {
             ))}
           </div>
           <div className="mt-6 grid gap-3 md:grid-cols-3">
-            {data.commandCenter.notes.map((note) => (
+            {commandCenterNotes.map((note) => (
               <div key={note} className="rounded-2xl border border-white/10 bg-white/10 p-4 text-sm">
                 {note}
               </div>
@@ -298,7 +387,7 @@ export function ErpCommandCenter() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {(Object.keys(moduleBlueprints) as ModuleKey[]).map((moduleId) => {
           const moduleConfig = moduleBlueprints[moduleId]
-          const snapshot = data.modules[moduleId]
+          const snapshot = data.modules?.[moduleId] || getDefaultModuleSnapshot(moduleId)
           const Icon = moduleConfig.icon
 
           return (
@@ -408,7 +497,7 @@ export function ErpModuleOverview({
 
   if (error || !data) return null
 
-  const snapshot = data.modules[moduleId]
+  const snapshot = data.modules?.[moduleId] || getDefaultModuleSnapshot(moduleId)
 
   return (
     <Card className="overflow-hidden border-[#dce7f5] bg-[radial-gradient(circle_at_top_left,_rgba(7,105,231,0.14),_transparent_46%),linear-gradient(180deg,#ffffff,#f8fbff)] shadow-[0_12px_34px_rgba(31,60,102,0.055)]">
