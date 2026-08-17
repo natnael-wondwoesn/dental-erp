@@ -222,7 +222,7 @@ export const discountTypeConfig: Record<
   },
   FIXED: {
     label: 'Fixed Amount',
-    symbol: '₹',
+    symbol: 'ETB',
   },
 }
 
@@ -353,7 +353,8 @@ export function formatCurrency(
   locale?: string
 ): string {
   return baseFormatCurrency(amount, {
-    locale,
+    locale: locale ?? 'en-US',
+    currency: 'ETB',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })

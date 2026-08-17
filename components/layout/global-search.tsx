@@ -146,6 +146,7 @@ export function GlobalSearch() {
       <div className="ml-auto md:w-72">
         <button
           type="button"
+          aria-label="Search patients, appointments, invoices, staff, and treatments"
           onClick={() => setOpen(true)}
           className="hidden h-10 w-full max-w-sm items-center gap-2 rounded-full border border-[#e7edf5] bg-[#f6f8fb] px-4 text-sm text-slate-400 transition-colors hover:border-blue-200 hover:bg-[#f1f6fc] md:flex"
         >
@@ -158,6 +159,7 @@ export function GlobalSearch() {
         {/* Mobile: just the icon */}
         <button
           type="button"
+          aria-label="Search patients, appointments, invoices, staff, and treatments"
           onClick={() => setOpen(true)}
           className="p-2 text-slate-500 transition hover:text-[#0769e7] md:hidden"
         >

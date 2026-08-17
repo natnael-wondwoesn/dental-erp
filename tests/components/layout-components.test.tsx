@@ -379,6 +379,15 @@ describe('GlobalSearch', () => {
     expect(buttons.length).toBeGreaterThanOrEqual(2)
   })
 
+  it('gives the icon-only mobile trigger an accessible name', () => {
+    render(<GlobalSearch />)
+    expect(
+      screen.getAllByRole('button', {
+        name: 'Search patients, appointments, invoices, staff, and treatments',
+      })
+    ).toHaveLength(2)
+  })
+
   it('opens dialog on "/" keypress', async () => {
     render(<GlobalSearch />)
     await act(() => {

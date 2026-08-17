@@ -133,15 +133,18 @@ describe('Billing Utils - calculateInvoiceTotals', () => {
 })
 
 describe('Billing Utils - formatCurrency', () => {
-  it('should format positive amounts in INR', () => {
+  it('should format positive amounts in Ethiopian birr', () => {
     const result = formatCurrency(1234.56)
     expect(result).toContain('1,234.56')
-    expect(result).toContain('₹')
+    expect(result).toContain('ETB')
+    expect(result).not.toContain('₹')
   })
 
   it('should handle null/undefined', () => {
-    expect(formatCurrency(null)).toBe('₹0.00')
-    expect(formatCurrency(undefined)).toBe('₹0.00')
+    expect(formatCurrency(null)).toContain('ETB')
+    expect(formatCurrency(null)).toContain('0.00')
+    expect(formatCurrency(undefined)).toContain('ETB')
+    expect(formatCurrency(undefined)).toContain('0.00')
   })
 
   it('should handle string amounts', () => {
@@ -149,7 +152,8 @@ describe('Billing Utils - formatCurrency', () => {
   })
 
   it('should handle invalid string amounts', () => {
-    expect(formatCurrency('invalid')).toBe('₹0.00')
+    expect(formatCurrency('invalid')).toContain('ETB')
+    expect(formatCurrency('invalid')).toContain('0.00')
   })
 
   it('should format zero correctly', () => {
