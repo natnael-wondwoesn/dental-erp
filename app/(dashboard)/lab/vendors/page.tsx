@@ -39,7 +39,6 @@ import {
   ChevronLeft,
   ChevronRight,
   MoreHorizontal,
-  Eye,
   Edit,
   Trash,
   FlaskConical,
@@ -121,7 +120,7 @@ export default function LabVendorsPage() {
     alternatePhone: '',
     address: '',
     city: '',
-    state: 'Tamil Nadu',
+    state: 'Addis Ababa',
     pincode: '',
     gstin: '',
     pan: '',
@@ -180,7 +179,7 @@ export default function LabVendorsPage() {
         alternatePhone: vendor.alternatePhone || '',
         address: vendor.address || '',
         city: vendor.city || '',
-        state: vendor.state || 'Tamil Nadu',
+        state: vendor.state || 'Addis Ababa',
         pincode: vendor.pincode || '',
         gstin: vendor.gstin || '',
         pan: vendor.pan || '',
@@ -203,7 +202,7 @@ export default function LabVendorsPage() {
         alternatePhone: '',
         address: '',
         city: '',
-        state: 'Tamil Nadu',
+        state: 'Addis Ababa',
         pincode: '',
         gstin: '',
         pan: '',
@@ -320,21 +319,21 @@ export default function LabVendorsPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Lab Vendors</h1>
           <p className="text-muted-foreground">
             Manage external laboratory vendors and their information
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => router.push('/lab')}>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button variant="outline" onClick={() => router.push('/lab')} className="w-full sm:w-auto">
             <FlaskConical className="mr-2 h-4 w-4" />
             Back to Lab Orders
           </Button>
-          <Button onClick={() => handleOpenDialog()}>
+          <Button onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Add Vendor
           </Button>
@@ -427,101 +426,176 @@ export default function LabVendorsPage() {
             </div>
           ) : (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Vendor Code</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Specializations</TableHead>
-                    <TableHead>Turnaround</TableHead>
-                    <TableHead>Rating</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {vendors.map((vendor) => (
-                    <TableRow key={vendor.id}>
-                      <TableCell className="font-medium">{vendor.code}</TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{vendor.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {vendor.contactPerson}
-                          </div>
+              <div className="space-y-4 md:hidden">
+                {vendors.map((vendor) => (
+                  <Card key={vendor.id} className="border-[#e7edf5] shadow-sm">
+                    <CardContent className="space-y-4 p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                            {vendor.code}
+                          </p>
+                          <h3 className="truncate text-base font-semibold">{vendor.name}</h3>
+                          <p className="text-sm text-muted-foreground">{vendor.contactPerson}</p>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="flex items-center text-sm">
-                            <Phone className="mr-1 h-3 w-3" />
-                            {vendor.phone}
+                        {getStatusBadge(vendor.status)}
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span>{vendor.phone}</span>
                           </div>
                           {vendor.email && (
-                            <div className="flex items-center text-sm text-muted-foreground">
-                              <Mail className="mr-1 h-3 w-3" />
-                              {vendor.email}
+                            <div className="flex items-center gap-2 break-all text-muted-foreground">
+                              <Mail className="h-3.5 w-3.5 shrink-0" />
+                              <span>{vendor.email}</span>
                             </div>
                           )}
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <MapPin className="h-3.5 w-3.5 shrink-0" />
+                            <span>
+                              {[vendor.city, vendor.state].filter(Boolean).join(', ') ||
+                                'Location not set'}
+                            </span>
+                          </div>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          {vendor.specializations
-                            ? vendor.specializations.split(',').slice(0, 2).join(', ')
-                            : '-'}
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span>{vendor.avgTurnaround} day turnaround</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                            <span>{vendor.rating.toFixed(1)} quality rating</span>
+                          </div>
+                          <p className="text-muted-foreground">
+                            {vendor.specializations || 'Specializations not set'}
+                          </p>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <Clock className="mr-1 h-3 w-3" />
-                          {vendor.avgTurnaround} days
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <Star className="mr-1 h-3 w-3 fill-yellow-400 text-yellow-400" />
-                          {vendor.rating.toFixed(1)}
-                        </div>
-                      </TableCell>
-                      <TableCell>{getStatusBadge(vendor.status)}</TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleOpenDialog(vendor)}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={() => handleDelete(vendor.id)}
-                              className="text-red-600"
-                            >
-                              <Trash className="mr-2 h-4 w-4" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
+                      </div>
+
+                      <div className="flex flex-col gap-2 sm:flex-row">
+                        <Button
+                          variant="outline"
+                          className="w-full sm:w-auto"
+                          onClick={() => handleOpenDialog(vendor)}
+                        >
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="w-full text-red-600 hover:text-red-700 sm:w-auto"
+                          onClick={() => handleDelete(vendor.id)}
+                        >
+                          <Trash className="mr-2 h-4 w-4" />
+                          Delete
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Vendor Code</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Contact</TableHead>
+                      <TableHead>Specializations</TableHead>
+                      <TableHead>Turnaround</TableHead>
+                      <TableHead>Rating</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {vendors.map((vendor) => (
+                      <TableRow key={vendor.id}>
+                        <TableCell className="font-medium">{vendor.code}</TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{vendor.name}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {vendor.contactPerson}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="flex items-center text-sm">
+                              <Phone className="mr-1 h-3 w-3" />
+                              {vendor.phone}
+                            </div>
+                            {vendor.email && (
+                              <div className="flex items-center text-sm text-muted-foreground">
+                                <Mail className="mr-1 h-3 w-3" />
+                                {vendor.email}
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            {vendor.specializations
+                              ? vendor.specializations.split(',').slice(0, 2).join(', ')
+                              : '-'}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <Clock className="mr-1 h-3 w-3" />
+                            {vendor.avgTurnaround} days
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <Star className="mr-1 h-3 w-3 fill-yellow-400 text-yellow-400" />
+                            {vendor.rating.toFixed(1)}
+                          </div>
+                        </TableCell>
+                        <TableCell>{getStatusBadge(vendor.status)}</TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleOpenDialog(vendor)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => handleDelete(vendor.id)}
+                                className="text-red-600"
+                              >
+                                <Trash className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
 
               {/* Pagination */}
-              <div className="flex items-center justify-between mt-4">
+              <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-muted-foreground">
                   Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
                   {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
                   {pagination.total} vendors
                 </p>
-                <div className="flex gap-2">
+                <div className="flex gap-2 self-start sm:self-auto">
                   <Button
                     variant="outline"
                     size="sm"
@@ -549,13 +623,13 @@ export default function LabVendorsPage() {
 
       {/* Add/Edit Vendor Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editingVendor ? 'Edit Lab Vendor' : 'Add Lab Vendor'}</DialogTitle>
             <DialogDescription>Enter the vendor information below</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="code">Vendor Code *</Label>
                 <Input
@@ -576,7 +650,7 @@ export default function LabVendorsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="contactPerson">Contact Person</Label>
                 <Input
@@ -596,7 +670,7 @@ export default function LabVendorsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -626,7 +700,7 @@ export default function LabVendorsPage() {
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="city">City</Label>
                 <Input
@@ -663,7 +737,7 @@ export default function LabVendorsPage() {
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="avgTurnaround">Avg. Turnaround (days)</Label>
                 <Input

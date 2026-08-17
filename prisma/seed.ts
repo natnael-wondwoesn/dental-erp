@@ -1300,19 +1300,19 @@ async function main() {
   const vendors = [
     {
       code: 'LAB001',
-      name: 'Precision Dental Lab',
-      contactPerson: 'Suresh Kumar',
-      phone: '9840111222',
-      email: 'work@precisionlab.example',
+      name: 'Addis Crown Studio',
+      contactPerson: 'Yonas Hailu',
+      phone: '0912678801',
+      email: 'work@addiscrown.example',
       specializations: 'Crowns, Bridges, Veneers',
       avgTurnaround: 5,
       rating: 4,
     },
     {
       code: 'LAB002',
-      name: 'Ortho Craft Studio',
-      contactPerson: 'Anita Joseph',
-      phone: '9840333444',
+      name: 'Bole Ortho Lab',
+      contactPerson: 'Rahel Demissie',
+      phone: '0912678802',
       specializations: 'Aligners, Retainers',
       avgTurnaround: 8,
       rating: 5,
@@ -1327,8 +1327,8 @@ async function main() {
       await prisma.labVendor.create({
         data: {
           hospitalId: hospital.id,
-          city: 'Chennai',
-          state: 'Tamil Nadu',
+          city: 'Addis Ababa',
+          state: 'Addis Ababa',
           status: LabVendorStatus.ACTIVE,
           ...v,
         },

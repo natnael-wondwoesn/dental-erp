@@ -661,7 +661,7 @@ const setupSections: SetupSection[] = [
         tips: [
           'Start with Economy model — it handles most tasks well',
           'The chat widget can answer questions about patients, appointments, and billing',
-          'Use Ctrl+K command bar for quick actions like "schedule appointment for Rahul tomorrow"',
+          'Use Ctrl+K command bar for quick actions like "schedule appointment for Selamawit tomorrow"',
         ],
         link: { label: 'Go to AI Settings', href: '/settings/ai' },
       },

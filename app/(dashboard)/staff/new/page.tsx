@@ -40,7 +40,7 @@ export default function NewStaffPage() {
     gender: '',
     address: '',
     city: '',
-    state: 'Tamil Nadu',
+    state: 'Addis Ababa',
     pincode: '',
 
     // Documents
@@ -135,7 +135,7 @@ export default function NewStaffPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
         <Link href="/staff">
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-4 w-4" />
@@ -249,7 +249,7 @@ export default function NewStaffPage() {
                     id="phone"
                     value={formData.phone}
                     onChange={(e) => handleChange('phone', e.target.value)}
-                    placeholder="+91 98765 43210"
+                    placeholder="+251 911 234 567"
                     required
                   />
                 </div>
@@ -259,7 +259,7 @@ export default function NewStaffPage() {
                     id="alternatePhone"
                     value={formData.alternatePhone}
                     onChange={(e) => handleChange('alternatePhone', e.target.value)}
-                    placeholder="+91 98765 43210"
+                    placeholder="+251 922 345 678"
                   />
                 </div>
               </div>
@@ -282,7 +282,7 @@ export default function NewStaffPage() {
                     id="city"
                     value={formData.city}
                     onChange={(e) => handleChange('city', e.target.value)}
-                    placeholder="Chennai"
+                    placeholder="Addis Ababa"
                   />
                 </div>
                 <div className="space-y-2">
@@ -291,7 +291,7 @@ export default function NewStaffPage() {
                     id="state"
                     value={formData.state}
                     onChange={(e) => handleChange('state', e.target.value)}
-                    placeholder="Tamil Nadu"
+                    placeholder="Addis Ababa"
                   />
                 </div>
                 <div className="space-y-2">
@@ -300,7 +300,7 @@ export default function NewStaffPage() {
                     id="pincode"
                     value={formData.pincode}
                     onChange={(e) => handleChange('pincode', e.target.value)}
-                    placeholder="600001"
+                    placeholder="1000"
                   />
                 </div>
               </div>
@@ -346,21 +346,21 @@ export default function NewStaffPage() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="aadharNumber">Aadhar Number</Label>
+                  <Label htmlFor="aadharNumber">National ID</Label>
                   <Input
                     id="aadharNumber"
                     value={formData.aadharNumber}
                     onChange={(e) => handleChange('aadharNumber', e.target.value)}
-                    placeholder="1234 5678 9012"
+                    placeholder="FDRE ID or local ID number"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="panNumber">PAN Number</Label>
+                  <Label htmlFor="panNumber">TIN Number</Label>
                   <Input
                     id="panNumber"
                     value={formData.panNumber}
                     onChange={(e) => handleChange('panNumber', e.target.value)}
-                    placeholder="ABCDE1234F"
+                    placeholder="Tax identification number"
                   />
                 </div>
               </div>
@@ -402,7 +402,7 @@ export default function NewStaffPage() {
                     id="licenseNumber"
                     value={formData.licenseNumber}
                     onChange={(e) => handleChange('licenseNumber', e.target.value)}
-                    placeholder="TN/12345"
+                    placeholder="AA-DEN-2026-104"
                   />
                 </div>
                 <div className="space-y-2">
@@ -426,7 +426,7 @@ export default function NewStaffPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="salary">Monthly Salary (₹)</Label>
+                <Label htmlFor="salary">Monthly Salary (ETB)</Label>
                 <Input
                   id="salary"
                   type="number"
@@ -481,7 +481,7 @@ export default function NewStaffPage() {
                   id="emergencyPhone"
                   value={formData.emergencyPhone}
                   onChange={(e) => handleChange('emergencyPhone', e.target.value)}
-                  placeholder="+91 98765 43210"
+                  placeholder="+251 933 456 789"
                 />
               </div>
             </CardContent>
@@ -489,13 +489,13 @@ export default function NewStaffPage() {
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-4 mt-6">
+        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-4">
           <Link href="/staff">
-            <Button variant="outline" type="button">
+            <Button variant="outline" type="button" className="w-full sm:w-auto">
               Cancel
             </Button>
           </Link>
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={loading} className="w-full sm:w-auto">
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Create Staff Member
           </Button>

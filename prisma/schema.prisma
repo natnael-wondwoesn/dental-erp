@@ -452,7 +452,7 @@ model Patient {
   email           String?
   address         String?    @db.Text
   city            String?
-  state           String?    @default("Tamil Nadu")
+  state           String?    @default("Addis Ababa")
   pincode         String?
   aadharNumber    String?
   occupation      String?

@@ -57,6 +57,18 @@ const supplierMappings = [
   ['SUP003', 'Legacy Instruments East Africa', 'Yonatan Fikru', '0911567803', null],
 ] as const
 
+const labVendorMappings = [
+  [
+    'LAB001',
+    'Addis Crown Studio',
+    'Yonas Hailu',
+    '0912678801',
+    'work@addiscrown.example',
+    'Crowns, Bridges, Veneers',
+  ],
+  ['LAB002', 'Bole Ortho Lab', 'Rahel Demissie', '0912678802', null, 'Aligners, Retainers'],
+] as const
+
 async function main() {
   const hospital = await prisma.hospital.findUnique({
     where: { slug: 'demo-dental-clinic' },
@@ -150,6 +162,21 @@ async function main() {
         contactPerson,
         phone,
         email,
+        city: 'Addis Ababa',
+        state: 'Addis Ababa',
+      },
+    })
+  }
+
+  for (const [code, name, contactPerson, phone, email, specializations] of labVendorMappings) {
+    await prisma.labVendor.updateMany({
+      where: { hospitalId: hospital.id, code },
+      data: {
+        name,
+        contactPerson,
+        phone,
+        email,
+        specializations,
         city: 'Addis Ababa',
         state: 'Addis Ababa',
       },
