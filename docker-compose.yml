@@ -71,6 +71,11 @@ services:
       - '${APP_BIND:-127.0.0.1}:${APP_PORT:-3000}:3000'
     env_file: .env
     environment:
+      # Explicit here, rather than left to .env alone, so the full-suite stack
+      # always states its tier rather than inheriting whatever a stray
+      # PRODUCT_TIER happens to be set to in the shell or .env.
+      PRODUCT_TIER: ${PRODUCT_TIER:-full}
+      SITE_ID: ${SITE_ID:-default}
       # Built from parts so it cannot drift out of step with what the mysql
       # service was actually created with. Anything DATABASE_URL in .env is
       # overridden by this.

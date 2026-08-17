@@ -48,71 +48,77 @@ process.env.TZ = 'Asia/Kolkata'
 // Global fetch mock
 global.fetch = vi.fn()
 
-// Mock window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: vi.fn().mockImplementation((query) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })),
-})
+// The above mocks are DOM-only. Some suites opt into `@vitest-environment
+// node` (no `window`) — for example tests exercising Next.js middleware,
+// which needs a real Node `Request`/`Response` rather than jsdom's. Guard the
+// rest of this file so it doesn't crash on load for those suites.
+if (typeof window !== 'undefined') {
+  // Mock window.matchMedia
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: vi.fn().mockImplementation((query) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  })
 
-// Provide window.localStorage.
-//
-// Bare jsdom exposes a working localStorage, but vitest's jsdom environment
-// re-defines the property without a getter, so reads return undefined while
-// sessionStorage keeps working. Install a real in-memory Storage so code under
-// test can round-trip values.
-class MemoryStorage implements Storage {
-  private store = new Map<string, string>()
+  // Provide window.localStorage.
+  //
+  // Bare jsdom exposes a working localStorage, but vitest's jsdom environment
+  // re-defines the property without a getter, so reads return undefined while
+  // sessionStorage keeps working. Install a real in-memory Storage so code under
+  // test can round-trip values.
+  class MemoryStorage implements Storage {
+    private store = new Map<string, string>()
 
-  get length() {
-    return this.store.size
+    get length() {
+      return this.store.size
+    }
+
+    key(index: number) {
+      return Array.from(this.store.keys())[index] ?? null
+    }
+
+    getItem(key: string) {
+      return this.store.get(key) ?? null
+    }
+
+    setItem(key: string, value: string) {
+      this.store.set(key, String(value))
+    }
+
+    removeItem(key: string) {
+      this.store.delete(key)
+    }
+
+    clear() {
+      this.store.clear()
+    }
   }
 
-  key(index: number) {
-    return Array.from(this.store.keys())[index] ?? null
-  }
+  Object.defineProperty(window, 'localStorage', {
+    writable: true,
+    configurable: true,
+    value: new MemoryStorage(),
+  })
 
-  getItem(key: string) {
-    return this.store.get(key) ?? null
-  }
+  // Mock IntersectionObserver
+  global.IntersectionObserver = vi.fn().mockImplementation(() => ({
+    observe: vi.fn(),
+    unobserve: vi.fn(),
+    disconnect: vi.fn(),
+  }))
 
-  setItem(key: string, value: string) {
-    this.store.set(key, String(value))
-  }
-
-  removeItem(key: string) {
-    this.store.delete(key)
-  }
-
-  clear() {
-    this.store.clear()
-  }
+  // Mock ResizeObserver
+  global.ResizeObserver = vi.fn().mockImplementation(() => ({
+    observe: vi.fn(),
+    unobserve: vi.fn(),
+    disconnect: vi.fn(),
+  }))
 }
-
-Object.defineProperty(window, 'localStorage', {
-  writable: true,
-  configurable: true,
-  value: new MemoryStorage(),
-})
-
-// Mock IntersectionObserver
-global.IntersectionObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}))
-
-// Mock ResizeObserver
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}))

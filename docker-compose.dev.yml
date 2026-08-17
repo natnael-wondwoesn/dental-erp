@@ -6,11 +6,17 @@
 # stack can run alongside projects using the usual service ports. Override any
 # of them in .env if the chosen port is already occupied on your machine.
 #
-# This brings up PostgreSQL, legacy MySQL, Redis, MinIO and Mailpit. It does NOT run the app —
+# This brings up PostgreSQL, the FastAPI backend, legacy MySQL, Redis, MinIO and
+# Mailpit. It does NOT run the Next.js app —
 # start that on the host with `npm run dev`. Bind-mounting node_modules into a
 # container is slow enough on Windows and macOS to ruin the edit-reload loop,
 # and native hot reload is meaningfully better. A containerised app service can
 # be added behind a compose profile later for anyone who wants one.
+#
+# There is no `app` service here to attach PRODUCT_TIER / SITE_ID to — the
+# Next.js app runs on the host. Set PRODUCT_TIER (defaults to "full") and
+# SITE_ID (defaults to "default") in your .env before `npm run dev` if you
+# need to develop against the landing tier or a non-default clinic config.
 #
 # ---------------------------------------------------------------------------
 # NEVER USE THIS FILE IN PRODUCTION.
@@ -51,6 +57,69 @@ services:
       timeout: 5s
       retries: 20
       start_period: 10s
+
+  # Runs `alembic upgrade head` once and exits. `docker compose ps` shows it as
+  # Exited(0) — that is success.
+  #
+  # Separated from the backend's own startup so a failed migration fails here,
+  # visibly, rather than inside a crash-looping API container.
+  backend-migrate:
+    build:
+      context: ./backend
+    restart: 'no'
+    command: ['/app/.venv/bin/alembic', 'upgrade', 'head']
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      BACKEND_DATABASE_URL: postgresql+asyncpg://dental:dental@postgres:5432/dental_erp
+
+  # The FastAPI backend. Unlike the Next.js app this runs in a container: there
+  # is no node_modules bind mount to make slow, and uvicorn --reload against a
+  # mounted source tree is as fast as running it on the host.
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    command:
+      [
+        '/app/.venv/bin/uvicorn',
+        'app.main:app',
+        '--host',
+        '0.0.0.0',
+        '--port',
+        '8000',
+        '--reload',
+      ]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      backend-migrate:
+        condition: service_completed_successfully
+    environment:
+      BACKEND_DATABASE_URL: postgresql+asyncpg://dental:dental@postgres:5432/dental_erp
+      BACKEND_JWT_SECRET: development-only-change-this-secret-value
+      BACKEND_CORS_ORIGINS: http://localhost:3000
+      BACKEND_ENVIRONMENT: development
+    ports:
+      - '127.0.0.1:${DENTAL_ERP_DEV_BACKEND_PORT:-18000}:8000'
+    volumes:
+      # Read-only: --reload only needs to watch the tree, never write to it.
+      - ./backend/app:/app/app:ro
+    healthcheck:
+      # The image is python:3.13-slim with no curl or wget, and runs as UID
+      # 10001, so the check is a stdlib one-liner rather than a shell tool.
+      test:
+        [
+          'CMD',
+          'python',
+          '-c',
+          "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/health').status==200 else 1)",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
 
   # Temporary compatibility database. Delete this service with Prisma after
   # the last TypeScript route module is migrated.

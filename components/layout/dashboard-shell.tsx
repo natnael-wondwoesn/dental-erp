@@ -28,7 +28,7 @@ export function DashboardShell({ children, user, hospital }: DashboardShellProps
   return (
     <AIProvider>
       <SidebarProvider>
-        <div className="flex h-screen overflow-hidden bg-[#f3f7fc]">
+        <div className="flex h-screen overflow-hidden bg-[#eef4fb]">
           {/* Sidebar - hidden on mobile */}
           <aside className="hidden md:flex">
             <Sidebar
@@ -50,8 +50,8 @@ export function DashboardShell({ children, user, hospital }: DashboardShellProps
           {/* Main content */}
           <div className="flex flex-1 flex-col overflow-hidden">
             <Header user={user} />
-            <main className="flex-1 overflow-auto bg-[#f3f7fc] p-4 md:p-6">
-              <Breadcrumb className="mb-4" />
+            <main className="flex-1 overflow-auto bg-[#eef4fb] p-4 md:p-6 lg:p-7">
+              <Breadcrumb className="mb-5" />
               {children}
             </main>
           </div>

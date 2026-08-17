@@ -28,15 +28,15 @@ export function Sidebar({ role, hospitalName, hospitalLogo, plan }: SidebarProps
     <TooltipProvider delayDuration={0}>
       <div
         className={cn(
-          'flex h-full flex-col border-r border-slate-100 bg-white transition-all duration-300 ease-in-out',
-          isCollapsed ? 'w-16' : 'w-64'
+          'flex h-full flex-col border-r border-[#e7edf5] bg-white transition-all duration-300 ease-in-out',
+          isCollapsed ? 'w-[72px]' : 'w-[268px]'
         )}
       >
         {/* Header with Logo and Toggle */}
         <div
           className={cn(
-            'flex h-16 items-center border-b',
-            isCollapsed ? 'justify-center px-2' : 'justify-between px-4'
+            'flex h-[72px] items-center border-b border-[#edf1f6]',
+            isCollapsed ? 'justify-center px-2' : 'justify-between px-5'
           )}
         >
           {/* Logo */}
@@ -54,19 +54,19 @@ export function Sidebar({ role, hospitalName, hospitalLogo, plan }: SidebarProps
                 className="h-8 w-8 shrink-0 rounded-lg object-cover"
               />
             ) : (
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#086be6] text-white">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#0769e7] text-white shadow-[0_8px_20px_rgba(7,105,231,.22)]">
                 <Stethoscope className="h-5 w-5" />
               </div>
             )}
             {!isCollapsed && (
               <div className="flex flex-col">
-                <span className="text-sm font-semibold leading-tight truncate max-w-[140px]">
+                <span className="max-w-[150px] truncate text-[15px] font-semibold leading-tight tracking-[-.02em] text-[#13233a]">
                   {hospitalName || 'Dentix'}
                 </span>
                 {plan && (
                   <span
                     className={cn(
-                      'text-[10px] leading-tight',
+                      'mt-1 text-[10px] font-medium leading-tight',
                       plan === 'FREE' ? 'text-muted-foreground' : 'text-primary'
                     )}
                   >
@@ -114,12 +114,15 @@ export function Sidebar({ role, hospitalName, hospitalLogo, plan }: SidebarProps
 
         {/* Navigation */}
         <ScrollArea className="flex-1">
-          <nav className={cn('flex flex-col gap-1 py-3', isCollapsed ? 'px-2' : 'px-3')}>
+          <nav
+            className={cn('flex flex-col gap-1 py-4', isCollapsed ? 'px-2' : 'px-3')}
+            aria-label="Clinic navigation"
+          >
             {navigation.map((section, sectionIndex) => (
               <div key={section.title} className={sectionIndex > 0 ? 'mt-4' : ''}>
                 {/* Section Title - hidden when collapsed */}
                 {!isCollapsed && (
-                  <h4 className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <h4 className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[.16em] text-slate-400">
                     {t(section.title)}
                   </h4>
                 )}
@@ -137,10 +140,10 @@ export function Sidebar({ role, hospitalName, hospitalLogo, plan }: SidebarProps
                             <Link
                               href={item.href}
                               className={cn(
-                                'flex h-10 w-full items-center justify-center rounded-md transition-colors',
+                                'flex h-11 w-full items-center justify-center rounded-xl transition-colors',
                                 isActive
-                                  ? 'bg-secondary text-secondary-foreground'
-                                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                                  ? 'bg-[#eaf3ff] text-[#0769e7]'
+                                  : 'text-slate-400 hover:bg-[#f4f8fd] hover:text-[#13233a]'
                               )}
                             >
                               <Icon className="h-5 w-5" />
@@ -163,10 +166,10 @@ export function Sidebar({ role, hospitalName, hospitalLogo, plan }: SidebarProps
                         key={item.href}
                         href={item.href}
                         className={cn(
-                          'flex h-10 items-center gap-3 rounded-md px-3 text-sm transition-colors',
+                          'flex min-h-11 items-center gap-3 rounded-xl px-3 py-2 text-[13px] transition-colors',
                           isActive
-                            ? 'bg-[#086be6] text-white font-medium shadow-sm'
-                            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                            ? 'bg-[#0769e7] text-white font-semibold shadow-[0_7px_18px_rgba(7,105,231,.18)]'
+                            : 'text-slate-500 hover:bg-[#f4f8fd] hover:text-[#13233a]'
                         )}
                       >
                         <Icon className="h-4 w-4 shrink-0" />
@@ -186,8 +189,13 @@ export function Sidebar({ role, hospitalName, hospitalLogo, plan }: SidebarProps
         </ScrollArea>
 
         {/* Footer */}
-        <div className={cn('border-t py-3 text-center', isCollapsed ? 'px-2' : 'px-4')}>
-          <p className="text-[10px] text-muted-foreground">
+        <div
+          className={cn(
+            'border-t border-[#edf1f6] py-4 text-center',
+            isCollapsed ? 'px-2' : 'px-4'
+          )}
+        >
+          <p className="text-[10px] font-medium text-slate-400">
             {isCollapsed ? 'v1.0' : 'Dental ERP v1.0'}
           </p>
         </div>

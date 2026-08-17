@@ -13,7 +13,6 @@ vi.mock('@/lib/api-helpers', () => ({
 
 // ── Imports (after mocks) ────────────────────────────────────────────────────
 
-import { GET as dashboardGET } from '@/app/api/dashboard/stats/route'
 import { GET as searchGET } from '@/app/api/search/route'
 import { GET as notificationsGET, PUT as notificationsPUT } from '@/app/api/notifications/route'
 
@@ -63,98 +62,7 @@ function makeReq(path: string, method = 'GET', body?: any): NextRequest {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
-// 1. GET /api/dashboard/stats
-// ═════════════════════════════════════════════════════════════════════════════
-
-describe('GET /api/dashboard/stats', () => {
-  beforeEach(() => vi.clearAllMocks())
-
-  it('returns 401 when unauthenticated', async () => {
-    mockAuthError()
-    const res = await dashboardGET(makeReq('/api/dashboard/stats'))
-    expect(res.status).toBe(401)
-  })
-
-  it('returns dashboard statistics', async () => {
-    mockAuth()
-
-    // Mock all the parallel queries (16 items)
-    vi.mocked(prisma.patient.count)
-      .mockResolvedValueOnce(250) // total patients
-      .mockResolvedValueOnce(12) // new this month
-      .mockResolvedValueOnce(10) // prev month patients
-    vi.mocked(prisma.appointment.count)
-      .mockResolvedValueOnce(8) // today
-      .mockResolvedValueOnce(120) // this month
-      .mockResolvedValueOnce(15) // pending
-      .mockResolvedValueOnce(5) // completed today
-      .mockResolvedValueOnce(100) // prev month appointments
-    vi.mocked(prisma.payment.aggregate)
-      .mockResolvedValueOnce({ _sum: { amount: 45000 } } as any) // this month rev
-      .mockResolvedValueOnce({ _sum: { amount: 8500 } } as any) // today rev
-      .mockResolvedValueOnce({ _sum: { amount: 950000 } } as any) // total rev
-      .mockResolvedValueOnce({ _sum: { amount: 40000 } } as any) // prev month rev
-    vi.mocked(prisma.invoice.aggregate).mockResolvedValueOnce({
-      _sum: { totalAmount: 12000 },
-    } as any) // pending
-    vi.mocked(prisma.$queryRaw)
-      .mockResolvedValueOnce([{ date: '2026-02-14', revenue: 1200 }]) // last 7 days
-      .mockResolvedValueOnce([{ month: '2026-01', revenue: 40000 }]) // last 6 months
-      .mockResolvedValueOnce([{ name: 'Root Canal', count: 15, revenue: 75000 }]) // top procs
-      .mockResolvedValueOnce([]) // low stock
-    vi.mocked(prisma.appointment.groupBy).mockResolvedValue([
-      { status: 'COMPLETED', _count: { status: 80 } },
-      { status: 'CANCELLED', _count: { status: 10 } },
-    ] as any)
-    vi.mocked(prisma.appointment.findMany).mockResolvedValue([
-      {
-        id: 'a1',
-        scheduledDate: new Date(),
-        appointmentType: 'CHECKUP',
-        status: 'SCHEDULED',
-        patient: { firstName: 'John', lastName: 'Doe' },
-        doctor: { firstName: 'Dr', lastName: 'Smith' },
-      },
-    ] as any)
-
-    const res = await dashboardGET(makeReq('/api/dashboard/stats'))
-    const body = await res.json()
-
-    expect(res.status).toBe(200)
-    expect(body.success).toBe(true)
-    expect(body.data.overview).toBeDefined()
-    expect(body.data.overview.totalPatients).toBe(250)
-    expect(body.data.charts).toBeDefined()
-    expect(body.data.charts.appointmentsByStatus).toHaveLength(2)
-    expect(body.data.recentActivity).toBeDefined()
-    expect(body.data.recentActivity.upcomingAppointments).toHaveLength(1)
-    expect(body.data.recentActivity.upcomingAppointments[0].patientName).toBe('John Doe')
-  })
-
-  it('handles zero previous month values for growth', async () => {
-    mockAuth()
-    vi.mocked(prisma.patient.count)
-      .mockResolvedValueOnce(10)
-      .mockResolvedValueOnce(5)
-      .mockResolvedValueOnce(0) // prev month = 0
-    vi.mocked(prisma.appointment.count).mockResolvedValue(0)
-    vi.mocked(prisma.payment.aggregate).mockResolvedValue({ _sum: { amount: null } } as any)
-    vi.mocked(prisma.invoice.aggregate).mockResolvedValue({ _sum: { totalAmount: null } } as any)
-    vi.mocked(prisma.$queryRaw).mockResolvedValue([])
-    vi.mocked(prisma.appointment.groupBy).mockResolvedValue([] as any)
-    vi.mocked(prisma.appointment.findMany).mockResolvedValue([])
-
-    const res = await dashboardGET(makeReq('/api/dashboard/stats'))
-    const body = await res.json()
-
-    expect(res.status).toBe(200)
-    expect(body.data.overview.patientGrowth).toBe(0) // 0 when prev month is 0
-    expect(body.data.overview.revenueGrowth).toBe(0)
-  })
-})
-
-// ═════════════════════════════════════════════════════════════════════════════
-// 2. GET /api/search
+// GET /api/search
 // ═════════════════════════════════════════════════════════════════════════════
 
 describe('GET /api/search', () => {

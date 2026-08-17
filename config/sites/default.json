@@ -1,0 +1,78 @@
+{
+  "clinic": {
+    "name": { "en": "Dentix Dental Clinic", "am": "ዴንቲክስ የጥርስ ክሊኒክ" },
+    "tagline": { "en": "Strong teeth, bright smile.", "am": "ጠንካራ ጥርሶች፣ ብሩህ ፈገግታ።" }
+  },
+  "location": {
+    "region": "Addis Ababa",
+    "city": "Addis Ababa",
+    "subCity": "Bole",
+    "woreda": "03",
+    "landmark": "Opposite Edna Mall",
+    "mapEmbedUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3940.5!2d38.7869!3d9.0107"
+  },
+  "contact": {
+    "phones": ["+251911234567", "+251911234568"],
+    "telegram": "https://t.me/dentixdental",
+    "whatsapp": "+251911234567",
+    "email": "hello@dentix.et"
+  },
+  "hours": [
+    { "day": { "en": "Monday – Friday", "am": "ሰኞ – ዓርብ" }, "open": "08:30", "close": "18:00" },
+    { "day": { "en": "Saturday", "am": "ቅዳሜ" }, "open": "09:00", "close": "16:00" },
+    { "day": { "en": "Sunday", "am": "እሁድ" }, "open": "00:00", "close": "00:00" }
+  ],
+  "services": [
+    {
+      "title": { "en": "Preventive Care", "am": "የመከላከያ እንክብካቤ" },
+      "copy": {
+        "en": "Gentle check-ups, modern diagnostics, and a care plan designed around you.",
+        "am": "ገር ምርመራዎች፣ ዘመናዊ ምርመራ እና ለእርስዎ የተዘጋጀ የእንክብካቤ ዕቅድ።"
+      }
+    },
+    {
+      "title": { "en": "Dental Implants", "am": "የጥርስ ተከላ" },
+      "copy": {
+        "en": "Natural-looking, long-lasting restorations delivered with clinical precision.",
+        "am": "ተፈጥሯዊ የሚመስሉ፣ ዘላቂ ጥገናዎች በክሊኒካዊ ትክክለኛነት።"
+      }
+    },
+    {
+      "title": { "en": "Smile Design", "am": "የፈገግታ ንድፍ" },
+      "copy": {
+        "en": "A personal approach to whitening, alignment, and confident smile transformations.",
+        "am": "ለጥርስ ማንጻት፣ ማስተካከል እና በራስ የመተማመን ፈገግታ የግል አቀራረብ።"
+      }
+    }
+  ],
+  "doctors": [
+    {
+      "name": "Dr Selam Abebe",
+      "credentials": { "en": "DDS, Restorative Dentistry", "am": "DDS፣ የጥርስ ጥገና ሕክምና" },
+      "bio": {
+        "en": "Ten years restoring smiles across Addis Ababa, with a focus on unhurried, clearly explained care.",
+        "am": "በአዲስ አበባ ለአስር ዓመታት ፈገግታዎችን ሲመልሱ የቆዩ፣ በግልጽ በሚብራራ ያልተጣደፈ እንክብካቤ ላይ ያተኮሩ።"
+      }
+    },
+    {
+      "name": "Dr Yonas Tesfaye",
+      "credentials": { "en": "DDS, Oral Surgery", "am": "DDS፣ የአፍ ቀዶ ሕክምና" },
+      "bio": {
+        "en": "Surgical and implant specialist who treats every consultation as a conversation.",
+        "am": "እያንዳንዱን ምክክር እንደ ውይይት የሚይዙ የቀዶ ሕክምና እና ተከላ ባለሙያ።"
+      }
+    }
+  ],
+  "about": {
+    "story": {
+      "en": "High-quality dental care tailored to your needs, combining oral health with thoughtful aesthetics.",
+      "am": "የአፍ ጤናን ከተመጣጠነ ውበት ጋር በማጣመር ለፍላጎትዎ የተስማማ ከፍተኛ ጥራት ያለው የጥርስ ሕክምና።"
+    },
+    "metrics": [
+      { "value": "20K+", "label": { "en": "Happy patients", "am": "ደስተኛ ታካሚዎች" } },
+      { "value": "300+", "label": { "en": "Dental partners", "am": "የጥርስ ሐኪሞች" } },
+      { "value": "14K+", "label": { "en": "Successful treatments", "am": "የተሳኩ ሕክምናዎች" } },
+      { "value": "98%", "label": { "en": "Patient satisfaction", "am": "የታካሚ እርካታ" } }
+    ]
+  }
+}

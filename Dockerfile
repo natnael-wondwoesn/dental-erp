@@ -31,6 +31,11 @@ RUN adduser --system --uid 1001 nextjs
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 
+# Site configs are read at runtime by path (SITE_ID / SITE_CONFIG_PATH), so
+# Next's standalone tracing — which follows static imports only — never sees
+# them. Without this the image builds fine and 500s on the first page load.
+COPY --from=builder /app/config ./config
+
 # Next.js standalone output
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static

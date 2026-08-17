@@ -28,6 +28,10 @@ class AuthenticatedUser(ApiSchema):
     name: str
     roles: list[str]
     permissions: list[str]
+    clinic_name: str
+    currency: str
+    locale: str
+    timezone: str
 
 
 class LoginResponse(ApiSchema):
@@ -52,10 +56,8 @@ async def login(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
         )
-    hospital_active = await session.scalar(
-        select(Hospital.is_active).where(Hospital.id == user.hospital_id)
-    )
-    if not hospital_active:
+    hospital = await session.scalar(select(Hospital).where(Hospital.id == user.hospital_id))
+    if hospital is None or not hospital.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Clinic is inactive")
 
     roles = sorted(role.name for role in user.roles)
@@ -70,6 +72,10 @@ async def login(
             name=user.name,
             roles=roles,
             permissions=permissions,
+            clinic_name=hospital.name,
+            currency=hospital.currency,
+            locale=hospital.locale,
+            timezone=hospital.timezone,
         ),
     )
 
@@ -83,4 +89,8 @@ async def me(principal: CurrentPrincipal) -> AuthenticatedUser:
         name=principal.name,
         roles=sorted(principal.roles),
         permissions=sorted(principal.permissions),
+        clinic_name=principal.clinic_name,
+        currency=principal.currency,
+        locale=principal.locale,
+        timezone=principal.timezone,
     )

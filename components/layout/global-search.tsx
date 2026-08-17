@@ -147,11 +147,11 @@ export function GlobalSearch() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="hidden md:flex items-center w-full max-w-sm gap-2 rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground hover:bg-muted transition-colors"
+          className="hidden h-10 w-full max-w-sm items-center gap-2 rounded-full border border-[#e7edf5] bg-[#f6f8fb] px-4 text-sm text-slate-400 transition-colors hover:border-blue-200 hover:bg-[#f1f6fc] md:flex"
         >
           <Search className="h-4 w-4 shrink-0" />
           <span className="flex-1 text-left">Search patients, appointments...</span>
-          <kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+          <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded-md border border-slate-200 bg-white px-1.5 font-mono text-[10px] font-medium text-slate-400 sm:inline-flex">
             /
           </kbd>
         </button>
@@ -159,7 +159,7 @@ export function GlobalSearch() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="md:hidden p-2 text-muted-foreground hover:text-foreground"
+          className="p-2 text-slate-500 transition hover:text-[#0769e7] md:hidden"
         >
           <Search className="h-5 w-5" />
         </button>

@@ -9,6 +9,10 @@ export interface AuthenticatedUser {
   name: string
   roles: string[]
   permissions: string[]
+  clinicName: string
+  currency: string
+  locale: string
+  timezone: string
 }
 
 export function getAccessToken() {

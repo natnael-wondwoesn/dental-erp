@@ -1,0 +1,21 @@
+# Landing tier: a clinic website and nothing else.
+# No database, no cache, no FastAPI backend — the site is entirely static
+# content rendered from a committed JSON config.
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      PRODUCT_TIER: landing
+      SITE_ID: ${SITE_ID:-default}
+      NODE_ENV: production
+    ports:
+      - '${LANDING_PORT:-3000}:3000'
+    healthcheck:
+      # The site root, not /api/health — the landing tier has no API surface.
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:3000/']
+      interval: 30s
+      timeout: 5s
+      retries: 3

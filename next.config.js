@@ -30,7 +30,7 @@ const nextConfig = {
     },
   },
   async rewrites() {
-    const fastApiUrl = process.env.FASTAPI_URL || 'http://127.0.0.1:8000'
+    const fastApiUrl = process.env.FASTAPI_URL || 'http://127.0.0.1:18000'
     return [
       {
         source: '/api/auth/login',
@@ -43,6 +43,10 @@ const nextConfig = {
       {
         source: '/api/patients/:path*',
         destination: `${fastApiUrl}/api/patients/:path*`,
+      },
+      {
+        source: '/api/dashboard/stats',
+        destination: `${fastApiUrl}/api/dashboard/stats`,
       },
     ]
   },

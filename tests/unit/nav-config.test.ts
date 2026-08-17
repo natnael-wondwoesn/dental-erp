@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { describe, it, expect } from 'vitest'
-import { navigation, getNavigationForRole } from '@/config/nav'
+import { navigation, getNavigationForRole, getNavigationForTier } from '@/config/nav'
 
 describe('navigation config', () => {
   it('exports navigation as an array of sections', () => {
@@ -29,7 +29,7 @@ describe('navigation config', () => {
     const titles = navigation.map((s) => s.title)
     expect(titles).toContain('Overview')
     expect(titles).toContain('Patient Care')
-    expect(titles).toContain('Finance')
+    expect(titles).toContain('Financial Management')
     expect(titles).toContain('Operations')
     expect(titles).toContain('Administration')
   })
@@ -54,7 +54,7 @@ describe('navigation config', () => {
   })
 
   it('Billing has subItems', () => {
-    const finance = navigation.find((s) => s.title === 'Finance')!
+    const finance = navigation.find((s) => s.title === 'Financial Management')!
     const billing = finance.items.find((i) => i.title === 'Billing')!
     expect(billing.subItems).toBeDefined()
     expect(billing.subItems!.length).toBeGreaterThan(0)
@@ -76,7 +76,7 @@ describe('getNavigationForRole', () => {
     const titles = nav.map((s) => s.title)
     expect(titles).toContain('Overview')
     expect(titles).toContain('Patient Care')
-    expect(titles).toContain('Finance')
+    expect(titles).toContain('Financial Management')
     expect(titles).toContain('Operations')
     expect(titles).toContain('Administration')
   })
@@ -101,26 +101,26 @@ describe('getNavigationForRole', () => {
     const nav = getNavigationForRole('DOCTOR')
     const care = nav.find((s) => s.title === 'Patient Care')!
     const items = care.items.map((i) => i.title)
-    expect(items).toContain('Treatments')
+    expect(items).toContain('Assessment & Treatment')
   })
 
   it('RECEPTIONIST does not see Treatments', () => {
     const nav = getNavigationForRole('RECEPTIONIST')
     const care = nav.find((s) => s.title === 'Patient Care')!
     const items = care.items.map((i) => i.title)
-    expect(items).not.toContain('Treatments')
+    expect(items).not.toContain('Assessment & Treatment')
   })
 
   it('RECEPTIONIST sees Billing', () => {
     const nav = getNavigationForRole('RECEPTIONIST')
-    const finance = nav.find((s) => s.title === 'Finance')!
+    const finance = nav.find((s) => s.title === 'Financial Management')!
     const items = finance.items.map((i) => i.title)
     expect(items).toContain('Billing')
   })
 
   it('ACCOUNTANT sees Billing but not Inventory', () => {
     const nav = getNavigationForRole('ACCOUNTANT')
-    const finance = nav.find((s) => s.title === 'Finance')!
+    const finance = nav.find((s) => s.title === 'Financial Management')!
     expect(finance.items.map((i) => i.title)).toContain('Billing')
 
     const ops = nav.find((s) => s.title === 'Operations')
@@ -129,11 +129,11 @@ describe('getNavigationForRole', () => {
     }
   })
 
-  it('LAB_TECH sees Lab Orders', () => {
+  it('LAB_TECH sees Dental Laboratory', () => {
     const nav = getNavigationForRole('LAB_TECH')
     const ops = nav.find((s) => s.title === 'Operations')!
     const items = ops.items.map((i) => i.title)
-    expect(items).toContain('Lab Orders')
+    expect(items).toContain('Dental Laboratory')
   })
 
   it('LAB_TECH does not see Sterilization', () => {
@@ -179,5 +179,21 @@ describe('getNavigationForRole', () => {
       const overview = nav.find((s) => s.title === 'Overview')!
       expect(overview.items.map((i) => i.title)).toContain('Dashboard')
     })
+  })
+})
+
+describe('getNavigationForTier', () => {
+  it('returns the full role-filtered navigation in full tier', () => {
+    const forRole = getNavigationForRole('ADMIN')
+    expect(getNavigationForTier('ADMIN', 'full')).toEqual(forRole)
+  })
+
+  it('returns no ERP navigation at all in landing tier', () => {
+    expect(getNavigationForTier('ADMIN', 'landing')).toEqual([])
+  })
+
+  it('returns no navigation in landing tier regardless of role', () => {
+    expect(getNavigationForTier('DOCTOR', 'landing')).toEqual([])
+    expect(getNavigationForTier('RECEPTIONIST', 'landing')).toEqual([])
   })
 })

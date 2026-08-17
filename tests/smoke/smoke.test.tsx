@@ -47,6 +47,11 @@ vi.mock('next-themes', () => ({
   ThemeProvider: ({ children }: any) => <>{children}</>,
 }))
 
+vi.mock('@/lib/i18n', () => ({
+  useLanguage: () => ({ locale: 'en', setLocale: vi.fn(), t: (value: string) => value }),
+  LanguageProvider: ({ children }: any) => <>{children}</>,
+}))
+
 vi.mock('react-hook-form', () => ({
   useForm: () => ({
     register: () => ({}),

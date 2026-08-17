@@ -8,6 +8,8 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.identifiers import next_document_number
+from app.common.phone import normalize_ethiopian_phone
 from app.models import Hospital, Patient
 from app.patients.schemas import PatientCreate, PatientUpdate, PatientView
 
@@ -96,10 +98,16 @@ class PatientWorkflow:
                 },
             )
 
+        values = payload.model_dump()
+        values["phone"] = normalize_ethiopian_phone(values["phone"])
+        values["alternate_phone"] = normalize_ethiopian_phone(values.get("alternate_phone"))
+        values["emergency_contact_phone"] = normalize_ethiopian_phone(
+            values.get("emergency_contact_phone")
+        )
         patient = Patient(
             hospital_id=self.hospital_id,
             patient_number=await self._next_patient_number(),
-            **payload.model_dump(),
+            **values,
         )
         self.session.add(patient)
         try:
@@ -116,6 +124,9 @@ class PatientWorkflow:
         patient = await self.get(patient_id)
         before = PatientView.model_validate(patient).model_dump(mode="json")
         changes = payload.model_dump(exclude_unset=True)
+        for key in ("phone", "alternate_phone", "emergency_contact_phone"):
+            if key in changes:
+                changes[key] = normalize_ethiopian_phone(changes[key])
         for field, value in changes.items():
             setattr(patient, field, value)
         patient.updated_at = datetime.now(UTC)
@@ -138,15 +149,10 @@ class PatientWorkflow:
         return patient, before
 
     async def _next_patient_number(self) -> str:
-        prefix = f"PAT{datetime.now(UTC).year}"
-        last_number = await self.session.scalar(
-            select(Patient.patient_number)
-            .where(
-                Patient.hospital_id == self.hospital_id,
-                Patient.patient_number.startswith(prefix),
-            )
-            .order_by(Patient.patient_number.desc())
-            .limit(1)
+        return await next_document_number(
+            self.session,
+            hospital_id=self.hospital_id,
+            key="patient",
+            prefix="ET-PAT",
+            width=5,
         )
-        sequence = int(last_number[-5:]) + 1 if last_number else 1
-        return f"{prefix}{sequence:05d}"

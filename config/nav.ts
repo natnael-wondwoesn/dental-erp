@@ -36,8 +36,10 @@ import {
   Activity,
   Upload,
   BookOpen,
+  WalletCards,
   type LucideIcon,
 } from 'lucide-react'
+import type { ProductTier } from '@/lib/product-tier'
 
 export interface NavItem {
   title: string
@@ -58,14 +60,14 @@ export const navigation: NavSection[] = [
     title: 'Overview',
     items: [
       {
-        title: 'AI Chat',
-        href: '/chat',
-        icon: BotMessageSquare,
-      },
-      {
         title: 'Dashboard',
         href: '/dashboard',
         icon: LayoutDashboard,
+      },
+      {
+        title: 'AI Chat',
+        href: '/chat',
+        icon: BotMessageSquare,
       },
     ],
   },
@@ -102,7 +104,7 @@ export const navigation: NavSection[] = [
         roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'],
       },
       {
-        title: 'Treatments',
+        title: 'Assessment & Treatment',
         href: '/treatments',
         icon: Stethoscope,
         roles: ['ADMIN', 'DOCTOR'],
@@ -122,7 +124,7 @@ export const navigation: NavSection[] = [
     ],
   },
   {
-    title: 'Finance',
+    title: 'Financial Management',
     items: [
       {
         title: 'Billing',
@@ -176,6 +178,12 @@ export const navigation: NavSection[] = [
             roles: ['ADMIN', 'ACCOUNTANT'],
           },
         ],
+      },
+      {
+        title: 'Accounting & Finance',
+        href: '/finance',
+        icon: WalletCards,
+        roles: ['ADMIN', 'ACCOUNTANT'],
       },
     ],
   },
@@ -263,7 +271,7 @@ export const navigation: NavSection[] = [
         roles: ['ADMIN'],
       },
       {
-        title: 'Lab Orders',
+        title: 'Dental Laboratory',
         href: '/lab',
         icon: FlaskConical,
         roles: ['ADMIN', 'DOCTOR', 'LAB_TECH'],
@@ -412,4 +420,15 @@ export function getNavigationForRole(role: string): NavSection[] {
         })),
     }))
     .filter((section) => section.items.length > 0)
+}
+
+/**
+ * Navigation for a role within a tier.
+ *
+ * Presentation only. The landing tier's actual enforcement is middleware.ts,
+ * which 404s these routes whether or not they appear in a menu.
+ */
+export function getNavigationForTier(role: string, tier: ProductTier): NavSection[] {
+  if (tier === 'landing') return []
+  return getNavigationForRole(role)
 }

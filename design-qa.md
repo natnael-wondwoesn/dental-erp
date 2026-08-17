@@ -13,6 +13,8 @@
 - Patient mobile: `/Users/macbook/Desktop/Nate/dental-erp/qa-patient-mobile-final.png`
 - Side-by-side marketing comparison: `/Users/macbook/Desktop/Nate/dental-erp/qa-landing-comparison.png`
 - Side-by-side patient comparison: `/Users/macbook/Desktop/Nate/dental-erp/qa-patient-comparison.png`
+- Ethiopian Amharic landing typography: `/Users/macbook/Desktop/Nate/dental-erp/qa-amharic-font-landing.png`
+- Ethiopian Amharic patient workspace typography: `/Users/macbook/Desktop/Nate/dental-erp/qa-amharic-font-patient.png`
 
 **Viewport and normalization**
 
@@ -55,6 +57,8 @@
 - Patient note editing and Save note success state work.
 - Fresh-page browser logs for both routes contain no errors.
 - Responsive landing and patient views were visually captured and checked.
+- English/Amharic preference switch persists across landing and authenticated workspace navigation.
+- Bundled Noto Sans Ethiopic loads successfully in the browser; Amharic headings and compact UI labels were checked at desktop size with no horizontal overflow.
 
 **Findings**
 
@@ -65,6 +69,7 @@
 1. Initial patient pass: P2 — the three-column details grid compressed labels and values at a 1280px desktop viewport. Fix: changed the profile/details split to 240px plus flexible content and kept details at two columns until wider screens. Post-fix evidence: `qa-patient-desktop-final.png` and `qa-patient-comparison.png` show readable fields with stable card proportions.
 2. Initial marketing pass: P2 — the desktop hero height and 100px headline pushed core actions below the 720px viewport. Fix: reduced the desktop hero to 680–700px and headline to 76–84px. Post-fix evidence: `qa-landing-desktop-final.png` and `qa-landing-comparison.png` show the full primary composition and both CTAs above the fold.
 3. Initial asset pass: P2 — testimonial avatars were represented by generic circles. Fix: replaced them with real cropped team photography and replaced the text-only emblem with an icon-library mark. Post-fix evidence: `qa-landing-desktop-final.png` and `qa-landing-mobile-final.png`.
+4. Ethiopian localization pass: P2 — Amharic inherited an inconsistent system fallback, italic display styling, tight letter spacing, and an SSR/local-storage hydration mismatch. Fix: bundled Noto Sans Ethiopic in four weights, removed italics/uppercase tracking for Amharic, increased small-label line height, normalized display typography, and restored persisted locale only after hydration. Post-fix evidence: `qa-amharic-font-landing.png` and `qa-amharic-font-patient.png`; browser console has no errors.
 
 **Follow-up polish**
 

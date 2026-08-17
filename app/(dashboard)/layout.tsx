@@ -25,6 +25,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         email: identity.email,
         role: identity.roles[0] || 'STAFF',
       }}
+      hospital={{
+        name: identity.clinicName,
+        plan: 'SELF_HOSTED',
+      }}
     >
       {children}
     </DashboardShell>

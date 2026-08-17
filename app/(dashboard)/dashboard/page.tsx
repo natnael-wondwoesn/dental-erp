@@ -1,40 +1,27 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import {
-  Users,
-  Calendar,
-  Receipt,
-  TrendingUp,
-  TrendingDown,
-  AlertCircle,
-  ArrowUpRight,
-  ArrowDownRight,
-  Package,
-} from 'lucide-react'
 import Link from 'next/link'
-import { format } from 'date-fns'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts'
-import { InsightsPanel } from '@/components/ai/insights-panel'
-import { CHART_COLORS } from '@/lib/chart-theme'
+  ArrowRight,
+  CalendarDays,
+  CircleDollarSign,
+  Clock3,
+  FlaskConical,
+  LayoutGrid,
+  Plus,
+  ReceiptText,
+  RefreshCw,
+  Stethoscope,
+  TrendingUp,
+  UserPlus,
+  Users,
+  WalletCards,
+} from 'lucide-react'
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
+import { useLanguage } from '@/lib/i18n'
 
-interface DashboardStats {
+type DashboardStats = {
   overview: {
     totalPatients: number
     newPatientsThisMonth: number
@@ -44,104 +31,199 @@ interface DashboardStats {
     appointmentGrowth: number
     pendingAppointments: number
     completedAppointmentsToday: number
+    waitingPatients: number
     thisMonthRevenue: number
     todayRevenue: number
     revenueGrowth: number
     pendingPayments: number
     totalRevenue: number
+    monthExpenses: number
+    netCashFlow: number
+    activeLabOrders: number
   }
   charts: {
     last7DaysRevenue: Array<{ date: string; revenue: number }>
-    last6MonthsRevenue: Array<{ month: string; revenue: number }>
     appointmentsByStatus: Array<{ status: string; count: number }>
-    topProcedures: Array<{ name: string; count: number; revenue: number }>
   }
   recentActivity: {
     upcomingAppointments: Array<{
       id: string
       patientName: string
+      patientNumber: string
       doctorName: string
       date: string
       type: string
       status: string
+      chairLabel?: string | null
     }>
-    lowStockItems: Array<{
+    labAlerts: Array<{
       id: string
-      name: string
-      currentStock: number
-      minimumStock: number
-      unit: string
+      orderNumber: string
+      applianceType: string
+      vendorName: string
+      dueDate?: string | null
+      status: string
     }>
   }
+  currency: string
+  timezone: string
+  generatedAt: string
+}
+
+const modules = [
+  {
+    title: 'Patient management',
+    description: 'Registration, profile, history and records',
+    href: '/patients',
+    icon: Users,
+    tone: 'bg-blue-50 text-blue-700',
+  },
+  {
+    title: 'Appointments',
+    description: 'Booking, schedules, changes and history',
+    href: '/appointments',
+    icon: CalendarDays,
+    tone: 'bg-cyan-50 text-cyan-700',
+  },
+  {
+    title: 'Assessment & treatment',
+    description: 'Charting, diagnosis, plans and follow-up',
+    href: '/treatments',
+    icon: Stethoscope,
+    tone: 'bg-violet-50 text-violet-700',
+  },
+  {
+    title: 'Billing & payments',
+    description: 'Invoices, receipts, discounts and balances',
+    href: '/billing',
+    icon: ReceiptText,
+    tone: 'bg-emerald-50 text-emerald-700',
+  },
+  {
+    title: 'Dental laboratory',
+    description: 'Cases, appliances, status and lab cost',
+    href: '/lab',
+    icon: FlaskConical,
+    tone: 'bg-amber-50 text-amber-700',
+  },
+  {
+    title: 'Accounting & finance',
+    description: 'Income, expenses, commissions and cash flow',
+    href: '/finance',
+    icon: WalletCards,
+    tone: 'bg-rose-50 text-rose-700',
+  },
+  {
+    title: 'Reports & performance',
+    description: 'Clinical, revenue, dentist and clinic reporting',
+    href: '/reports',
+    icon: TrendingUp,
+    tone: 'bg-indigo-50 text-indigo-700',
+  },
+]
+
+const statusStyle: Record<string, string> = {
+  CHECKED_IN: 'bg-amber-50 text-amber-700 ring-amber-600/10',
+  IN_CHAIR: 'bg-violet-50 text-violet-700 ring-violet-600/10',
+  CONFIRMED: 'bg-emerald-50 text-emerald-700 ring-emerald-600/10',
+  SCHEDULED: 'bg-blue-50 text-blue-700 ring-blue-600/10',
+  COMPLETED: 'bg-slate-100 text-slate-600 ring-slate-600/10',
+}
+
+function formatMoney(value: number) {
+  return new Intl.NumberFormat('en-ET', {
+    style: 'currency',
+    currency: 'ETB',
+    maximumFractionDigits: 0,
+  }).format(value)
+}
+
+function MetricCard({
+  label,
+  value,
+  detail,
+  icon: Icon,
+  accent,
+}: {
+  label: string
+  value: string
+  detail: string
+  icon: typeof Users
+  accent: string
+}) {
+  return (
+    <article className="group rounded-[22px] border border-[#e6edf7] bg-white p-5 shadow-[0_12px_34px_rgba(31,60,102,0.055)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_38px_rgba(31,60,102,0.09)]">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+            {label}
+          </p>
+          <p className="mt-3 text-[28px] font-semibold tracking-[-0.04em] text-[#13233a]">
+            {value}
+          </p>
+          <p className="mt-1 text-xs leading-5 text-slate-500">{detail}</p>
+        </div>
+        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-2xl ${accent}`}>
+          <Icon className="h-5 w-5" />
+        </span>
+      </div>
+    </article>
+  )
 }
 
 export default function DashboardPage() {
+  const { locale, t } = useLanguage()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchDashboardStats()
-  }, [])
-
-  const fetchDashboardStats = async () => {
+  const loadDashboard = useCallback(async () => {
     try {
       setLoading(true)
+      setError(null)
       const response = await fetch('/api/dashboard/stats')
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch dashboard statistics')
-      }
-
-      const data = await response.json()
-      setStats(data.data)
-    } catch (err: any) {
-      console.error('Error fetching dashboard stats:', err)
-      setError(err.message)
+      if (!response.ok) throw new Error('The clinic overview could not be loaded')
+      setStats(await response.json())
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'The clinic overview could not be loaded')
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0,
-    }).format(amount)
-  }
+  useEffect(() => {
+    loadDashboard()
+  }, [loadDashboard])
 
-  const getGrowthIcon = (growth: number) => {
-    if (growth > 0) return <ArrowUpRight className="h-4 w-4 text-green-600" />
-    if (growth < 0) return <ArrowDownRight className="h-4 w-4 text-red-600" />
-    return null
-  }
+  const chartData = useMemo(
+    () =>
+      (stats?.charts.last7DaysRevenue || []).map((point) => ({
+        ...point,
+        label: new Intl.DateTimeFormat(locale === 'am' ? 'am-ET' : 'en-ET', {
+          weekday: 'short',
+        }).format(new Date(`${point.date}T12:00:00`)),
+      })),
+    [locale, stats]
+  )
 
-  const getGrowthColor = (growth: number) => {
-    if (growth > 0) return 'text-green-600'
-    if (growth < 0) return 'text-red-600'
-    return 'text-muted-foreground'
-  }
+  const todayLabel = new Intl.DateTimeFormat(locale === 'am' ? 'am-ET' : 'en-ET', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  }).format(new Date())
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Loading your practice data...</p>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <div className="h-4 w-24 bg-muted rounded animate-pulse" />
-              </CardHeader>
-              <CardContent>
-                <div className="h-8 w-16 bg-muted rounded animate-pulse mb-2" />
-                <div className="h-3 w-32 bg-muted rounded animate-pulse" />
-              </CardContent>
-            </Card>
+      <div className="mx-auto max-w-[1540px] animate-pulse space-y-6">
+        <div className="h-32 rounded-[28px] bg-white" />
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {[0, 1, 2, 3].map((item) => (
+            <div key={item} className="h-36 rounded-[22px] bg-white" />
           ))}
+        </div>
+        <div className="grid gap-5 xl:grid-cols-[1.4fr_1fr]">
+          <div className="h-[420px] rounded-[24px] bg-white" />
+          <div className="h-[420px] rounded-[24px] bg-white" />
         </div>
       </div>
     )
@@ -149,407 +231,269 @@ export default function DashboardPage() {
 
   if (error || !stats) {
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground text-red-600">Failed to load dashboard data</p>
+      <section className="mx-auto grid min-h-[65vh] max-w-2xl place-items-center text-center">
+        <div className="rounded-[28px] border border-rose-100 bg-white p-10 shadow-sm">
+          <RefreshCw className="mx-auto h-9 w-9 text-rose-500" />
+          <h1 className="mt-5 text-2xl font-semibold text-[#13233a]">
+            Clinic overview unavailable
+          </h1>
+          <p className="mt-2 text-sm leading-6 text-slate-500">{error}</p>
+          <button
+            onClick={loadDashboard}
+            className="mt-6 rounded-full bg-[#0769e7] px-6 py-3 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(7,105,231,.22)]"
+          >
+            Try again
+          </button>
         </div>
-        <Card className="border-red-200">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-red-600">
-              <AlertCircle className="h-5 w-5" />
-              <p>{error || 'An error occurred'}</p>
-            </div>
-            <Button onClick={fetchDashboardStats} className="mt-4">
-              Retry
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      </section>
     )
   }
 
+  const overview = stats.overview
+  const appointments = stats.recentActivity.upcomingAppointments
+
   return (
-    <div className="space-y-6">
-      {/* Welcome message */}
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Here&apos;s what&apos;s happening at your dental practice today.
-        </p>
-      </div>
-
-      {/* AI Insights */}
-      <InsightsPanel />
-
-      {/* Stats cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {/* Total Patients */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.overview.totalPatients.toLocaleString()}
-            </div>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              {getGrowthIcon(stats.overview.patientGrowth)}
-              <span className={getGrowthColor(stats.overview.patientGrowth)}>
-                {stats.overview.patientGrowth > 0 ? '+' : ''}
-                {stats.overview.patientGrowth.toFixed(1)}%
-              </span>
-              <span className="text-muted-foreground">from last month</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Today's Appointments */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today&apos;s Appointments</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.overview.todayAppointments}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.overview.completedAppointmentsToday} completed,{' '}
-              {stats.overview.pendingAppointments} pending
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* This Month Revenue */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">This Month Revenue</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(stats.overview.thisMonthRevenue)}
-            </div>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              {getGrowthIcon(stats.overview.revenueGrowth)}
-              <span className={getGrowthColor(stats.overview.revenueGrowth)}>
-                {stats.overview.revenueGrowth > 0 ? '+' : ''}
-                {stats.overview.revenueGrowth.toFixed(1)}%
-              </span>
-              <span className="text-muted-foreground">from last month</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Pending Payments */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Payments</CardTitle>
-            <Receipt className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(stats.overview.pendingPayments)}
-            </div>
-            <p className="text-xs text-muted-foreground">Outstanding receivables</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Charts and Activity */}
-      <div className="grid gap-4 lg:grid-cols-7">
-        {/* Revenue Chart */}
-        <Card className="lg:col-span-4">
-          <CardHeader>
-            <CardTitle>Revenue Overview</CardTitle>
-            <CardDescription>Last 7 days revenue trend</CardDescription>
-          </CardHeader>
-          <CardContent className="pl-2">
-            {stats.charts.last7DaysRevenue && stats.charts.last7DaysRevenue.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart
-                  data={stats.charts.last7DaysRevenue.map((item: any) => ({
-                    date: format(new Date(item.date), 'MMM dd'),
-                    revenue: Number(item.revenue),
-                  }))}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip
-                    formatter={(value) => (typeof value === 'number' ? formatCurrency(value) : '')}
-                    labelStyle={{ color: 'inherit' }}
-                  />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="hsl(var(--primary))"
-                    strokeWidth={2}
-                    activeDot={{ r: 8 }}
-                    name="Revenue"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="text-muted-foreground text-center py-8">No revenue data available</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Upcoming Appointments */}
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Upcoming Appointments</CardTitle>
-            <CardDescription>Next 5 scheduled appointments</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {stats.recentActivity.upcomingAppointments &&
-              stats.recentActivity.upcomingAppointments.length > 0 ? (
-                stats.recentActivity.upcomingAppointments.map((apt) => (
-                  <div key={apt.id} className="flex items-start gap-3 text-sm">
-                    <Calendar className="h-4 w-4 mt-0.5 text-muted-foreground" />
-                    <div className="flex-1 space-y-1">
-                      <p className="font-medium">{apt.patientName}</p>
-                      <p className="text-muted-foreground text-xs">
-                        {format(new Date(apt.date), 'MMM dd, yyyy HH:mm')} • {apt.doctorName}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-muted-foreground text-center py-8">No upcoming appointments</p>
-              )}
-            </div>
-            <Link href="/appointments">
-              <Button variant="outline" className="w-full mt-4">
-                View All Appointments
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Appointment Status Chart */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Appointments by Status</CardTitle>
-            <CardDescription>This month's appointment distribution</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {stats.charts.appointmentsByStatus && stats.charts.appointmentsByStatus.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={stats.charts.appointmentsByStatus.map((item: any) => ({
-                      name: item.status,
-                      value: item.count,
-                    }))}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) =>
-                      `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`
-                    }
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {stats.charts.appointmentsByStatus.map((_: unknown, index: number) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={CHART_COLORS[index % CHART_COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="text-muted-foreground text-center py-8">
-                No appointment data available
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Monthly Revenue Trend */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Monthly Revenue Trend</CardTitle>
-            <CardDescription>Last 6 months revenue comparison</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {stats.charts.last6MonthsRevenue && stats.charts.last6MonthsRevenue.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart
-                  data={stats.charts.last6MonthsRevenue.map((item: any) => ({
-                    month: item.month,
-                    revenue: Number(item.revenue),
-                  }))}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip
-                    formatter={(value) => (typeof value === 'number' ? formatCurrency(value) : '')}
-                  />
-                  <Legend />
-                  <Bar dataKey="revenue" fill="hsl(var(--primary))" name="Revenue" />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="text-muted-foreground text-center py-8">No revenue data available</p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Bottom Row */}
-      <div className="grid gap-4 lg:grid-cols-7">
-        {/* Top Procedures */}
-        <Card className="lg:col-span-4">
-          <CardHeader>
-            <CardTitle>Top Procedures</CardTitle>
-            <CardDescription>Most common procedures this month</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {stats.charts.topProcedures && stats.charts.topProcedures.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart
-                  data={stats.charts.topProcedures.map((proc: any) => ({
-                    name: proc.name.length > 20 ? proc.name.substring(0, 20) + '...' : proc.name,
-                    count: Number(proc.count),
-                    revenue: Number(proc.revenue),
-                  }))}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis yAxisId="left" orientation="left" stroke="hsl(var(--chart-1))" />
-                  <YAxis yAxisId="right" orientation="right" stroke="hsl(var(--chart-2))" />
-                  <Tooltip
-                    formatter={(value, _name, item) => {
-                      if (typeof value !== 'number') return ''
-                      // Match on dataKey, not name: the <Bar> sets a display
-                      // name ("Revenue (₹)"), and that is what recharts passes
-                      // as `name`, so comparing it to 'revenue' never matched.
-                      if (item?.dataKey === 'revenue') return formatCurrency(value)
-                      return value
-                    }}
-                  />
-                  <Legend />
-                  <Bar yAxisId="left" dataKey="count" fill="#8884d8" name="Count" />
-                  <Bar yAxisId="right" dataKey="revenue" fill="#82ca9d" name="Revenue (₹)" />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="text-muted-foreground text-center py-8">No procedure data available</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Low Stock Alerts */}
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              Low Stock Alerts
-            </CardTitle>
-            <CardDescription>Items below minimum stock level</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {stats.recentActivity.lowStockItems &&
-              stats.recentActivity.lowStockItems.length > 0 ? (
-                stats.recentActivity.lowStockItems.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between text-sm">
-                    <div className="flex-1">
-                      <p className="font-medium">{item.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Min: {item.minimumStock} {item.unit}
-                      </p>
-                    </div>
-                    <div className="text-red-600 font-medium">
-                      {item.currentStock} {item.unit}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-muted-foreground text-center py-8">All items in stock</p>
-              )}
-            </div>
-            <Link href="/inventory">
-              <Button variant="outline" className="w-full mt-4">
-                View Inventory
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>Common tasks you can do right now</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-4">
-          <Link
-            href="/patients/new"
-            className="flex items-center gap-4 rounded-lg border p-4 transition-colors hover:bg-accent"
-          >
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              <Users className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="font-medium">Add Patient</p>
-              <p className="text-sm text-muted-foreground">Register new</p>
-            </div>
-          </Link>
+    <div className="clinic-dashboard mx-auto max-w-[1540px] space-y-5 pb-8 text-[#13233a]">
+      <section className="relative overflow-hidden rounded-[28px] bg-[#0a69e8] px-6 py-7 text-white shadow-[0_22px_55px_rgba(7,105,231,.2)] sm:px-8 lg:flex lg:items-center lg:justify-between lg:px-10">
+        <div className="absolute -right-16 -top-32 h-80 w-80 rounded-full border-[54px] border-white/10" />
+        <div className="absolute bottom-0 right-1/4 h-28 w-28 translate-y-1/2 rounded-full bg-cyan-300/30 blur-xl" />
+        <div className="relative max-w-2xl">
+          <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.16em] text-blue-100">
+            <span>{t('Clinic command centre')}</span>
+            <span className="h-1 w-1 rounded-full bg-blue-200" />
+            <span>{todayLabel}</span>
+          </div>
+          <h1 className="mt-4 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
+            {t('Good morning. Your clinic is ready.')}
+          </h1>
+          <p className="mt-3 max-w-xl text-sm leading-6 text-blue-100 sm:text-base">
+            {t('A focused view of today’s patients, care delivery and ETB cash position.')}
+          </p>
+        </div>
+        <div className="relative mt-6 flex flex-wrap gap-3 lg:mt-0 lg:justify-end">
           <Link
             href="/appointments/new"
-            className="flex items-center gap-4 rounded-lg border p-4 transition-colors hover:bg-accent"
+            className="inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-[#0769e7] shadow-lg transition hover:-translate-y-0.5"
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              <Calendar className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="font-medium">Book Appointment</p>
-              <p className="text-sm text-muted-foreground">Schedule visit</p>
-            </div>
+            <Plus className="h-4 w-4" /> {t('Book appointment')}
           </Link>
           <Link
-            href="/billing"
-            className="flex items-center gap-4 rounded-lg border p-4 transition-colors hover:bg-accent"
+            href="/patients/new"
+            className="inline-flex h-11 items-center gap-2 rounded-full border border-white/30 bg-white/10 px-5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              <Receipt className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="font-medium">Create Invoice</p>
-              <p className="text-sm text-muted-foreground">Bill patient</p>
-            </div>
+            <UserPlus className="h-4 w-4" /> {t('Register patient')}
           </Link>
-          <Link
-            href="/reports"
-            className="flex items-center gap-4 rounded-lg border p-4 transition-colors hover:bg-accent"
-          >
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              <TrendingUp className="h-5 w-5 text-primary" />
-            </div>
+        </div>
+      </section>
+
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Clinic metrics">
+        <MetricCard
+          label={t('Today’s appointments')}
+          value={overview.todayAppointments.toLocaleString()}
+          detail={`${overview.waitingPatients} ${t('waiting')} · ${overview.completedAppointmentsToday} ${t('completed')}`}
+          icon={CalendarDays}
+          accent="bg-blue-50 text-[#0769e7]"
+        />
+        <MetricCard
+          label={t('Active patients')}
+          value={overview.totalPatients.toLocaleString()}
+          detail={`+${overview.newPatientsThisMonth} ${t('registered this month')}`}
+          icon={Users}
+          accent="bg-cyan-50 text-cyan-700"
+        />
+        <MetricCard
+          label={t('Revenue this month')}
+          value={formatMoney(overview.thisMonthRevenue)}
+          detail={`${formatMoney(overview.todayRevenue)} ${t('collected today')}`}
+          icon={CircleDollarSign}
+          accent="bg-emerald-50 text-emerald-700"
+        />
+        <MetricCard
+          label={t('Outstanding balance')}
+          value={formatMoney(overview.pendingPayments)}
+          detail={`${overview.activeLabOrders} ${t('active lab cases')}`}
+          icon={ReceiptText}
+          accent="bg-amber-50 text-amber-700"
+        />
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[1.45fr_1fr]">
+        <article className="overflow-hidden rounded-[24px] border border-[#e6edf7] bg-white shadow-[0_12px_34px_rgba(31,60,102,0.055)]">
+          <div className="flex flex-wrap items-end justify-between gap-4 border-b border-slate-100 px-6 py-5 sm:px-7">
             <div>
-              <p className="font-medium">View Reports</p>
-              <p className="text-sm text-muted-foreground">Analytics</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#0769e7]">
+                {t('Today’s flow')}
+              </p>
+              <h2 className="mt-2 text-xl font-semibold tracking-[-0.025em]">
+                {t('Upcoming appointments')}
+              </h2>
             </div>
-          </Link>
-        </CardContent>
-      </Card>
+            <Link
+              href="/appointments"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-[#0769e7]"
+            >
+              {t('View schedule')} <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {appointments.length ? (
+              appointments.slice(0, 5).map((appointment) => {
+                const timeLabel = new Intl.DateTimeFormat('en-ET', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }).format(new Date(appointment.date))
+                return (
+                  <Link
+                    key={appointment.id}
+                    href={`/appointments/${appointment.id}`}
+                    className="grid gap-4 px-6 py-4 transition hover:bg-[#f7faff] sm:grid-cols-[76px_1fr_auto] sm:items-center sm:px-7"
+                  >
+                    <div>
+                      <p className="text-lg font-semibold tracking-tight">{timeLabel}</p>
+                      <p className="mt-0.5 text-xs text-slate-400">
+                        {appointment.chairLabel || '—'}
+                      </p>
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate font-semibold">{appointment.patientName}</p>
+                        <span className="hidden text-xs text-slate-400 md:inline">
+                          {appointment.patientNumber}
+                        </span>
+                      </div>
+                      <p className="mt-1 truncate text-sm text-slate-500">
+                        {appointment.type} · {appointment.doctorName}
+                      </p>
+                    </div>
+                    <span
+                      className={`w-fit rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.08em] ring-1 ring-inset ${statusStyle[appointment.status] || statusStyle.SCHEDULED}`}
+                    >
+                      {appointment.status.replaceAll('_', ' ')}
+                    </span>
+                  </Link>
+                )
+              })
+            ) : (
+              <div className="grid min-h-64 place-items-center px-6 text-center">
+                <div>
+                  <CalendarDays className="mx-auto h-8 w-8 text-slate-300" />
+                  <p className="mt-3 font-semibold">{t('No appointments remaining today')}</p>
+                  <p className="mt-1 text-sm text-slate-400">
+                    {t('The next booked visit will appear here.')}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </article>
+
+        <article className="rounded-[24px] border border-[#e6edf7] bg-white p-6 shadow-[0_12px_34px_rgba(31,60,102,0.055)] sm:p-7">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#0769e7]">
+                {t('Cash position')}
+              </p>
+              <h2 className="mt-2 text-xl font-semibold tracking-[-0.025em]">
+                {t('7-day collections')}
+              </h2>
+            </div>
+            <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
+              ETB
+            </span>
+          </div>
+          <div className="mt-5 h-52">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData} margin={{ top: 10, right: 2, left: 2, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#0769e7" stopOpacity={0.28} />
+                    <stop offset="100%" stopColor="#0769e7" stopOpacity={0.01} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid vertical={false} stroke="#e9eff7" strokeDasharray="3 5" />
+                <XAxis
+                  dataKey="label"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 11, fill: '#94a3b8' }}
+                />
+                <Tooltip
+                  formatter={(value) => formatMoney(Number(value))}
+                  contentStyle={{
+                    borderRadius: 14,
+                    borderColor: '#e6edf7',
+                    boxShadow: '0 12px 30px rgba(31,60,102,.12)',
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#0769e7"
+                  strokeWidth={3}
+                  fill="url(#revenueFill)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <div className="rounded-2xl bg-[#f4f8fd] p-4">
+              <p className="text-xs text-slate-500">{t('Net cash flow')}</p>
+              <p className="mt-1 font-semibold">{formatMoney(overview.netCashFlow)}</p>
+            </div>
+            <div className="rounded-2xl bg-[#f4f8fd] p-4">
+              <p className="text-xs text-slate-500">{t('Month expenses')}</p>
+              <p className="mt-1 font-semibold">{formatMoney(overview.monthExpenses)}</p>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section className="rounded-[24px] border border-[#e6edf7] bg-white p-6 shadow-[0_12px_34px_rgba(31,60,102,0.055)] sm:p-7">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#0769e7]">
+              <LayoutGrid className="h-4 w-4" /> {t('Clinic workspaces')}
+            </div>
+            <h2 className="mt-2 text-xl font-semibold tracking-[-0.025em]">
+              {t('One patient-to-payment workflow')}
+            </h2>
+          </div>
+          <p className="max-w-lg text-sm leading-6 text-slate-500">
+            {t('Clinical care, laboratory work and finance stay connected to one patient record.')}
+          </p>
+        </div>
+        <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {modules.map((module) => {
+            const Icon = module.icon
+            return (
+              <Link
+                key={module.href}
+                href={module.href}
+                className="group rounded-[20px] border border-slate-100 p-4 transition hover:border-blue-200 hover:bg-[#f8fbff]"
+              >
+                <div className="flex items-start gap-4">
+                  <span
+                    className={`grid h-10 w-10 shrink-0 place-items-center rounded-2xl ${module.tone}`}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <div className="min-w-0">
+                    <h3 className="font-semibold">{t(module.title)}</h3>
+                    <p className="mt-1 text-xs leading-5 text-slate-500">{t(module.description)}</p>
+                  </div>
+                  <ArrowRight className="ml-auto mt-1 h-4 w-4 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-[#0769e7]" />
+                </div>
+              </Link>
+            )
+          })}
+          <div className="flex items-center gap-3 rounded-[20px] bg-[#eaf3ff] p-4 text-[#0769e7]">
+            <Clock3 className="h-5 w-5" />
+            <p className="text-xs font-semibold leading-5">
+              {t('Addis Ababa time · ETB reporting · English / Amharic')}
+            </p>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }

@@ -154,3 +154,14 @@ Every repository operation must require a tenant context derived from the verifi
 5. Add assessment, dental chart, and versioned treatment-plan aggregates.
 6. Generate invoices only from approved/performed clinical items, then add transactional ETB payment allocation and receipts.
 7. Add lab workflow, finance ledger, and reports only after their source transactions are stable.
+
+## Implemented production foundation (2026-08-14)
+
+- FastAPI/PostgreSQL dashboard contract with explicit `dashboard.read` permission and clinic tenant isolation.
+- PostgreSQL source transactions for appointments, invoices, payments, laboratory orders, and expenses, using fixed-precision ETB amounts and clinic-scoped identifiers.
+- Live operational dashboard for today’s appointments, patient totals, collections, receivables, expenses, net cash flow, and active laboratory work.
+- Ethiopian demo tenant in `Africa/Addis_Ababa`, ETB currency, realistic Ethiopian patient and clinician names, `+251` phone data, and English/Amharic presentation.
+- Accounting and finance workspace entry point connected to the live dashboard aggregates.
+- Legacy Prisma dashboard handler removed; `/api/dashboard/stats` is now served by FastAPI.
+
+This foundation does not mark every workflow above complete. Appointment mutation, full clinical charting, invoice/payment posting, laboratory lifecycle, commission calculation, and formal report exports remain phase-gated work and must meet the release gates before production sign-off.

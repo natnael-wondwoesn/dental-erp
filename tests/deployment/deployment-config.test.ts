@@ -43,6 +43,14 @@ describe('9.1 Build Testing', () => {
       const config = { experimental: { serverActions: { bodySizeLimit: '10mb' } } }
       expect(config.experimental.serverActions.bodySizeLimit).toBe('10mb')
     })
+
+    it('FastAPI rewrites default to the local backend compose port', () => {
+      const nextConfig = fs.readFileSync(path.resolve(__dirname, '../../next.config.js'), 'utf8')
+
+      expect(nextConfig).toContain("process.env.FASTAPI_URL || 'http://127.0.0.1:18000'")
+      expect(nextConfig).toContain("source: '/api/auth/login'")
+      expect(nextConfig).toContain('destination: `${fastApiUrl}/api/auth/login`')
+    })
   })
 
   describe('Prisma configuration', () => {
@@ -455,5 +463,45 @@ describe('9.5 Rollback Testing Patterns', () => {
     const result = envReadPattern()
     expect(result).toBeDefined()
     expect(typeof result).toBe('string')
+  })
+})
+
+// ---------- Two-tier product packaging — delivery artifacts ----------
+
+function readRepoFile(relative: string): string {
+  return fs.readFileSync(path.join(process.cwd(), relative), 'utf8')
+}
+
+describe('landing tier delivery artifacts', () => {
+  it('ships a landing compose file that sets the tier explicitly', () => {
+    expect(readRepoFile('docker-compose.landing.yml')).toMatch(/PRODUCT_TIER:\s*landing/)
+  })
+
+  it('runs no database, cache, or backend in the landing stack', () => {
+    const compose = readRepoFile('docker-compose.landing.yml')
+    // Assert on declared service names, not on word occurrences anywhere in
+    // the file — the file's own comments legitimately mention what it omits.
+    const serviceNames = compose
+      .split('\n')
+      .filter((line) => /^ {2}\w[\w-]*:$/.test(line))
+      .map((line) => line.trim().replace(':', ''))
+    expect(serviceNames).toEqual(['app'])
+  })
+
+  it('sets the tier explicitly in the full-suite compose files', () => {
+    expect(readRepoFile('docker-compose.yml')).toMatch(/PRODUCT_TIER/)
+    expect(readRepoFile('docker-compose.dev.yml')).toMatch(/PRODUCT_TIER/)
+  })
+
+  it('copies config/ into the standalone runner so SITE_ID resolves at runtime', () => {
+    // Next traces static imports only. loadSiteConfig reads a dynamic path, so
+    // without this COPY the image starts and then fails on the first request.
+    expect(readRepoFile('Dockerfile')).toMatch(/COPY --from=builder \/app\/config \.\/config/)
+  })
+
+  it('documents both tiers in the env template', () => {
+    const env = readRepoFile('.env.example')
+    expect(env).toMatch(/PRODUCT_TIER/)
+    expect(env).toMatch(/SITE_ID/)
   })
 })

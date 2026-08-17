@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_session
-from app.models import User
+from app.models import Hospital, User
 from app.security.permissions import PermissionKey
 from app.security.tokens import decode_access_token
 
@@ -24,6 +24,10 @@ class Principal:
     name: str
     roles: frozenset[str]
     permissions: frozenset[str]
+    clinic_name: str
+    currency: str
+    locale: str
+    timezone: str
 
 
 async def get_current_principal(
@@ -52,6 +56,11 @@ async def get_current_principal(
     )
     if user is None:
         raise unauthorized
+    hospital = await session.scalar(
+        select(Hospital).where(Hospital.id == user.hospital_id, Hospital.is_active.is_(True))
+    )
+    if hospital is None:
+        raise unauthorized
 
     roles = frozenset(role.name for role in user.roles)
     permissions = frozenset(
@@ -64,6 +73,10 @@ async def get_current_principal(
         name=user.name,
         roles=roles,
         permissions=permissions,
+        clinic_name=hospital.name,
+        currency=hospital.currency,
+        locale=hospital.locale,
+        timezone=hospital.timezone,
     )
 
 

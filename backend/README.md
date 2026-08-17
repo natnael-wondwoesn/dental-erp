@@ -17,6 +17,15 @@ uv run uvicorn app.main:app --reload --port 8000
 
 OpenAPI is available at `http://localhost:8000/docs`.
 
+When the development backend is running through Compose, seed it from the
+repository root with either command:
+
+```bash
+docker compose -f docker-compose.dev.yml exec backend uv run python -m app.seed
+# Equivalent direct command:
+docker compose -f docker-compose.dev.yml exec backend /app/.venv/bin/python -m app.seed
+```
+
 The demo seed creates `admin@demo-dental.com` with password `Admin@123`. Change it
 outside local development.
 

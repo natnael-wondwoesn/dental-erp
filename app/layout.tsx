@@ -5,11 +5,11 @@ import { Providers } from '@/components/providers'
 
 export const metadata: Metadata = {
   title: {
-    default: 'DentalERP - Open Source Dental Hospital Management Software India',
-    template: '%s | DentalERP',
+    default: 'Dentix — Ethiopian Dental Clinic ERP',
+    template: '%s | Dentix',
   },
   description:
-    'Free open-source dental clinic management software for India. Patient records, appointment scheduling, GST billing, inventory, AI-powered treatment planning, insurance claims, tele-dentistry. Built for Indian dental hospitals and clinics.',
+    'Production dental clinic operations for Ethiopia: patient care, scheduling, treatment, ETB billing, laboratory workflows, finance and reporting.',
   keywords: [
     'dental software India',
     'dental clinic management software',
@@ -37,10 +37,9 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   openGraph: {
     type: 'website',
-    locale: 'en_IN',
-    title: 'DentalERP - Open Source Dental Hospital Management Software',
-    description:
-      'Free, AI-powered dental clinic management system built for Indian dental hospitals. Patient records, GST billing, appointments, inventory, insurance, tele-dentistry and more.',
+    locale: 'en_ET',
+    title: 'Dentix — Ethiopian Dental Clinic ERP',
+    description: 'A modern English and Amharic dental clinic operating system for Ethiopia.',
     siteName: 'DentalERP',
   },
   twitter: {
@@ -61,7 +60,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#0891B2',
+  themeColor: '#0769E7',
   width: 'device-width',
   initialScale: 1,
 }
