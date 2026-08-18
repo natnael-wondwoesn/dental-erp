@@ -380,6 +380,46 @@ describe('GET /api/appointments/slots', () => {
     const bookedSlot = data.slots.find((s: any) => s.time === '09:00')
     expect(bookedSlot.available).toBe(false)
   })
+
+  it('merges partial clinic hours with safe lunch defaults', async () => {
+    const { GET } = await import('@/app/api/appointments/slots/route')
+
+    vi.mocked(prisma.hospital.findUnique).mockResolvedValue({
+      workingHours: JSON.stringify({ start: '09:00', end: '10:00' }),
+    } as any)
+    vi.mocked(prisma.holiday.findFirst).mockResolvedValue(null)
+    vi.mocked(prisma.staff.findFirst).mockResolvedValue({ id: 'd1' } as any)
+    vi.mocked(prisma.staffShift.findUnique).mockResolvedValue(null)
+    vi.mocked(prisma.appointment.findMany).mockResolvedValue([])
+
+    const req = makeRequest('http://localhost/api/appointments/slots?doctorId=d1&date=2026-03-15')
+    const res = await GET(req)
+    const data = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(data.slots.map((slot: any) => slot.time)).toEqual(['09:00', '09:30'])
+  })
+
+  it('ignores legacy appointments without a valid scheduled time', async () => {
+    const { GET } = await import('@/app/api/appointments/slots/route')
+
+    vi.mocked(prisma.hospital.findUnique).mockResolvedValue({
+      workingHours: JSON.stringify({ start: '09:00', end: '10:00' }),
+    } as any)
+    vi.mocked(prisma.holiday.findFirst).mockResolvedValue(null)
+    vi.mocked(prisma.staff.findFirst).mockResolvedValue({ id: 'd1' } as any)
+    vi.mocked(prisma.staffShift.findUnique).mockResolvedValue(null)
+    vi.mocked(prisma.appointment.findMany).mockResolvedValue([
+      { scheduledTime: null, duration: 30 },
+    ] as any)
+
+    const req = makeRequest('http://localhost/api/appointments/slots?doctorId=d1&date=2026-03-15')
+    const res = await GET(req)
+    const data = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(data.slots).toHaveLength(2)
+  })
 })
 
 describe('GET/POST/DELETE /api/appointments/waitlist', () => {
