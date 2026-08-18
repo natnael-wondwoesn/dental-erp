@@ -96,8 +96,8 @@ describe('Billing Utils - calculateInvoiceTotals', () => {
     expect(result.subtotal).toBe(1000)
     expect(result.taxableAmount).toBe(1000)
     expect(result.nonTaxableAmount).toBe(0)
-    expect(result.totalTax).toBe(180)
-    expect(result.totalAmount).toBe(1180)
+    expect(result.totalTax).toBe(150)
+    expect(result.totalAmount).toBe(1150)
   })
 
   it('should calculate totals for mixed taxable/non-taxable items', () => {
@@ -110,8 +110,8 @@ describe('Billing Utils - calculateInvoiceTotals', () => {
     expect(result.subtotal).toBe(1000)
     expect(result.taxableAmount).toBe(500)
     expect(result.nonTaxableAmount).toBe(500)
-    expect(result.totalTax).toBe(90) // 18% of 500
-    expect(result.totalAmount).toBe(1090)
+    expect(result.totalTax).toBe(75) // 15% of 500
+    expect(result.totalAmount).toBe(1075)
   })
 
   it('should apply discount before tax calculation', () => {
@@ -121,8 +121,8 @@ describe('Billing Utils - calculateInvoiceTotals', () => {
     expect(result.subtotal).toBe(1000)
     expect(result.discountAmount).toBe(100)
     expect(result.taxableAmount).toBe(900)
-    expect(result.totalTax).toBe(162) // 18% of 900
-    expect(result.totalAmount).toBe(1062)
+    expect(result.totalTax).toBe(135) // 15% of 900
+    expect(result.totalAmount).toBe(1035)
   })
 
   it('should handle empty items array', () => {
