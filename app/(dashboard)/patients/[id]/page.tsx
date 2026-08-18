@@ -1,8 +1,7 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
-import { use, useEffect, useMemo, useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import {
@@ -11,7 +10,6 @@ import {
   Download,
   Edit3,
   FileText,
-  Mail,
   MessageCircle,
   MoreHorizontal,
   Plus,
@@ -41,75 +39,53 @@ type Patient = {
     scheduledTime?: string
     status?: string
     appointmentType?: string
+    duration?: number
+    doctor?: { firstName: string; lastName: string } | null
   }>
   documents?: Array<{ id: string; originalName?: string; fileName?: string; fileSize?: number }>
   _count?: { appointments?: number; treatments?: number; documents?: number }
-}
-
-const demoPatient: Patient = {
-  id: 'demo',
-  patientId: 'ET-PAT-2026-0001',
-  firstName: 'Lulit',
-  lastName: 'Bekele',
-  email: 'lulit.bekele@example.com',
-  phone: '+251 911 234 567',
-  dateOfBirth: '1997-02-24',
-  gender: 'FEMALE',
-  address: 'Bole Medhanialem, Namibia St.',
-  city: 'Addis Ababa',
-  state: 'Addis Ababa',
-  pincode: '1000',
-  createdAt: '2025-11-20T09:00:00Z',
-  appointments: [
-    {
-      id: '1',
-      scheduledDate: '2026-11-26',
-      scheduledTime: '09:00',
-      status: 'CONFIRMED',
-      appointmentType: 'Open access',
-    },
-    {
-      id: '2',
-      scheduledDate: '2026-12-12',
-      scheduledTime: '10:30',
-      status: 'SCHEDULED',
-      appointmentType: 'Root canal prep',
-    },
-  ],
-  documents: [
-    { id: '1', originalName: 'Check Up Result.pdf', fileSize: 126000 },
-    { id: '2', originalName: 'Dental X-Ray Result 2.pdf', fileSize: 98000 },
-    { id: '3', originalName: 'Medical Prescriptions.pdf', fileSize: 87000 },
-  ],
-  _count: { appointments: 17, treatments: 15, documents: 3 },
 }
 
 export default function PatientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
   const { t } = useLanguage()
-  const [patient, setPatient] = useState<Patient>(demoPatient)
+  const [patient, setPatient] = useState<Patient | null>(null)
+  const [loadError, setLoadError] = useState(false)
   const [tab, setTab] = useState<'upcoming' | 'past' | 'records'>('upcoming')
-  const [note, setNote] = useState(
-    'Patient prefers morning appointments.\nHistory of sensitivity to cold drinks; Amharic preferred.'
-  )
-  const [saved, setSaved] = useState(false)
 
   useEffect(() => {
     fetch(`/api/patients/${id}`)
       .then((response) => (response.ok ? response.json() : Promise.reject()))
-      .then((data) => setPatient((current) => ({ ...current, ...data.patient })))
-      .catch(() => undefined)
+      .then((data) => setPatient(data.patient))
+      .catch(() => setLoadError(true))
   }, [id])
+
+  if (loadError) {
+    return <p className="p-6 text-sm text-destructive">Unable to load this patient record.</p>
+  }
+
+  if (!patient) {
+    return <p className="p-6 text-sm text-muted-foreground">Loading patient record...</p>
+  }
 
   const fullName = `${patient.firstName} ${patient.lastName}`
   const birthday = patient.dateOfBirth
     ? format(new Date(patient.dateOfBirth), 'MMM do, yyyy')
     : 'Not provided'
-  const appointments = useMemo(
-    () => patient.appointments?.slice(0, 3) || [],
-    [patient.appointments]
-  )
+  const appointments = (() => {
+    if (tab === 'records') return []
+    const startOfToday = new Date()
+    startOfToday.setHours(0, 0, 0, 0)
+    return (patient.appointments || [])
+      .filter((appointment) => {
+        const scheduledDate = new Date(appointment.scheduledDate)
+        return tab === 'upcoming'
+          ? scheduledDate >= startOfToday && appointment.status !== 'CANCELLED'
+          : scheduledDate < startOfToday || appointment.status === 'CANCELLED'
+      })
+      .slice(0, 3)
+  })()
 
   return (
     <div className="patient-360 -m-4 min-h-full bg-[#f3f7fc] p-4 text-[#111827] md:-m-6 md:p-7">
@@ -135,9 +111,9 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
             <Link
               href={`/patients/${patient.id}/edit`}
               className="inline-flex items-center gap-2 rounded-xl border bg-white px-4 py-2 text-sm font-semibold shadow-sm"
-          >
-            <Edit3 className="h-4 w-4" /> {t('Edit patient')}
-          </Link>
+            >
+              <Edit3 className="h-4 w-4" /> {t('Edit patient')}
+            </Link>
           </div>
         </div>
 
@@ -145,18 +121,15 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
           <div className="space-y-5">
             <section className="grid overflow-hidden rounded-[22px] border border-slate-100 bg-white shadow-[0_8px_30px_rgba(28,55,90,.06)] lg:grid-cols-[240px_1fr] 2xl:grid-cols-[300px_1fr]">
               <div className="flex flex-col items-center justify-center border-b p-8 text-center lg:border-b-0 lg:border-r">
-                <Image
-                  src="/assets/patient-lulit.png"
-                  alt={fullName}
-                  width={104}
-                  height={104}
-                  className="h-24 w-24 rounded-full object-cover ring-8 ring-[#eef5ff]"
-                />
+                <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#086be6] text-3xl font-semibold text-white ring-8 ring-[#eef5ff]">
+                  {patient.firstName.charAt(0)}
+                  {patient.lastName.charAt(0)}
+                </div>
                 <h1 className="mt-5 text-2xl font-semibold tracking-tight">{fullName}</h1>
                 <p className="mt-1 text-sm text-slate-400">{patient.email || patient.patientId}</p>
                 <div className="mt-5 flex items-center gap-6">
                   <div>
-                    <p className="text-xl font-semibold">{patient._count?.treatments ?? 15}</p>
+                    <p className="text-xl font-semibold">{patient._count?.treatments ?? 0}</p>
                     <p className="text-xs text-slate-400">{t('Past')}</p>
                   </div>
                   <span className="h-9 w-px bg-slate-200" />
@@ -183,7 +156,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                     'Registered date',
                     patient.createdAt
                       ? format(new Date(patient.createdAt), 'MMM do, yyyy')
-                      : 'Nov 20th, 2025',
+                      : 'Not provided',
                   ],
                   ['Patient ID', patient.patientId],
                 ].map(([label, value]) => (
@@ -218,10 +191,15 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
 
               <div className="mt-5 rounded-2xl bg-[#f1f4f8] p-4 sm:p-6">
                 <div className="mb-5 flex items-center justify-between">
-                  <h2 className="font-semibold">Root canal treatment</h2>
-                  <button className="rounded-lg bg-white px-3 py-2 text-xs text-slate-500">
-                    Show previous treatment
-                  </button>
+                  <h2 className="font-semibold">
+                    {t(
+                      tab === 'upcoming'
+                        ? 'Upcoming appointments'
+                        : tab === 'past'
+                          ? 'Past appointments'
+                          : 'Medical records'
+                    )}
+                  </h2>
                 </div>
                 {tab === 'upcoming' ? (
                   <div className="relative space-y-4 border-l-2 border-[#086be6] pl-5">
@@ -238,7 +216,8 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                             {format(new Date(appointment.scheduledDate), 'dd MMM yy')}
                           </p>
                           <p className="mt-1 text-xs text-slate-400">
-                            {appointment.scheduledTime || '09:00'} · 60 min
+                            {appointment.scheduledTime || t('Time not set')} ·{' '}
+                            {appointment.duration || 30} min
                           </p>
                         </div>
                         <div>
@@ -246,12 +225,16 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                             Treatment
                           </p>
                           <p className="mt-1 font-semibold">
-                            {appointment.appointmentType || 'Consultation'}
+                            {appointment.appointmentType || t('Consultation')}
                           </p>
                         </div>
                         <div>
                           <p className="text-xs uppercase tracking-wide text-slate-400">Dentist</p>
-                          <p className="mt-1 font-semibold">Dr. Hana Tesfaye</p>
+                          <p className="mt-1 font-semibold">
+                            {appointment.doctor
+                              ? `Dr. ${appointment.doctor.firstName} ${appointment.doctor.lastName}`
+                              : t('Not assigned')}
+                          </p>
                         </div>
                         <button aria-label="Appointment options">
                           <MoreHorizontal className="h-5 w-5 text-slate-400" />
@@ -275,30 +258,15 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
             <section className="overflow-hidden rounded-[22px] border border-slate-100 bg-white shadow-[0_8px_30px_rgba(28,55,90,.06)]">
               <div className="flex items-center justify-between px-6 py-5">
                 <h2 className="font-semibold">{t('Notes')}</h2>
-                <button className="text-sm font-semibold text-[#086be6]">See all</button>
+                <Link
+                  href={`/patients/${patient.id}/medical-history`}
+                  className="text-sm font-semibold text-[#086be6]"
+                >
+                  {t('Medical history')}
+                </Link>
               </div>
-              <div className="bg-[#f1f4f8] p-5">
-                <textarea
-                  value={note}
-                  onChange={(event) => {
-                    setNote(event.target.value)
-                    setSaved(false)
-                  }}
-                  className="min-h-36 w-full resize-none bg-transparent text-sm leading-7 outline-none"
-                  aria-label="Patient note"
-                />
-                <div className="flex justify-end">
-                  <button
-                    onClick={() => setSaved(true)}
-                    className="rounded-lg bg-[#086be6] px-4 py-2 text-xs font-semibold text-white"
-                  >
-                    {saved ? t('Saved') : t('Save note')}
-                  </button>
-                </div>
-              </div>
-              <div className="px-6 py-4">
-                <p className="text-sm">{note.split('\n')[0]}</p>
-                <p className="mt-2 text-xs text-slate-400">Dr. Hana Tesfaye · just now</p>
+              <div className="bg-[#f1f4f8] p-6 text-sm leading-6 text-slate-500">
+                {t('Clinical notes are recorded in the patient medical history.')}
               </div>
             </section>
 
@@ -310,7 +278,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                 </button>
               </div>
               <div className="divide-y">
-                {(patient.documents || demoPatient.documents || []).map((document) => (
+                {(patient.documents || []).map((document) => (
                   <div key={document.id} className="flex items-center gap-3 py-4">
                     <span className="rounded-lg bg-[#eef5ff] p-2 text-[#086be6]">
                       <FileText className="h-4 w-4" />

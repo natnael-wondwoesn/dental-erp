@@ -20,10 +20,10 @@ describe('Billing Utils - calculateGST', () => {
   it('should calculate GST with default rates', () => {
     const result = calculateGST(1000)
     expect(result.subtotal).toBe(1000)
-    expect(result.cgstAmount).toBe(90)
-    expect(result.sgstAmount).toBe(90)
-    expect(result.totalTax).toBe(180)
-    expect(result.grandTotal).toBe(1180)
+    expect(result.cgstAmount).toBe(150)
+    expect(result.sgstAmount).toBe(0)
+    expect(result.totalTax).toBe(150)
+    expect(result.grandTotal).toBe(1150)
   })
 
   it('should calculate GST with custom rates', () => {
@@ -42,14 +42,14 @@ describe('Billing Utils - calculateGST', () => {
 
   it('should round to 2 decimal places', () => {
     const result = calculateGST(99.99)
-    expect(result.cgstAmount).toBe(9)
-    expect(result.grandTotal).toBeCloseTo(117.99, 2)
+    expect(result.cgstAmount).toBe(15)
+    expect(result.grandTotal).toBeCloseTo(114.99, 2)
   })
 
   it('should handle large amounts', () => {
     const result = calculateGST(1000000)
-    expect(result.totalTax).toBe(180000)
-    expect(result.grandTotal).toBe(1180000)
+    expect(result.totalTax).toBe(150000)
+    expect(result.grandTotal).toBe(1150000)
   })
 })
 
@@ -309,39 +309,39 @@ describe('Billing Utils - calculateDueDate', () => {
 
 describe('Billing Utils - numberToWords', () => {
   it('should convert zero', () => {
-    expect(numberToWords(0)).toBe('Zero')
+    expect(numberToWords(0)).toBe('Zero Birr Only')
   })
 
   it('should convert small numbers', () => {
-    expect(numberToWords(5)).toBe('Five Rupees Only')
-    expect(numberToWords(15)).toBe('Fifteen Rupees Only')
-    expect(numberToWords(99)).toBe('Ninety Nine Rupees Only')
+    expect(numberToWords(5)).toBe('Five Birr Only')
+    expect(numberToWords(15)).toBe('Fifteen Birr Only')
+    expect(numberToWords(99)).toBe('Ninety Nine Birr Only')
   })
 
   it('should convert hundreds', () => {
-    expect(numberToWords(100)).toBe('One Hundred Rupees Only')
-    expect(numberToWords(500)).toBe('Five Hundred Rupees Only')
-    expect(numberToWords(999)).toBe('Nine Hundred Ninety Nine Rupees Only')
+    expect(numberToWords(100)).toBe('One Hundred Birr Only')
+    expect(numberToWords(500)).toBe('Five Hundred Birr Only')
+    expect(numberToWords(999)).toBe('Nine Hundred Ninety Nine Birr Only')
   })
 
-  it('should convert thousands (Indian format)', () => {
-    expect(numberToWords(1000)).toBe('One Thousand Rupees Only')
-    expect(numberToWords(50000)).toBe('Fifty Thousand Rupees Only')
+  it('should convert thousands', () => {
+    expect(numberToWords(1000)).toBe('One Thousand Birr Only')
+    expect(numberToWords(50000)).toBe('Fifty Thousand Birr Only')
   })
 
-  it('should convert lakhs (Indian format)', () => {
-    expect(numberToWords(100000)).toBe('One Lakh Rupees Only')
-    expect(numberToWords(500000)).toBe('Five Lakh Rupees Only')
+  it('should use international hundred-thousand grouping', () => {
+    expect(numberToWords(100000)).toBe('One Hundred Thousand Birr Only')
+    expect(numberToWords(500000)).toBe('Five Hundred Thousand Birr Only')
   })
 
-  it('should convert crores (Indian format)', () => {
-    expect(numberToWords(10000000)).toBe('One Crore Rupees Only')
+  it('should convert millions', () => {
+    expect(numberToWords(10000000)).toBe('Ten Million Birr Only')
   })
 
-  it('should handle decimal amounts (paise)', () => {
+  it('should handle decimal amounts (santim)', () => {
     const result = numberToWords(100.5)
-    expect(result).toContain('One Hundred Rupees')
-    expect(result).toContain('Fifty Paise')
+    expect(result).toContain('One Hundred Birr')
+    expect(result).toContain('Fifty Santim')
   })
 })
 
@@ -411,9 +411,9 @@ describe('Billing Utils - getPatientName', () => {
 
 describe('Billing Utils - gstConfig', () => {
   it('should have correct default values', () => {
-    expect(gstConfig.cgstRate).toBe(9)
-    expect(gstConfig.sgstRate).toBe(9)
-    expect(gstConfig.igstRate).toBe(18)
-    expect(gstConfig.defaultTaxable).toBe(true)
+    expect(gstConfig.cgstRate).toBe(15)
+    expect(gstConfig.sgstRate).toBe(0)
+    expect(gstConfig.igstRate).toBe(15)
+    expect(gstConfig.defaultTaxable).toBe(false)
   })
 })

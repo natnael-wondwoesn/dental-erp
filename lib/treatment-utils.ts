@@ -312,7 +312,7 @@ export function formatDuration(minutes: number): string {
 }
 
 export function formatCurrency(amount: number | string, locale?: string): string {
-  return baseFormatCurrency(amount, { locale })
+  return baseFormatCurrency(amount, { locale: locale || 'en-US', currency: 'ETB' })
 }
 
 // Parse tooth numbers from string (e.g., "11,12,13" or "11-13")

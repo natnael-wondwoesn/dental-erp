@@ -594,7 +594,7 @@ export default function NewInvoicePage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="FIXED">₹ Fixed</SelectItem>
+                      <SelectItem value="FIXED">ETB Fixed</SelectItem>
                       <SelectItem value="PERCENTAGE">% Percent</SelectItem>
                     </SelectContent>
                   </Select>
@@ -640,13 +640,15 @@ export default function NewInvoicePage() {
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
-                  <span>CGST ({gstConfig.cgstRate}%)</span>
+                  <span>VAT ({gstConfig.cgstRate}%)</span>
                   <span>{formatCurrency(totals.cgstAmount)}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span>SGST ({gstConfig.sgstRate}%)</span>
-                  <span>{formatCurrency(totals.sgstAmount)}</span>
-                </div>
+                {gstConfig.sgstRate > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span>Additional tax ({gstConfig.sgstRate}%)</span>
+                    <span>{formatCurrency(totals.sgstAmount)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between font-bold text-lg border-t pt-2">
                   <span>Total</span>
                   <span className="text-primary">{formatCurrency(totals.totalAmount)}</span>

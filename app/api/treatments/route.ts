@@ -241,7 +241,7 @@ export async function POST(request: NextRequest) {
         hospitalId,
         treatmentNo,
         patientId,
-        appointmentId,
+        appointmentId: appointmentId || null,
         procedureId,
         doctorId,
         toothNumbers: toothNumbers || null,

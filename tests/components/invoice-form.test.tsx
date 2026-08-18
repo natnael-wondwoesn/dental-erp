@@ -20,7 +20,7 @@ vi.mock('@/lib/utils', () => ({
 }))
 
 vi.mock('@/lib/billing-utils', () => ({
-  formatCurrency: (val: number) => `₹${val.toLocaleString('en-IN')}`,
+  formatCurrency: (val: number) => `ETB ${val.toLocaleString('en-US')}`,
   calculateInvoiceTotals: (items: any[], discountType: string, discountValue: number) => {
     const subtotal = items.reduce((sum: number, i: any) => sum + i.quantity * i.unitPrice, 0)
     const discountAmount =
@@ -29,8 +29,8 @@ vi.mock('@/lib/billing-utils', () => ({
     const taxable = items
       .filter((i: any) => i.taxable)
       .reduce((sum: number, i: any) => sum + i.quantity * i.unitPrice, 0)
-    const cgst = (Math.max(0, taxable - discountAmount) * 9) / 100
-    const sgst = cgst
+    const cgst = (Math.max(0, taxable - discountAmount) * 15) / 100
+    const sgst = 0
     return {
       subtotal,
       discountAmount,
@@ -42,7 +42,7 @@ vi.mock('@/lib/billing-utils', () => ({
       totalAmount: afterDiscount + cgst + sgst,
     }
   },
-  gstConfig: { cgstRate: 9, sgstRate: 9 },
+  gstConfig: { cgstRate: 15, sgstRate: 0 },
   paymentTermsOptions: [
     { value: 0, label: 'Due on Receipt' },
     { value: 7, label: 'Net 7' },
@@ -194,8 +194,8 @@ describe('NewInvoicePage', () => {
 
     it('renders GST breakdown labels', () => {
       render(<NewInvoicePage />)
-      expect(screen.getByText('CGST (9%)')).toBeInTheDocument()
-      expect(screen.getByText('SGST (9%)')).toBeInTheDocument()
+      expect(screen.getByText('VAT (15%)')).toBeInTheDocument()
+      expect(screen.queryByText(/Additional tax/)).not.toBeInTheDocument()
     })
 
     it('renders "Create & Send Invoice" and "Save as Draft" buttons', () => {

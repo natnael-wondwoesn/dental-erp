@@ -405,6 +405,29 @@ describe('Treatments API - Comprehensive Tests', () => {
       )
     })
 
+    it('should store an empty appointment selection as null', async () => {
+      mockPrisma.treatment.findFirst.mockResolvedValue(null)
+      mockPrisma.treatment.create.mockResolvedValue({ id: 'trt-1' })
+
+      const request = new NextRequest('http://localhost/api/treatments', {
+        method: 'POST',
+        body: JSON.stringify({
+          patientId: mockPatientId,
+          procedureId: mockProcedureId,
+          doctorId: mockDoctorId,
+          appointmentId: '',
+        }),
+      })
+      await POST(request)
+
+      expect(mockPrisma.appointment.findUnique).not.toHaveBeenCalled()
+      expect(mockPrisma.treatment.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ appointmentId: null }),
+        })
+      )
+    })
+
     it('should reject invalid appointment ID', async () => {
       mockPrisma.appointment.findUnique.mockResolvedValue(null)
 

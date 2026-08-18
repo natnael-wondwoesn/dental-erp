@@ -226,12 +226,13 @@ export const discountTypeConfig: Record<
   },
 }
 
-// GST Configuration (Indian Tax)
+// Ethiopian VAT configuration. Dental services may be exempt depending on the
+// clinic and service, so invoice items are non-taxable unless explicitly marked.
 export const gstConfig = {
-  cgstRate: 9, // Central GST
-  sgstRate: 9, // State GST
-  igstRate: 18, // Integrated GST (for inter-state)
-  defaultTaxable: true,
+  cgstRate: 15,
+  sgstRate: 0,
+  igstRate: 15,
+  defaultTaxable: false,
 }
 
 // Calculate GST breakdown
@@ -551,9 +552,9 @@ export function calculateDueDate(invoiceDate: Date, paymentTermDays: number): Da
   return dueDate
 }
 
-// Number to words (Indian format) for invoice amounts
+// Number to words for Ethiopian Birr invoice amounts.
 export function numberToWords(num: number): string {
-  if (num === 0) return 'Zero'
+  if (num === 0) return 'Zero Birr Only'
 
   const ones = [
     '',
@@ -591,8 +592,6 @@ export function numberToWords(num: number): string {
     'Ninety',
   ]
 
-  const scales = ['', 'Thousand', 'Lakh', 'Crore']
-
   function convertGroup(n: number): string {
     if (n === 0) return ''
     if (n < 20) return ones[n]
@@ -600,39 +599,29 @@ export function numberToWords(num: number): string {
     return ones[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' ' + convertGroup(n % 100) : '')
   }
 
-  // Handle Indian numbering system
-  const rupees = Math.floor(num)
-  const paise = Math.round((num - rupees) * 100)
+  const birr = Math.floor(num)
+  const santim = Math.round((num - birr) * 100)
 
   let result = ''
 
-  // Crores (10,000,000+)
-  if (rupees >= 10000000) {
-    result += convertGroup(Math.floor(rupees / 10000000)) + ' Crore '
+  if (birr >= 1000000) {
+    result += convertGroup(Math.floor(birr / 1000000)) + ' Million '
   }
 
-  // Lakhs (100,000 - 9,999,999)
-  const afterCrore = rupees % 10000000
-  if (afterCrore >= 100000) {
-    result += convertGroup(Math.floor(afterCrore / 100000)) + ' Lakh '
+  const afterMillion = birr % 1000000
+  if (afterMillion >= 1000) {
+    result += convertGroup(Math.floor(afterMillion / 1000)) + ' Thousand '
   }
 
-  // Thousands (1,000 - 99,999)
-  const afterLakh = afterCrore % 100000
-  if (afterLakh >= 1000) {
-    result += convertGroup(Math.floor(afterLakh / 1000)) + ' Thousand '
-  }
-
-  // Hundreds and below
-  const afterThousand = afterLakh % 1000
+  const afterThousand = afterMillion % 1000
   if (afterThousand > 0) {
     result += convertGroup(afterThousand)
   }
 
-  result = result.trim() + ' Rupees'
+  result = (result.trim() || 'Zero') + ' Birr'
 
-  if (paise > 0) {
-    result += ' and ' + convertGroup(paise) + ' Paise'
+  if (santim > 0) {
+    result += ' and ' + convertGroup(santim) + ' Santim'
   }
 
   result += ' Only'

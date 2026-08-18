@@ -187,23 +187,23 @@ describe('Section 10.1 — Current Locale (India)', () => {
 
   // ─── GST Format ─────────────────────────────────────────────────────
 
-  describe('GST Format', () => {
-    it('gstConfig has CGST 9% and SGST 9%', () => {
-      expect(gstConfig.cgstRate).toBe(9)
-      expect(gstConfig.sgstRate).toBe(9)
+  describe('Ethiopian VAT Format', () => {
+    it('uses 15% VAT without split-state tax', () => {
+      expect(gstConfig.cgstRate).toBe(15)
+      expect(gstConfig.sgstRate).toBe(0)
     })
 
-    it('calculateGST(1000) gives 90 CGST + 90 SGST = 180 tax, 1180 total', () => {
+    it('calculateGST(1000) gives 150 VAT and 1150 total', () => {
       const result = calculateGST(1000)
-      expect(result.cgstAmount).toBe(90)
-      expect(result.sgstAmount).toBe(90)
-      expect(result.totalTax).toBe(180)
-      expect(result.grandTotal).toBe(1180)
+      expect(result.cgstAmount).toBe(150)
+      expect(result.sgstAmount).toBe(0)
+      expect(result.totalTax).toBe(150)
+      expect(result.grandTotal).toBe(1150)
     })
 
-    it('GST is 18% total (standard Indian goods & services tax)', () => {
-      expect(gstConfig.cgstRate + gstConfig.sgstRate).toBe(18)
-      expect(gstConfig.igstRate).toBe(18)
+    it('VAT is 15% total', () => {
+      expect(gstConfig.cgstRate + gstConfig.sgstRate).toBe(15)
+      expect(gstConfig.igstRate).toBe(15)
     })
   })
 
@@ -231,32 +231,32 @@ describe('Section 10.1 — Current Locale (India)', () => {
     })
   })
 
-  // ─── Number to Words (Indian) ───────────────────────────────────────
+  // ─── Number to Words (Ethiopian Birr) ──────────────────────────────
 
-  describe('Number to Words (Indian)', () => {
-    it('numberToWords(1) returns "One Rupees Only"', () => {
-      expect(numberToWords(1)).toBe('One Rupees Only')
+  describe('Number to Words (Ethiopian Birr)', () => {
+    it('numberToWords(1) returns "One Birr Only"', () => {
+      expect(numberToWords(1)).toBe('One Birr Only')
     })
 
-    it('numberToWords(100000) contains "Lakh" (not "Hundred Thousand")', () => {
+    it('numberToWords(100000) uses international grouping', () => {
       const result = numberToWords(100000)
-      expect(result).toContain('Lakh')
-      expect(result).not.toContain('Hundred Thousand')
+      expect(result).toContain('Hundred Thousand')
+      expect(result).not.toContain('Lakh')
     })
 
-    it('numberToWords(10000000) contains "Crore"', () => {
+    it('numberToWords(10000000) contains "Million"', () => {
       const result = numberToWords(10000000)
-      expect(result).toContain('Crore')
+      expect(result).toContain('Million')
     })
 
-    it('numberToWords(1500.50) contains "Rupees" and "Paise"', () => {
+    it('numberToWords(1500.50) contains "Birr" and "Santim"', () => {
       const result = numberToWords(1500.5)
-      expect(result).toContain('Rupees')
-      expect(result).toContain('Paise')
+      expect(result).toContain('Birr')
+      expect(result).toContain('Santim')
     })
 
-    it('numberToWords(0) returns "Zero"', () => {
-      expect(numberToWords(0)).toBe('Zero')
+    it('numberToWords(0) returns "Zero Birr Only"', () => {
+      expect(numberToWords(0)).toBe('Zero Birr Only')
     })
   })
 

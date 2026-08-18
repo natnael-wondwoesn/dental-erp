@@ -36,18 +36,18 @@ interface LabVendor {
 }
 
 const WORK_TYPES = [
-  { value: 'crown', label: 'Crown' },
-  { value: 'bridge', label: 'Bridge' },
-  { value: 'denture', label: 'Denture' },
-  { value: 'partial_denture', label: 'Partial Denture' },
-  { value: 'implant_crown', label: 'Implant Crown' },
-  { value: 'veneer', label: 'Veneer' },
-  { value: 'inlay_onlay', label: 'Inlay/Onlay' },
-  { value: 'night_guard', label: 'Night Guard' },
-  { value: 'retainer', label: 'Retainer' },
-  { value: 'aligner', label: 'Aligner' },
-  { value: 'model', label: 'Model' },
-  { value: 'other', label: 'Other' },
+  { value: 'CROWN', label: 'Crown' },
+  { value: 'BRIDGE', label: 'Bridge' },
+  { value: 'DENTURE', label: 'Denture' },
+  { value: 'PARTIAL_DENTURE', label: 'Partial Denture' },
+  { value: 'IMPLANT_CROWN', label: 'Implant Crown' },
+  { value: 'VENEER', label: 'Veneer' },
+  { value: 'INLAY_ONLAY', label: 'Inlay/Onlay' },
+  { value: 'NIGHT_GUARD', label: 'Night Guard' },
+  { value: 'RETAINER', label: 'Retainer' },
+  { value: 'ALIGNER', label: 'Aligner' },
+  { value: 'MODEL', label: 'Model' },
+  { value: 'OTHER', label: 'Other' },
 ]
 
 export default function NewLabOrderPage() {
@@ -396,7 +396,7 @@ export default function NewLabOrderPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Estimated Cost (INR) *</Label>
+                <Label>Estimated Cost (ETB) *</Label>
                 <Input
                   type="number"
                   step="0.01"

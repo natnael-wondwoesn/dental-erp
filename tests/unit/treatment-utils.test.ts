@@ -247,8 +247,8 @@ describe('getTreatmentStatusBadge()', () => {
 // formatCurrency (treatment-utils version)
 // ---------------------------------------------------------------------------
 describe('formatCurrency() — treatment-utils', () => {
-  it('formats number in INR', () => {
-    expect(formatCurrency(2500)).toMatch(/₹/)
+  it('formats number in Ethiopian Birr', () => {
+    expect(formatCurrency(2500)).toMatch(/ETB/)
     expect(formatCurrency(2500)).toMatch(/2,500/)
   })
 
