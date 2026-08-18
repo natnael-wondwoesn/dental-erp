@@ -49,6 +49,7 @@ import {
 
 import { ReportBuilder } from '@/components/ai/report-builder'
 import { ErpModuleOverview } from '@/components/dashboard/erp-overview'
+import { useLanguage } from '@/lib/i18n'
 
 // Chart colors
 const CHART_COLORS = [
@@ -158,6 +159,7 @@ interface OperationalAnalytics {
 }
 
 export default function ReportsPage() {
+  const { locale, t } = useLanguage()
   const [loading, setLoading] = useState(true)
   const [datePreset, setDatePreset] = useState('this_month')
   const [dateFrom, setDateFrom] = useState('')
@@ -246,9 +248,9 @@ export default function ReportsPage() {
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
+    return new Intl.NumberFormat(locale === 'am' ? 'am-ET' : 'en-ET', {
       style: 'currency',
-      currency: 'INR',
+      currency: 'ETB',
       maximumFractionDigits: 0,
     }).format(amount)
   }
@@ -261,17 +263,21 @@ export default function ReportsPage() {
     <div className="space-y-6">
       <ErpModuleOverview
         moduleId="reports"
-        eyebrow="Analytics ERP"
-        title="Reports that read across patient, clinical, billing and operations data"
-        description="These analytics consolidate the shared ERP data model into patient, clinical, financial and operational views so management decisions aren’t trapped inside separate modules."
+        eyebrow={t('Analytics ERP')}
+        title={t('Reports that read across patient, clinical, billing and operations data')}
+        description={t(
+          'These analytics consolidate the shared ERP data model into patient, clinical, financial and operational views so management decisions aren’t trapped inside separate modules.'
+        )}
       />
 
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Reports & Analytics Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {t('Reports & Analytics Dashboard')}
+          </h1>
           <p className="text-muted-foreground">
-            Comprehensive analytics and insights for your dental practice
+            {t('Comprehensive analytics and insights for your dental practice')}
           </p>
         </div>
         <div className="flex gap-2">
@@ -286,12 +292,12 @@ export default function ReportsPage() {
             }}
           >
             <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Select period" />
+              <SelectValue placeholder={t('Select period')} />
             </SelectTrigger>
             <SelectContent>
               {dateRangePresets.map((preset) => (
                 <SelectItem key={preset.value} value={preset.value}>
-                  {preset.label}
+                  {t(preset.label)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -303,25 +309,25 @@ export default function ReportsPage() {
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
                 className="w-[140px]"
-                placeholder="From"
+                placeholder={t('From')}
               />
               <Input
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
                 className="w-[140px]"
-                placeholder="To"
+                placeholder={t('To')}
               />
             </>
           )}
           <Select onValueChange={(value) => handleExport(value as 'pdf' | 'excel')}>
             <SelectTrigger className="w-[140px]">
               <Download className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Export" />
+              <SelectValue placeholder={t('Export')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="pdf">Export as PDF</SelectItem>
-              <SelectItem value="excel">Export as Excel</SelectItem>
+              <SelectItem value="pdf">{t('Export as PDF')}</SelectItem>
+              <SelectItem value="excel">{t('Export as Excel')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -339,19 +345,19 @@ export default function ReportsPage() {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="patient" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
-            Patient Analytics
+            {t('Patient Analytics')}
           </TabsTrigger>
           <TabsTrigger value="clinical" className="flex items-center gap-2">
             <Stethoscope className="h-4 w-4" />
-            Clinical Analytics
+            {t('Clinical Analytics')}
           </TabsTrigger>
           <TabsTrigger value="financial" className="flex items-center gap-2">
             <DollarSign className="h-4 w-4" />
-            Financial Analytics
+            {t('Financial Analytics')}
           </TabsTrigger>
           <TabsTrigger value="operational" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
-            Operational Analytics
+            {t('Operational Analytics')}
           </TabsTrigger>
         </TabsList>
 
@@ -360,7 +366,7 @@ export default function ReportsPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">New Patients</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('New Patients')}</CardTitle>
                 <UserCheck className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>

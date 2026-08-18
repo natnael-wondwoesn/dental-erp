@@ -56,6 +56,7 @@ import {
   formatToothNumbers,
   parseToothNumbers,
 } from '@/lib/treatment-utils'
+import { useLanguage } from '@/lib/i18n'
 import { ErpModuleOverview } from '@/components/dashboard/erp-overview'
 import { ExportMenu } from '@/components/ui/export-menu'
 
@@ -104,6 +105,7 @@ interface PaginationInfo {
 }
 
 export default function TreatmentsPage() {
+  const { t } = useLanguage()
   const router = useRouter()
   const [treatments, setTreatments] = useState<Treatment[]>([])
   const [loading, setLoading] = useState(true)
@@ -204,16 +206,20 @@ export default function TreatmentsPage() {
     <div className="space-y-6">
       <ErpModuleOverview
         moduleId="treatments"
-        eyebrow="Clinical ERP"
-        title="Assessment, diagnosis and treatment planning in one clinical lane"
-        description="Use this area to move from assessment and diagnosis into planned procedures, chairside execution, follow-up commitments and the documentation needed for billing and reporting."
+        eyebrow={t('Clinical ERP')}
+        title={t('Assessment, diagnosis and treatment planning in one clinical lane')}
+        description={t(
+          'Use this area to move from assessment and diagnosis into planned procedures, chairside execution, follow-up commitments and the documentation needed for billing and reporting.'
+        )}
       />
 
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Treatments</h1>
-          <p className="text-muted-foreground">Manage patient treatments and clinical records</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t('Treatments')}</h1>
+          <p className="text-muted-foreground">
+            {t('Manage patient treatments and clinical records')}
+          </p>
         </div>
         <div className="flex gap-2">
           <ExportMenu
@@ -262,7 +268,7 @@ export default function TreatmentsPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search by patient name, treatment number, or diagnosis..."
+                placeholder={t('Search by patient name, treatment number, or diagnosis...')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
@@ -271,23 +277,23 @@ export default function TreatmentsPage() {
             <div className="flex gap-2 flex-wrap">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t('Status')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="PLANNED">Planned</SelectItem>
-                  <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                  <SelectItem value="COMPLETED">Completed</SelectItem>
-                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                  <SelectItem value="all">{t('All Status')}</SelectItem>
+                  <SelectItem value="PLANNED">{t('Planned')}</SelectItem>
+                  <SelectItem value="IN_PROGRESS">{t('In Progress')}</SelectItem>
+                  <SelectItem value="COMPLETED">{t('Completed')}</SelectItem>
+                  <SelectItem value="CANCELLED">{t('Cancelled')}</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={followUpFilter} onValueChange={setFollowUpFilter}>
                 <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Follow-up" />
+                  <SelectValue placeholder={t('Follow-up')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Treatments</SelectItem>
-                  <SelectItem value="required">Follow-up Required</SelectItem>
+                  <SelectItem value="all">{t('All Treatments')}</SelectItem>
+                  <SelectItem value="required">{t('Follow-up Required')}</SelectItem>
                 </SelectContent>
               </Select>
               <Input
@@ -295,14 +301,14 @@ export default function TreatmentsPage() {
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
                 className="w-[140px]"
-                placeholder="From Date"
+                placeholder={t('From Date')}
               />
               <Input
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
                 className="w-[140px]"
-                placeholder="To Date"
+                placeholder={t('To Date')}
               />
             </div>
           </div>
@@ -315,14 +321,14 @@ export default function TreatmentsPage() {
           <Table className="min-w-[900px]">
             <TableHeader>
               <TableRow>
-                <TableHead>Treatment</TableHead>
-                <TableHead>Patient</TableHead>
-                <TableHead>Procedure</TableHead>
-                <TableHead>Doctor</TableHead>
-                <TableHead>Teeth</TableHead>
-                <TableHead>Cost</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t('Treatment')}</TableHead>
+                <TableHead>{t('Patient')}</TableHead>
+                <TableHead>{t('Procedure')}</TableHead>
+                <TableHead>{t('Doctor')}</TableHead>
+                <TableHead>{t('Teeth')}</TableHead>
+                <TableHead>{t('Cost')}</TableHead>
+                <TableHead>{t('Status')}</TableHead>
+                <TableHead className="text-right">{t('Actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -360,7 +366,7 @@ export default function TreatmentsPage() {
                   <TableCell colSpan={8} className="h-24 text-center">
                     <div className="flex flex-col items-center gap-2">
                       <Stethoscope className="h-8 w-8 text-muted-foreground" />
-                      <p className="text-muted-foreground">No treatments found</p>
+                      <p className="text-muted-foreground">{t('No treatments found')}</p>
                       <Link href="/treatments/new">
                         <Button variant="outline" size="sm">
                           <Plus className="h-4 w-4 mr-2" />

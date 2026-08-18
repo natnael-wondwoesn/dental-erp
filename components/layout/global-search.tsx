@@ -15,6 +15,7 @@ import {
   ArrowRight,
 } from 'lucide-react'
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden'
+import { useLanguage } from '@/lib/i18n'
 
 interface SearchResult {
   id: string
@@ -40,6 +41,7 @@ const CATEGORIES = [
 ]
 
 export function GlobalSearch() {
+  const { t } = useLanguage()
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
@@ -146,12 +148,12 @@ export function GlobalSearch() {
       <div className="ml-auto md:w-72">
         <button
           type="button"
-          aria-label="Search patients, appointments, invoices, staff, and treatments"
+          aria-label={t('Search patients, appointments, invoices, staff, and treatments')}
           onClick={() => setOpen(true)}
           className="hidden h-10 w-full max-w-sm items-center gap-2 rounded-full border border-[#e7edf5] bg-[#f6f8fb] px-4 text-sm text-slate-400 transition-colors hover:border-blue-200 hover:bg-[#f1f6fc] md:flex"
         >
           <Search className="h-4 w-4 shrink-0" />
-          <span className="flex-1 text-left">Search patients, appointments...</span>
+          <span className="flex-1 text-left">{t('Search patients, appointments...')}</span>
           <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded-md border border-slate-200 bg-white px-1.5 font-mono text-[10px] font-medium text-slate-400 sm:inline-flex">
             /
           </kbd>
@@ -159,7 +161,7 @@ export function GlobalSearch() {
         {/* Mobile: just the icon */}
         <button
           type="button"
-          aria-label="Search patients, appointments, invoices, staff, and treatments"
+          aria-label={t('Search patients, appointments, invoices, staff, and treatments')}
           onClick={() => setOpen(true)}
           className="p-2 text-slate-500 transition hover:text-[#0769e7] md:hidden"
         >
@@ -171,7 +173,7 @@ export function GlobalSearch() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden top-[5%] sm:top-[20%] translate-y-0 mx-2 sm:mx-auto">
           <VisuallyHidden.Root>
-            <DialogTitle>Global Search</DialogTitle>
+            <DialogTitle>{t('Global Search')}</DialogTitle>
           </VisuallyHidden.Root>
 
           {/* Search Input */}
@@ -183,7 +185,7 @@ export function GlobalSearch() {
               value={query}
               onChange={(e) => handleQueryChange(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Search patients, appointments, invoices, staff, treatments..."
+              placeholder={t('Search patients, appointments, invoices, staff, treatments...')}
               className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
               autoComplete="off"
               spellCheck={false}
@@ -196,20 +198,23 @@ export function GlobalSearch() {
             {/* Empty state */}
             {query.length < 2 && (
               <div className="p-6 text-center text-sm text-muted-foreground">
-                Type at least 2 characters to search across patients, appointments, invoices, staff,
-                and treatments.
+                {t(
+                  'Type at least 2 characters to search across patients, appointments, invoices, staff, and treatments.'
+                )}
               </div>
             )}
 
             {/* Loading */}
             {query.length >= 2 && loading && !results && (
-              <div className="p-6 text-center text-sm text-muted-foreground">Searching...</div>
+              <div className="p-6 text-center text-sm text-muted-foreground">
+                {t('Searching...')}
+              </div>
             )}
 
             {/* No results */}
             {hasSearched && totalResults === 0 && (
               <div className="p-6 text-center text-sm text-muted-foreground">
-                No results found for &ldquo;{query}&rdquo;
+                {t('No results found')} &ldquo;{query}&rdquo;
               </div>
             )}
 
@@ -225,7 +230,7 @@ export function GlobalSearch() {
                     <div key={cat.key}>
                       <div className="px-4 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
                         <Icon className="h-3.5 w-3.5" />
-                        {cat.label}
+                        {t(cat.label)}
                       </div>
                       {items.map((item) => {
                         const globalIdx = flatResults.findIndex(

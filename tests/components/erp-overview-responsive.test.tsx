@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { ErpCommandCenter, ErpModuleOverview } from '@/components/dashboard/erp-overview'
+import { LanguageProvider } from '@/lib/i18n'
+
+function renderWithLanguage(ui: React.ReactNode) {
+  return render(<LanguageProvider>{ui}</LanguageProvider>)
+}
 
 const summary = {
   currency: 'ETB',
@@ -31,7 +36,7 @@ describe('ERP overview responsive density', () => {
   })
 
   it('keeps a module overview compact on the first mobile viewport', async () => {
-    render(
+    renderWithLanguage(
       <ErpModuleOverview
         moduleId="patients"
         title="Patient records for intake, follow-up, and longitudinal history"
@@ -53,7 +58,7 @@ describe('ERP overview responsive density', () => {
   })
 
   it('does not render the full command-center catalogue on mobile', async () => {
-    render(<ErpCommandCenter />)
+    renderWithLanguage(<ErpCommandCenter />)
     await waitFor(() => expect(screen.getByText('ERP command center')).toBeInTheDocument())
     expect(screen.getByTestId('erp-command-center')).toHaveClass('hidden', 'md:block')
   })

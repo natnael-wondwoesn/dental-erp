@@ -50,6 +50,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ErpModuleOverview } from '@/components/dashboard/erp-overview'
 import { ExportMenu } from '@/components/ui/export-menu'
+import { useLanguage } from '@/lib/i18n'
 
 interface LabOrder {
   id: string
@@ -104,6 +105,7 @@ interface Stats {
 }
 
 export default function LabWorkPage() {
+  const { t } = useLanguage()
   const router = useRouter()
   const [orders, setOrders] = useState<LabOrder[]>([])
   const [vendors, setVendors] = useState<LabVendor[]>([])
@@ -295,15 +297,17 @@ export default function LabWorkPage() {
     <div className="container mx-auto p-6 space-y-6">
       <ErpModuleOverview
         moduleId="lab"
-        eyebrow="Lab ERP"
-        title="Lab cases, appliances and vendor coordination in one queue"
-        description="Track outsourced work from case creation through vendor handoff, progress, remake handling, quality checks and final delivery without losing the patient or financial context."
+        eyebrow={t('Lab ERP')}
+        title={t('Lab cases, appliances and vendor coordination in one queue')}
+        description={t(
+          'Track outsourced work from case creation through vendor handoff, progress, remake handling, quality checks and final delivery without losing the patient or financial context.'
+        )}
       />
 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Lab Work Management</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('Lab Work Management')}</h1>
           <p className="text-muted-foreground">
             Manage lab orders, vendors, and track work progress
           </p>
@@ -350,7 +354,7 @@ export default function LabWorkPage() {
       <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-7">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('Total Orders')}</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -359,7 +363,7 @@ export default function LabWorkPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sent to Lab</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('Sent to Lab')}</CardTitle>
             <Truck className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
@@ -368,7 +372,7 @@ export default function LabWorkPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">In Progress</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('In Progress')}</CardTitle>
             <Clock className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
@@ -377,7 +381,7 @@ export default function LabWorkPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ready</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('Ready')}</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
@@ -386,7 +390,7 @@ export default function LabWorkPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Delivered</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('Delivered')}</CardTitle>
             <CheckCircle className="h-4 w-4 text-emerald-600" />
           </CardHeader>
           <CardContent>
@@ -395,7 +399,7 @@ export default function LabWorkPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Cancelled</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('Cancelled')}</CardTitle>
             <XCircle className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
@@ -404,7 +408,7 @@ export default function LabWorkPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Created</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('Created')}</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -420,7 +424,7 @@ export default function LabWorkPage() {
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search orders, patients..."
+                placeholder={t('Search orders, patients...')}
                 className="pl-8"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -428,27 +432,27 @@ export default function LabWorkPage() {
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="All Statuses" />
+                <SelectValue placeholder={t('All Statuses')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="CREATED">Created</SelectItem>
-                <SelectItem value="SENT_TO_LAB">Sent to Lab</SelectItem>
-                <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                <SelectItem value="QUALITY_CHECK">Quality Check</SelectItem>
-                <SelectItem value="READY">Ready</SelectItem>
-                <SelectItem value="DELIVERED">Delivered</SelectItem>
-                <SelectItem value="FITTED">Fitted</SelectItem>
-                <SelectItem value="REMAKE_REQUIRED">Remake Required</SelectItem>
-                <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                <SelectItem value="all">{t('All Statuses')}</SelectItem>
+                <SelectItem value="CREATED">{t('Created')}</SelectItem>
+                <SelectItem value="SENT_TO_LAB">{t('Sent to Lab')}</SelectItem>
+                <SelectItem value="IN_PROGRESS">{t('In Progress')}</SelectItem>
+                <SelectItem value="QUALITY_CHECK">{t('Quality Check')}</SelectItem>
+                <SelectItem value="READY">{t('Ready')}</SelectItem>
+                <SelectItem value="DELIVERED">{t('Delivered')}</SelectItem>
+                <SelectItem value="FITTED">{t('Fitted')}</SelectItem>
+                <SelectItem value="REMAKE_REQUIRED">{t('Remake Required')}</SelectItem>
+                <SelectItem value="CANCELLED">{t('Cancelled')}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={vendorFilter} onValueChange={setVendorFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="All Vendors" />
+                <SelectValue placeholder={t('All Vendors')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Vendors</SelectItem>
+                <SelectItem value="all">{t('All Vendors')}</SelectItem>
                 {vendors.map((vendor) => (
                   <SelectItem key={vendor.id} value={vendor.id}>
                     {vendor.name}
@@ -458,33 +462,33 @@ export default function LabWorkPage() {
             </Select>
             <Select value={workTypeFilter} onValueChange={setWorkTypeFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="All Work Types" />
+                <SelectValue placeholder={t('All Work Types')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Work Types</SelectItem>
-                <SelectItem value="CROWN">Crown</SelectItem>
-                <SelectItem value="BRIDGE">Bridge</SelectItem>
-                <SelectItem value="DENTURE">Denture</SelectItem>
-                <SelectItem value="PARTIAL_DENTURE">Partial Denture</SelectItem>
-                <SelectItem value="IMPLANT_CROWN">Implant Crown</SelectItem>
-                <SelectItem value="VENEER">Veneer</SelectItem>
-                <SelectItem value="INLAY_ONLAY">Inlay/Onlay</SelectItem>
-                <SelectItem value="NIGHT_GUARD">Night Guard</SelectItem>
-                <SelectItem value="RETAINER">Retainer</SelectItem>
-                <SelectItem value="ALIGNER">Aligner</SelectItem>
-                <SelectItem value="MODEL">Model</SelectItem>
-                <SelectItem value="OTHER">Other</SelectItem>
+                <SelectItem value="all">{t('All Work Types')}</SelectItem>
+                <SelectItem value="CROWN">{t('Crown')}</SelectItem>
+                <SelectItem value="BRIDGE">{t('Bridge')}</SelectItem>
+                <SelectItem value="DENTURE">{t('Denture')}</SelectItem>
+                <SelectItem value="PARTIAL_DENTURE">{t('Partial Denture')}</SelectItem>
+                <SelectItem value="IMPLANT_CROWN">{t('Implant Crown')}</SelectItem>
+                <SelectItem value="VENEER">{t('Veneer')}</SelectItem>
+                <SelectItem value="INLAY_ONLAY">{t('Inlay/Onlay')}</SelectItem>
+                <SelectItem value="NIGHT_GUARD">{t('Night Guard')}</SelectItem>
+                <SelectItem value="RETAINER">{t('Retainer')}</SelectItem>
+                <SelectItem value="ALIGNER">{t('Aligner')}</SelectItem>
+                <SelectItem value="MODEL">{t('Model')}</SelectItem>
+                <SelectItem value="OTHER">{t('Other')}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={priorityFilter} onValueChange={setPriorityFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="All Priorities" />
+                <SelectValue placeholder={t('All Priorities')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Priorities</SelectItem>
-                <SelectItem value="normal">Normal</SelectItem>
-                <SelectItem value="urgent">Urgent</SelectItem>
-                <SelectItem value="rush">Rush</SelectItem>
+                <SelectItem value="all">{t('All Priorities')}</SelectItem>
+                <SelectItem value="normal">{t('Normal')}</SelectItem>
+                <SelectItem value="urgent">{t('Urgent')}</SelectItem>
+                <SelectItem value="rush">{t('Rush')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -503,8 +507,10 @@ export default function LabWorkPage() {
           ) : orders.length === 0 ? (
             <div className="text-center py-12">
               <FlaskConical className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-4 text-lg font-semibold">No lab orders found</h3>
-              <p className="text-muted-foreground">Get started by creating your first lab order</p>
+              <h3 className="mt-4 text-lg font-semibold">{t('No lab orders found')}</h3>
+              <p className="text-muted-foreground">
+                {t('Get started by creating your first lab order')}
+              </p>
               <Button className="mt-4" onClick={() => router.push('/lab/orders/new')}>
                 <Plus className="mr-2 h-4 w-4" />
                 Create Lab Order
@@ -515,16 +521,16 @@ export default function LabWorkPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Order No.</TableHead>
-                    <TableHead>Patient</TableHead>
-                    <TableHead>Work Type</TableHead>
-                    <TableHead>Vendor</TableHead>
-                    <TableHead>Order Date</TableHead>
-                    <TableHead>Expected</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Priority</TableHead>
-                    <TableHead>Cost</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t('Order No.')}</TableHead>
+                    <TableHead>{t('Patient')}</TableHead>
+                    <TableHead>{t('Work Type')}</TableHead>
+                    <TableHead>{t('Vendor')}</TableHead>
+                    <TableHead>{t('Order Date')}</TableHead>
+                    <TableHead>{t('Expected')}</TableHead>
+                    <TableHead>{t('Status')}</TableHead>
+                    <TableHead>{t('Priority')}</TableHead>
+                    <TableHead>{t('Cost')}</TableHead>
+                    <TableHead className="text-right">{t('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

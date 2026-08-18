@@ -102,12 +102,7 @@
   body {
     @apply bg-background text-foreground;
     font-family:
-      Inter,
-      ui-sans-serif,
-      -apple-system,
-      BlinkMacSystemFont,
-      'Segoe UI',
-      sans-serif;
+      'Manrope', 'Noto Sans Ethiopic Variable', 'Noto Sans Ethiopic', system-ui, sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     text-rendering: optimizeLegibility;
   }
@@ -123,7 +118,8 @@
 }
 
 html[lang='am'] body {
-  font-family: 'Noto Sans Ethiopic', 'Kefa III', sans-serif;
+  font-family:
+    'Manrope', 'Noto Sans Ethiopic Variable', 'Noto Sans Ethiopic', system-ui, sans-serif;
   line-height: 1.65;
 }
 
@@ -135,8 +131,8 @@ html[lang='am'] .font-serif {
 html[lang='am'] .marketing-page h1,
 html[lang='am'] .marketing-page h2,
 html[lang='am'] .marketing-page h3 {
-  letter-spacing: -0.015em;
-  line-height: 1.12;
+  letter-spacing: normal;
+  line-height: 1.34;
 }
 
 html[lang='am'] .marketing-page h1 {
@@ -145,12 +141,55 @@ html[lang='am'] .marketing-page h1 {
 
 html[lang='am'] .uppercase {
   text-transform: none;
-  letter-spacing: 0.015em;
+  letter-spacing: normal;
 }
 
 html[lang='am'] .text-xs {
   font-size: 0.8125rem;
   line-height: 1.55;
+}
+
+/* Ethiopic is vertically denser than Latin and needs its native spacing.
+   These global rules mirror Clinic-CMS so mixed Latin/Amharic strings keep
+   Manrope for identifiers while Ethiopic glyphs use Noto Sans Ethiopic. */
+html[lang='am'] h1,
+html[lang='am'] h2,
+html[lang='am'] h3,
+html[lang='am'] h4,
+html[lang='am'] [class*='tracking-'] {
+  letter-spacing: normal;
+}
+
+html[lang='am'] h1,
+html[lang='am'] h2,
+html[lang='am'] h3 {
+  line-height: 1.34;
+}
+
+html[lang='am'] button,
+html[lang='am'] a,
+html[lang='am'] label,
+html[lang='am'] th,
+html[lang='am'] [role='tab'] {
+  line-height: 1.45;
+}
+
+html[lang='am'] button,
+html[lang='am'] a,
+html[lang='am'] th {
+  text-wrap: balance;
+}
+
+html[lang='am'] input,
+html[lang='am'] select,
+html[lang='am'] textarea {
+  line-height: 1.55;
+}
+
+html[lang='am'] code,
+html[lang='am'] [data-identifier='true'] {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.02em;
 }
 
 /* Custom scrollbar */

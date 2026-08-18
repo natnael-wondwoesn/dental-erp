@@ -54,6 +54,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useLanguage } from '@/lib/i18n'
 import {
   appointmentStatusConfig,
   appointmentTypeConfig,
@@ -103,6 +104,7 @@ interface PaginationInfo {
 }
 
 export default function AppointmentsPage() {
+  const { t } = useLanguage()
   const router = useRouter()
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [loading, setLoading] = useState(true)
@@ -284,16 +286,18 @@ export default function AppointmentsPage() {
       <div className="space-y-6">
         <ErpModuleOverview
           moduleId="appointments"
-          eyebrow="Scheduling ERP"
-          title="Appointments that connect booking, chair flow and follow-up"
-          description="Scheduling, chair allocation, patient arrival, no-show handling and rebooking stay tied to the same patient and doctor record so front desk and clinical teams work from one queue."
+          eyebrow={t('Scheduling ERP')}
+          title={t('Appointments that connect booking, chair flow and follow-up')}
+          description={t(
+            'Scheduling, chair allocation, patient arrival, no-show handling and rebooking stay tied to the same patient and doctor record so front desk and clinical teams work from one queue.'
+          )}
         />
 
         {/* Header */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Appointments</h1>
-            <p className="text-muted-foreground">Manage and schedule patient appointments</p>
+            <h1 className="text-3xl font-bold tracking-tight">{t('Appointments')}</h1>
+            <p className="text-muted-foreground">{t('Manage and schedule patient appointments')}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button
@@ -356,7 +360,7 @@ export default function AppointmentsPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Search by patient name, phone, or appointment number..."
+                  placeholder={t('Search by patient name, phone, or appointment number...')}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="pl-9"
@@ -365,30 +369,30 @@ export default function AppointmentsPage() {
               <div className="flex flex-wrap gap-2">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Status" />
+                    <SelectValue placeholder={t('Status')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="SCHEDULED">Scheduled</SelectItem>
-                    <SelectItem value="CONFIRMED">Confirmed</SelectItem>
-                    <SelectItem value="CHECKED_IN">Checked In</SelectItem>
-                    <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                    <SelectItem value="COMPLETED">Completed</SelectItem>
-                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                    <SelectItem value="NO_SHOW">No Show</SelectItem>
+                    <SelectItem value="all">{t('All Status')}</SelectItem>
+                    <SelectItem value="SCHEDULED">{t('Scheduled')}</SelectItem>
+                    <SelectItem value="CONFIRMED">{t('Confirmed')}</SelectItem>
+                    <SelectItem value="CHECKED_IN">{t('Checked In')}</SelectItem>
+                    <SelectItem value="IN_PROGRESS">{t('In Progress')}</SelectItem>
+                    <SelectItem value="COMPLETED">{t('Completed')}</SelectItem>
+                    <SelectItem value="CANCELLED">{t('Cancelled')}</SelectItem>
+                    <SelectItem value="NO_SHOW">{t('No Show')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={typeFilter} onValueChange={setTypeFilter}>
                   <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Type" />
+                    <SelectValue placeholder={t('Type')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="CONSULTATION">Consultation</SelectItem>
-                    <SelectItem value="PROCEDURE">Procedure</SelectItem>
-                    <SelectItem value="FOLLOW_UP">Follow Up</SelectItem>
-                    <SelectItem value="EMERGENCY">Emergency</SelectItem>
-                    <SelectItem value="CHECK_UP">Check Up</SelectItem>
+                    <SelectItem value="all">{t('All Types')}</SelectItem>
+                    <SelectItem value="CONSULTATION">{t('Consultation')}</SelectItem>
+                    <SelectItem value="PROCEDURE">{t('Procedure')}</SelectItem>
+                    <SelectItem value="FOLLOW_UP">{t('Follow Up')}</SelectItem>
+                    <SelectItem value="EMERGENCY">{t('Emergency')}</SelectItem>
+                    <SelectItem value="CHECK_UP">{t('Check Up')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <Input
@@ -408,14 +412,14 @@ export default function AppointmentsPage() {
             <Table className="min-w-[900px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Appointment</TableHead>
-                  <TableHead>Patient</TableHead>
-                  <TableHead>Doctor</TableHead>
-                  <TableHead>Date & Time</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  {showRisk && <TableHead>Risk</TableHead>}
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t('Appointment')}</TableHead>
+                  <TableHead>{t('Patient')}</TableHead>
+                  <TableHead>{t('Doctor')}</TableHead>
+                  <TableHead>{t('Date & Time')}</TableHead>
+                  <TableHead>{t('Type')}</TableHead>
+                  <TableHead>{t('Status')}</TableHead>
+                  {showRisk && <TableHead>{t('Risk')}</TableHead>}
+                  <TableHead className="text-right">{t('Actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -450,7 +454,7 @@ export default function AppointmentsPage() {
                     <TableCell colSpan={7} className="h-24 text-center">
                       <div className="flex flex-col items-center gap-2">
                         <Calendar className="h-8 w-8 text-muted-foreground" />
-                        <p className="text-muted-foreground">No appointments found</p>
+                        <p className="text-muted-foreground">{t('No appointments found')}</p>
                         <Link href="/appointments/new">
                           <Button variant="outline" size="sm">
                             <Plus className="h-4 w-4 mr-2" />

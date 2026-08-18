@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useLanguage } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 type MetricKind = 'number' | 'currency' | 'percentage'
@@ -156,9 +157,9 @@ const moduleBlueprints: Record<ModuleKey, ModuleBlueprint> = {
   },
 }
 
-function formatMetric(metric: SummaryMetric, currency: string) {
+function formatMetric(metric: SummaryMetric, currency: string, locale = 'en') {
   if (metric.kind === 'currency') {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(locale === 'am' ? 'am-ET' : 'en-ET', {
       style: 'currency',
       currency,
       maximumFractionDigits: 0,
@@ -287,6 +288,8 @@ function OverviewMetric({
   className?: string
   denseOnMobile?: boolean
 }) {
+  const { locale, t } = useLanguage()
+
   return (
     <div
       className={cn(
@@ -301,7 +304,7 @@ function OverviewMetric({
           denseOnMobile ? 'text-[9px] leading-3 sm:text-[11px] sm:leading-normal' : 'text-[11px]'
         )}
       >
-        {metric.label}
+        {t(metric.label)}
       </p>
       <p
         className={cn(
@@ -309,7 +312,7 @@ function OverviewMetric({
           denseOnMobile ? 'mt-1 text-lg sm:mt-2 sm:text-2xl' : 'mt-2 text-2xl'
         )}
       >
-        {formatMetric(metric, currency)}
+        {formatMetric(metric, currency, locale)}
       </p>
     </div>
   )
@@ -342,6 +345,7 @@ function CommandCenterSkeleton() {
 }
 
 export function ErpCommandCenter() {
+  const { locale, t } = useLanguage()
   const { data, loading, error } = useErpSummary()
 
   if (loading) return <CommandCenterSkeleton />
@@ -368,14 +372,15 @@ export function ErpCommandCenter() {
             <div className="max-w-2xl">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-blue-100">
                 <BrainCircuit className="h-4 w-4" />
-                ERP command center
+                {t('ERP command center')}
               </div>
               <h2 className="mt-3 text-3xl font-semibold tracking-[-0.045em]">
-                Every core clinic module, aligned to one operating view
+                {t('Every core clinic module, aligned to one operating view')}
               </h2>
               <p className="mt-3 text-sm leading-6 text-slate-200">
-                Patient registration, scheduling, treatment, billing, lab, reporting and finance
-                share one data spine. This layer exposes the work that needs attention first.
+                {t(
+                  'Patient registration, scheduling, treatment, billing, lab, reporting and finance share one data spine. This layer exposes the work that needs attention first.'
+                )}
               </p>
             </div>
             <Badge className="w-fit border-white/15 bg-white/10 px-3 py-1.5 text-white hover:bg-white/10">
@@ -398,7 +403,7 @@ export function ErpCommandCenter() {
                 key={note}
                 className="rounded-2xl border border-white/10 bg-white/10 p-4 text-sm"
               >
-                {note}
+                {t(note)}
               </div>
             ))}
           </div>
@@ -423,17 +428,17 @@ export function ErpCommandCenter() {
                   </div>
                   <div className="min-w-0">
                     <CardTitle className="text-xl tracking-[-0.03em]">
-                      {moduleConfig.title}
+                      {t(moduleConfig.title)}
                     </CardTitle>
                     <CardDescription className="mt-1 text-sm leading-6">
-                      {moduleConfig.description}
+                      {t(moduleConfig.description)}
                     </CardDescription>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {moduleConfig.workflow.map((item) => (
                     <Badge key={item} variant="secondary" className="rounded-full px-3 py-1">
-                      {item}
+                      {t(item)}
                     </Badge>
                   ))}
                 </div>
@@ -443,10 +448,10 @@ export function ErpCommandCenter() {
                   {snapshot.metrics.map((metricItem) => (
                     <div key={metricItem.label} className="rounded-2xl bg-[#f6f9fd] p-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
-                        {metricItem.label}
+                        {t(metricItem.label)}
                       </p>
                       <p className="mt-2 text-lg font-semibold tracking-[-0.03em] text-[#13233a]">
-                        {formatMetric(metricItem, data.currency)}
+                        {formatMetric(metricItem, data.currency, locale)}
                       </p>
                     </div>
                   ))}
@@ -455,19 +460,19 @@ export function ErpCommandCenter() {
                 <div className="space-y-2">
                   {snapshot.alerts.map((alert) => (
                     <div key={alert} className="text-sm leading-6 text-slate-600">
-                      {alert}
+                      {t(alert)}
                     </div>
                   ))}
                 </div>
                 <div className="flex flex-wrap gap-2 pt-1">
                   {moduleConfig.actions.map((action) => (
                     <Button key={action.href} asChild variant="outline" className="rounded-full">
-                      <Link href={action.href}>{action.label}</Link>
+                      <Link href={action.href}>{t(action.label)}</Link>
                     </Button>
                   ))}
                   <Button asChild className="rounded-full">
                     <Link href={moduleConfig.href}>
-                      Open module <ArrowRight className="ml-2 h-4 w-4" />
+                      {t('Open module')} <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
                 </div>
@@ -495,6 +500,7 @@ export function ErpModuleOverview({
   compact?: boolean
   showActions?: boolean
 }) {
+  const { t } = useLanguage()
   const { data, loading, error } = useErpSummary()
   const moduleConfig = moduleBlueprints[moduleId]
   const Icon = moduleConfig.icon
@@ -539,7 +545,7 @@ export function ErpModuleOverview({
               <div className={cn('rounded-xl p-2', moduleConfig.tone)}>
                 <Icon className="h-4 w-4" />
               </div>
-              {eyebrow || 'ERP workflow'}
+              {t(eyebrow || 'ERP workflow')}
             </div>
             <h2
               className={cn(
@@ -547,16 +553,16 @@ export function ErpModuleOverview({
                 compact ? 'text-xl sm:text-3xl' : 'text-xl sm:text-4xl'
               )}
             >
-              {title || moduleConfig.title}
+              {t(title || moduleConfig.title)}
             </h2>
             <p className="mt-3 hidden max-w-2xl text-sm leading-6 text-slate-600 sm:block sm:text-base">
-              {description || moduleConfig.description}
+              {t(description || moduleConfig.description)}
             </p>
             {compact && (
               <div className="mt-4 hidden flex-wrap gap-2 sm:flex">
                 {moduleConfig.workflow.map((item) => (
                   <Badge key={item} variant="secondary" className="rounded-full px-3 py-1">
-                    {item}
+                    {t(item)}
                   </Badge>
                 ))}
               </div>
@@ -566,7 +572,7 @@ export function ErpModuleOverview({
             <div className="hidden flex-wrap gap-2 sm:flex">
               {moduleConfig.actions.map((action) => (
                 <Button key={action.href} asChild variant="outline" className="rounded-full">
-                  <Link href={action.href}>{action.label}</Link>
+                  <Link href={action.href}>{t(action.label)}</Link>
                 </Button>
               ))}
             </div>
@@ -594,11 +600,11 @@ export function ErpModuleOverview({
         {compact ? (
           <div className="mt-4 hidden rounded-[24px] border border-[#e3ebf6] bg-white px-4 py-3 sm:block">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
-              Operational signals
+              {t('Operational signals')}
             </p>
             <div className="mt-2 space-y-1 text-sm leading-6 text-slate-600">
               {snapshot.alerts.slice(0, 2).map((alert) => (
-                <div key={alert}>{alert}</div>
+                <div key={alert}>{t(alert)}</div>
               ))}
             </div>
           </div>
@@ -606,23 +612,23 @@ export function ErpModuleOverview({
           <div className="mt-7 hidden gap-5 sm:grid xl:grid-cols-[1.2fr_.8fr]">
             <div className="rounded-[24px] border border-[#e3ebf6] bg-white p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
-                Workflow coverage
+                {t('Workflow coverage')}
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {moduleConfig.workflow.map((item) => (
                   <Badge key={item} variant="secondary" className="rounded-full px-3 py-1">
-                    {item}
+                    {t(item)}
                   </Badge>
                 ))}
               </div>
             </div>
             <div className="rounded-[24px] border border-[#e3ebf6] bg-white p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
-                Operational signals
+                {t('Operational signals')}
               </p>
               <div className="mt-4 space-y-2 text-sm leading-6 text-slate-600">
                 {snapshot.alerts.map((alert) => (
-                  <div key={alert}>{alert}</div>
+                  <div key={alert}>{t(alert)}</div>
                 ))}
               </div>
             </div>

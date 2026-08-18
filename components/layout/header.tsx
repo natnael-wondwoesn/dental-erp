@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { GlobalSearch } from './global-search'
 import { useSidebar } from './sidebar-context'
 import { LanguageSwitcher } from '@/components/language-switcher'
+import { useLanguage } from '@/lib/i18n'
 
 const UserMenu = dynamic(() => import('./user-menu').then((m) => m.UserMenu), {
   ssr: false,
@@ -31,6 +32,7 @@ interface HeaderProps {
 
 export function Header({ user }: HeaderProps) {
   const { setMobileOpen } = useSidebar()
+  const { t } = useLanguage()
 
   return (
     <header className="sticky top-0 z-40 flex h-[72px] items-center gap-3 border-b border-[#e7edf5] bg-white/95 px-4 backdrop-blur md:px-6 lg:px-7">
@@ -42,7 +44,7 @@ export function Header({ user }: HeaderProps) {
         onClick={() => setMobileOpen(true)}
       >
         <Menu className="h-5 w-5" />
-        <span className="sr-only">Toggle menu</span>
+        <span className="sr-only">{t('Toggle menu')}</span>
       </Button>
 
       <div className="hidden min-w-0 lg:block">
@@ -59,7 +61,7 @@ export function Header({ user }: HeaderProps) {
         href="/appointments/new"
         className="hidden h-10 items-center gap-2 rounded-full bg-[#0769e7] px-4 text-sm font-semibold text-white shadow-[0_7px_18px_rgba(7,105,231,.18)] transition hover:bg-[#075dcc] xl:inline-flex"
       >
-        <CalendarPlus className="h-4 w-4" /> New appointment
+        <CalendarPlus className="h-4 w-4" /> {t('New appointment')}
       </Link>
 
       <LanguageSwitcher compact />

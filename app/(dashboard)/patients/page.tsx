@@ -45,6 +45,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { ErpModuleOverview } from '@/components/dashboard/erp-overview'
 import { ExportMenu } from '@/components/ui/export-menu'
+import { useLanguage } from '@/lib/i18n'
 
 interface Patient {
   id: string
@@ -67,6 +68,7 @@ interface PaginationInfo {
 }
 
 export default function PatientsPage() {
+  const { t } = useLanguage()
   const router = useRouter()
   const [patients, setPatients] = useState<Patient[]>([])
   const [loading, setLoading] = useState(true)
@@ -131,18 +133,20 @@ export default function PatientsPage() {
     <div className="space-y-6">
       <ErpModuleOverview
         moduleId="patients"
-        eyebrow="Patient ERP"
-        title="Patient records for intake, follow-up, and longitudinal history"
-        description="Keep registration, family contact details, clinical history, and billing context in one faster-working patient workspace."
+        eyebrow={t('Patient ERP')}
+        title={t('Patient records for intake, follow-up, and longitudinal history')}
+        description={t(
+          'Keep registration, family contact details, clinical history, and billing context in one faster-working patient workspace.'
+        )}
         compact
         showActions={false}
       />
 
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Patients</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('Patients')}</h1>
           <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <span>Manage patient records, history, and contact details.</span>
+            <span>{t('Manage patient records, history, and contact details.')}</span>
             {!loading && pagination.total > 0 && (
               <Badge variant="secondary" className="rounded-full px-3 py-1">
                 {pagination.total} active records
@@ -182,7 +186,7 @@ export default function PatientsPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search by name, patient ID, phone, or email"
+                placeholder={t('Search by name, patient ID, phone, or email')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
@@ -191,21 +195,21 @@ export default function PatientsPage() {
             <div className="flex flex-col gap-2 sm:flex-row">
               <Select value={genderFilter} onValueChange={setGenderFilter}>
                 <SelectTrigger className="w-full sm:w-[160px]">
-                  <SelectValue placeholder="Gender" />
+                  <SelectValue placeholder={t('Gender')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Genders</SelectItem>
-                  <SelectItem value="MALE">Male</SelectItem>
-                  <SelectItem value="FEMALE">Female</SelectItem>
-                  <SelectItem value="OTHER">Other</SelectItem>
+                  <SelectItem value="all">{t('All Genders')}</SelectItem>
+                  <SelectItem value="MALE">{t('Male')}</SelectItem>
+                  <SelectItem value="FEMALE">{t('Female')}</SelectItem>
+                  <SelectItem value="OTHER">{t('Other')}</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={bloodGroupFilter} onValueChange={setBloodGroupFilter}>
                 <SelectTrigger className="w-full sm:w-[160px]">
-                  <SelectValue placeholder="Blood Group" />
+                  <SelectValue placeholder={t('Blood Group')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Blood Groups</SelectItem>
+                  <SelectItem value="all">{t('All Blood Groups')}</SelectItem>
                   <SelectItem value="A+">A+</SelectItem>
                   <SelectItem value="A-">A-</SelectItem>
                   <SelectItem value="B+">B+</SelectItem>
@@ -238,14 +242,14 @@ export default function PatientsPage() {
                 <Table className="min-w-[800px]">
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Patient ID</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Contact</TableHead>
-                      <TableHead>Gender</TableHead>
-                      <TableHead>Age</TableHead>
-                      <TableHead>Blood Group</TableHead>
-                      <TableHead>Location</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t('Patient ID')}</TableHead>
+                      <TableHead>{t('Name')}</TableHead>
+                      <TableHead>{t('Contact')}</TableHead>
+                      <TableHead>{t('Gender')}</TableHead>
+                      <TableHead>{t('Age')}</TableHead>
+                      <TableHead>{t('Blood Group')}</TableHead>
+                      <TableHead>{t('Location')}</TableHead>
+                      <TableHead className="text-right">{t('Actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -284,7 +288,7 @@ export default function PatientsPage() {
           ) : patients.length === 0 ? (
             <div className="flex min-h-[18rem] flex-col items-center justify-center gap-2 px-4 py-10 text-center">
               <User className="h-8 w-8 text-muted-foreground" />
-              <p className="text-muted-foreground">No patients found</p>
+              <p className="text-muted-foreground">{t('No patients found')}</p>
               <Link href="/patients/new">
                 <Button variant="outline" size="sm">
                   <Plus className="h-4 w-4 mr-2" />
@@ -335,11 +339,11 @@ export default function PatientsPage() {
                         </div>
                         <div className="grid grid-cols-2 gap-3 text-sm">
                           <div className="rounded-xl bg-muted/50 p-3">
-                            <div className="text-muted-foreground">Age</div>
+                            <div className="text-muted-foreground">{t('Age')}</div>
                             <div className="mt-1 font-medium">{patient.age} years</div>
                           </div>
                           <div className="rounded-xl bg-muted/50 p-3">
-                            <div className="text-muted-foreground">Blood</div>
+                            <div className="text-muted-foreground">{t('Blood')}</div>
                             <div className="mt-1 font-medium">{patient.bloodGroup || 'N/A'}</div>
                           </div>
                         </div>
@@ -372,14 +376,14 @@ export default function PatientsPage() {
                 <Table className="min-w-[800px]">
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Patient ID</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Contact</TableHead>
-                      <TableHead>Gender</TableHead>
-                      <TableHead>Age</TableHead>
-                      <TableHead>Blood Group</TableHead>
-                      <TableHead>Location</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t('Patient ID')}</TableHead>
+                      <TableHead>{t('Name')}</TableHead>
+                      <TableHead>{t('Contact')}</TableHead>
+                      <TableHead>{t('Gender')}</TableHead>
+                      <TableHead>{t('Age')}</TableHead>
+                      <TableHead>{t('Blood Group')}</TableHead>
+                      <TableHead>{t('Location')}</TableHead>
+                      <TableHead className="text-right">{t('Actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

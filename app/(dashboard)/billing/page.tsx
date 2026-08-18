@@ -35,6 +35,7 @@ import { Badge } from '@/components/ui/badge'
 import { ErpModuleOverview } from '@/components/dashboard/erp-overview'
 import { formatCurrency, dateRangePresets, getDateRangeFromPreset } from '@/lib/billing-utils'
 import { ExportMenu } from '@/components/ui/export-menu'
+import { useLanguage } from '@/lib/i18n'
 
 interface SummaryData {
   summary: {
@@ -82,6 +83,7 @@ interface PlanSummary {
 }
 
 export default function BillingPage() {
+  const { t } = useLanguage()
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState<SummaryData | null>(null)
   const [datePreset, setDatePreset] = useState('this_month')
@@ -180,28 +182,32 @@ export default function BillingPage() {
     <div className="space-y-6">
       <ErpModuleOverview
         moduleId="billing"
-        eyebrow="Revenue cycle ERP"
-        title="Billing that spans invoices, collections, plans and insurance"
-        description="This workspace keeps invoicing, receipts, discounts, outstanding balances, payment plans, insurance claims and pre-authorizations visible in one revenue cycle layer."
+        eyebrow={t('Revenue cycle ERP')}
+        title={t('Billing that spans invoices, collections, plans and insurance')}
+        description={t(
+          'This workspace keeps invoicing, receipts, discounts, outstanding balances, payment plans, insurance claims and pre-authorizations visible in one revenue cycle layer.'
+        )}
       />
 
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Billing & Finance</h1>
-          <p className="text-muted-foreground">Manage invoices, payments, and financial reports</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t('Billing & Finance')}</h1>
+          <p className="text-muted-foreground">
+            {t('Manage invoices, payments, and financial reports')}
+          </p>
         </div>
         <div className="flex gap-2">
           <Select value={datePreset} onValueChange={setDatePreset}>
             <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Select period" />
+              <SelectValue placeholder={t('Select period')} />
             </SelectTrigger>
             <SelectContent>
               {dateRangePresets
                 .filter((p) => p.value !== 'custom')
                 .map((preset) => (
                   <SelectItem key={preset.value} value={preset.value}>
-                    {preset.label}
+                    {t(preset.label)}
                   </SelectItem>
                 ))}
             </SelectContent>
@@ -293,7 +299,7 @@ export default function BillingPage() {
         {/* Total Billed */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Billed</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('Total Billed')}</CardTitle>
             <Receipt className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -315,7 +321,7 @@ export default function BillingPage() {
         {/* Total Collected */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Collected</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('Total Collected')}</CardTitle>
             <Banknote className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -337,7 +343,7 @@ export default function BillingPage() {
         {/* Outstanding */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Outstanding</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('Outstanding')}</CardTitle>
             <AlertCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -359,7 +365,7 @@ export default function BillingPage() {
         {/* Insurance */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Insurance Claims</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('Insurance Claims')}</CardTitle>
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -384,56 +390,56 @@ export default function BillingPage() {
         {/* Quick Actions */}
         <Card>
           <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Common billing tasks</CardDescription>
+            <CardTitle>{t('Quick Actions')}</CardTitle>
+            <CardDescription>{t('Common billing tasks')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             <Link href="/billing/invoices" className="block">
               <Button variant="outline" className="w-full justify-start">
                 <FileText className="h-4 w-4 mr-2" />
-                View All Invoices
+                {t('View All Invoices')}
               </Button>
             </Link>
             <Link href="/billing/payments" className="block">
               <Button variant="outline" className="w-full justify-start">
                 <CreditCard className="h-4 w-4 mr-2" />
-                View All Payments
+                {t('View All Payments')}
               </Button>
             </Link>
             <Link href="/billing/receipts" className="block">
               <Button variant="outline" className="w-full justify-start">
                 <Receipt className="h-4 w-4 mr-2" />
-                Receipts
+                {t('Receipts')}
               </Button>
             </Link>
             <Link href="/billing/payment-plans" className="block">
               <Button variant="outline" className="w-full justify-start">
                 <CalendarClock className="h-4 w-4 mr-2" />
-                Payment Plans
+                {t('Payment Plans')}
               </Button>
             </Link>
             <Link href="/billing/insurance" className="block">
               <Button variant="outline" className="w-full justify-start">
                 <Shield className="h-4 w-4 mr-2" />
-                Insurance Claims
+                {t('Insurance Claims')}
               </Button>
             </Link>
             <Link href="/billing/insurance/providers" className="block">
               <Button variant="outline" className="w-full justify-start">
                 <Shield className="h-4 w-4 mr-2" />
-                Insurance Providers
+                {t('Insurance Providers')}
               </Button>
             </Link>
             <Link href="/billing/insurance/pre-auth" className="block">
               <Button variant="outline" className="w-full justify-start">
                 <FileText className="h-4 w-4 mr-2" />
-                Pre-Authorizations
+                {t('Pre-Authorizations')}
               </Button>
             </Link>
             <Link href="/billing/reports" className="block">
               <Button variant="outline" className="w-full justify-start">
                 <BarChart3 className="h-4 w-4 mr-2" />
-                Financial Reports
+                {t('Financial Reports')}
               </Button>
             </Link>
           </CardContent>
@@ -442,8 +448,8 @@ export default function BillingPage() {
         {/* Payment Methods */}
         <Card>
           <CardHeader>
-            <CardTitle>Payment Methods</CardTitle>
-            <CardDescription>Collection by payment type</CardDescription>
+            <CardTitle>{t('Payment Methods')}</CardTitle>
+            <CardDescription>{t('Collection by payment type')}</CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
