@@ -476,17 +476,15 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                       </div>
                     )}
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">VAT ({invoice.cgstRate}%)</span>
-                      <span>{formatCurrency(invoice.cgstAmount)}</span>
+                      <span className="text-muted-foreground">
+                        {Number(invoice.sgstRate) > 0 ? 'Legacy tax' : 'VAT'} (
+                        {Number(invoice.cgstRate) + Number(invoice.sgstRate)}
+                        %)
+                      </span>
+                      <span>
+                        {formatCurrency(Number(invoice.cgstAmount) + Number(invoice.sgstAmount))}
+                      </span>
                     </div>
-                    {Number(invoice.sgstRate) > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          Additional tax ({invoice.sgstRate}%)
-                        </span>
-                        <span>{formatCurrency(invoice.sgstAmount)}</span>
-                      </div>
-                    )}
                     <Separator />
                     <div className="flex justify-between font-bold text-lg">
                       <span>Total</span>

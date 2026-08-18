@@ -44,3 +44,14 @@
 8. Test the complete flow: patient → appointment → assessment → treatment → lab → invoice → payment → receipt → reports.
 
 The reusable detailed script is in `docs/LIVE_SERVER_MANUAL_TEST_PLAN.md`.
+
+## Post-deployment re-examination
+
+- **Passed:** The new patient profile shows zero treatments and no fabricated doctor, note, file, or appointment data.
+- **Passed:** Created planned treatment `TRT202608180001` for Eyerusalem Tesfaye with Dr. Selam and no linked appointment.
+- **Passed:** Created Model lab order `LAB20260001` with Addis Crown Studio; the enum submission failure is resolved.
+- **Passed:** Invoice values and amount-in-words render in ETB and Birr/Santim.
+- **Passed:** Main navigation labels switch between English and Amharic, including AI Chat, video consults, medication catalogue, CRM, sterilization, devices, communications, and staff.
+- **Passed:** The final deployment workflow completed successfully and the public readiness check passed.
+- **Automation limitation:** The browser can populate the native date input visually, but it does not trigger the form's React date state. Slot generation is covered by route regressions for partial schedules and missing legacy appointment times; manual date-picker confirmation remains in the checklist.
+- **Follow-up fixed:** The lab list still showed ₹ after successful order creation. Its date locale and currency formatter are now converted to Ethiopian presentation.
