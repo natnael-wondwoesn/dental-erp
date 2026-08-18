@@ -1,0 +1,117 @@
+name: Deploy current branch to VPS
+
+on:
+  push:
+    branches:
+      - feat/two-tier-product-packaging
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-vps
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Pull and redeploy
+    if: github.ref_name == 'feat/two-tier-product-packaging'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: production
+      url: https://dental-clinic-cms.duckdns.org
+
+    steps:
+      - name: Validate deployment secrets
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          VPS_SSH_HOST_KEY: ${{ secrets.VPS_SSH_HOST_KEY }}
+          VPS_DEPLOY_PATH: ${{ secrets.VPS_DEPLOY_PATH }}
+        run: |
+          set -euo pipefail
+          for name in VPS_HOST VPS_USER VPS_SSH_PRIVATE_KEY VPS_SSH_HOST_KEY VPS_DEPLOY_PATH; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Required GitHub Actions secret $name is not configured."
+              exit 1
+            fi
+          done
+
+      - name: Configure SSH
+        shell: bash
+        env:
+          VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          VPS_SSH_HOST_KEY: ${{ secrets.VPS_SSH_HOST_KEY }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$VPS_SSH_PRIVATE_KEY" > "$HOME/.ssh/deploy_key"
+          printf '%s\n' "$VPS_SSH_HOST_KEY" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/deploy_key" "$HOME/.ssh/known_hosts"
+
+      - name: Pull exact commit and redeploy
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_DEPLOY_PATH: ${{ secrets.VPS_DEPLOY_PATH }}
+          DEPLOY_BRANCH: ${{ github.ref_name }}
+          DEPLOY_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          port="${VPS_PORT:-22}"
+          deploy_path_b64="$(printf '%s' "$VPS_DEPLOY_PATH" | base64 -w 0)"
+
+          ssh \
+            -i "$HOME/.ssh/deploy_key" \
+            -p "$port" \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            "$VPS_USER@$VPS_HOST" \
+            "DEPLOY_BRANCH='$DEPLOY_BRANCH' DEPLOY_SHA='$DEPLOY_SHA' DEPLOY_PATH_B64='$deploy_path_b64' bash -s" <<'REMOTE'
+          set -Eeuo pipefail
+
+          deploy_path="$(printf '%s' "$DEPLOY_PATH_B64" | base64 --decode)"
+          cd "$deploy_path"
+
+          compose=(docker compose -f compose.vps.yml --env-file .env)
+          deployment_diagnostics() {
+            echo "Deployment failed. Current service state:"
+            "${compose[@]}" ps || true
+            "${compose[@]}" logs --tail=120 dental-frontend-migrate dental-web || true
+          }
+          trap deployment_diagnostics ERR
+
+          test -f .env
+          test -f compose.vps.yml
+
+          git fetch --prune origin "$DEPLOY_BRANCH"
+          git checkout --force -B "$DEPLOY_BRANCH" "$DEPLOY_SHA"
+
+          if [ "$(git rev-parse HEAD)" != "$DEPLOY_SHA" ]; then
+            echo "Checked-out commit does not match the pushed commit." >&2
+            exit 1
+          fi
+
+          "${compose[@]}" config --quiet
+          "${compose[@]}" up -d --build --remove-orphans
+          "${compose[@]}" ps
+          REMOTE
+
+      - name: Verify the public readiness endpoint
+        shell: bash
+        run: |
+          curl \
+            --fail \
+            --show-error \
+            --silent \
+            --retry 12 \
+            --retry-delay 5 \
+            --retry-all-errors \
+            https://dental-clinic-cms.duckdns.org/api/ready
