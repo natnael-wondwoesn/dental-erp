@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ClipboardList, Plus, Trash2, Loader2, Search, ArrowLeft } from 'lucide-react'
+import { MAX_PRESCRIPTION_MEDICATIONS } from '@/lib/clinical-forms/constants'
 
 interface Patient {
   id: string
@@ -203,6 +204,7 @@ export default function NewPrescriptionPage() {
   }
 
   const addMedRow = () => {
+    if (medications.length >= MAX_PRESCRIPTION_MEDICATIONS) return
     setMedications((prev) => [
       ...prev,
       {
@@ -537,9 +539,16 @@ export default function NewPrescriptionPage() {
               </div>
             ))}
 
-            <Button variant="outline" onClick={addMedRow} className="w-full">
+            <Button
+              variant="outline"
+              onClick={addMedRow}
+              className="w-full"
+              disabled={medications.length >= MAX_PRESCRIPTION_MEDICATIONS}
+            >
               <Plus className="h-4 w-4 mr-2" />
-              Add Another Medication
+              {medications.length >= MAX_PRESCRIPTION_MEDICATIONS
+                ? `Maximum ${MAX_PRESCRIPTION_MEDICATIONS} medications for one-page printing`
+                : 'Add Another Medication'}
             </Button>
           </CardContent>
         </Card>

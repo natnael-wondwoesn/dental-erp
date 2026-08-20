@@ -9,6 +9,7 @@ import {
 } from '@/lib/clinical-forms/medical-certificate'
 import { prisma } from '@/lib/prisma'
 import { emailService } from '@/lib/services/email.service'
+import { resolveClinicName } from '@/lib/branding'
 
 const emailSchema = z.object({ email: z.email() })
 
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       patientId: submission.patientId || undefined,
       to: email,
       subject: `${data.certificateNo} — Medical Certificate`,
-      body: `<p>Dear ${data.patientFullName},</p><p>Your medical certificate from ${clinic?.name || 'Sunny Smile Speciality Clinic'} is attached. Open the attachment to review or print it.</p><p>Certificate: <strong>${data.certificateNo}</strong></p>`,
+      body: `<p>Dear ${data.patientFullName},</p><p>Your medical certificate from ${resolveClinicName(clinic?.name)} is attached. Open the attachment to review or print it.</p><p>Certificate: <strong>${data.certificateNo}</strong></p>`,
       attachments: [
         {
           filename: `${data.certificateNo}.html`,

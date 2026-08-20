@@ -10,6 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useSidebar } from './sidebar-context'
 import { useLanguage } from '@/lib/i18n'
+import { resolveClinicName } from '@/lib/branding'
 
 interface SidebarProps {
   role: string
@@ -23,6 +24,7 @@ export function Sidebar({ role, hospitalName, hospitalLogo, plan }: SidebarProps
   const navigation = getNavigationForRole(role)
   const { isCollapsed, toggleSidebar } = useSidebar()
   const { t } = useLanguage()
+  const displayHospitalName = resolveClinicName(hospitalName)
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -50,7 +52,7 @@ export function Sidebar({ role, hospitalName, hospitalLogo, plan }: SidebarProps
             {hospitalLogo ? (
               <img
                 src={hospitalLogo}
-                alt={hospitalName || 'Logo'}
+                alt={displayHospitalName}
                 className="h-8 w-8 shrink-0 rounded-lg object-cover"
               />
             ) : (
@@ -61,7 +63,7 @@ export function Sidebar({ role, hospitalName, hospitalLogo, plan }: SidebarProps
             {!isCollapsed && (
               <div className="flex flex-col">
                 <span className="max-w-[150px] truncate text-[15px] font-semibold leading-tight tracking-[-.02em] text-[#13233a]">
-                  {hospitalName || 'Sunny Smile Speciality Clinic'}
+                  {displayHospitalName}
                 </span>
                 {plan && (
                   <span

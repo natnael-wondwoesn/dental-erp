@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuthAndRole } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
+import { MAX_PRESCRIPTION_MEDICATIONS } from '@/lib/clinical-forms/constants'
 
 // GET — list prescriptions
 export async function GET(request: NextRequest) {
@@ -92,6 +93,14 @@ export async function POST(request: NextRequest) {
     if (!patientId || !medications || medications.length === 0) {
       return NextResponse.json(
         { error: 'Patient and at least one medication are required' },
+        { status: 400 }
+      )
+    }
+    if (medications.length > MAX_PRESCRIPTION_MEDICATIONS) {
+      return NextResponse.json(
+        {
+          error: `A prescription can contain at most ${MAX_PRESCRIPTION_MEDICATIONS} medications so it remains one printable page`,
+        },
         { status: 400 }
       )
     }

@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client'
 import { SignJWT } from 'jose'
 import { z } from 'zod'
 import { prisma } from './prisma'
+import { resolveClinicName } from './branding'
 
 export const loginSchema = z.object({
   email: z.string().email(),
@@ -78,7 +79,7 @@ export function toAuthenticatedUser(user: UserWithAuthContext) {
     name: user.name,
     roles: [user.role],
     permissions: [],
-    clinicName: user.hospital.name,
+    clinicName: resolveClinicName(user.hospital.name),
     currency: user.hospital.currency,
     locale: user.locale || user.hospital.locale,
     timezone: user.hospital.timezone,

@@ -4,6 +4,7 @@ import { requireAuthAndRole } from '@/lib/api-helpers'
 import { loadPrescriptionPaper } from '@/lib/clinical-forms/load-prescription-paper'
 import { renderPrescriptionPaperHtml } from '@/lib/clinical-forms/prescription-paper'
 import { emailService } from '@/lib/services/email.service'
+import { resolveClinicName } from '@/lib/branding'
 
 const schema = z.object({ email: z.email() })
 
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       patientId: paper.prescription.patientId,
       to: email,
       subject: `${paper.data.prescriptionNo} — Prescription`,
-      body: `<p>Dear ${paper.data.patient.fullName},</p><p>Your prescription from ${paper.clinic.name} is attached. Open it to review or print.</p>`,
+      body: `<p>Dear ${paper.data.patient.fullName},</p><p>Your prescription from ${resolveClinicName(paper.clinic.name)} is attached. Open it to review or print.</p>`,
       attachments: [
         {
           filename: `${paper.data.prescriptionNo}.html`,

@@ -1,3 +1,5 @@
+import { resolveClinicEmail, resolveClinicName } from '@/lib/branding'
+
 export const MEDICAL_CERTIFICATE_TEMPLATE_NAME = 'Medical Certificate'
 
 export interface MedicalCertificateData {
@@ -49,7 +51,8 @@ export function renderMedicalCertificateHtml(
   data: MedicalCertificateData,
   clinic: MedicalCertificateClinic
 ): string {
-  const clinicName = clinic.name || 'Sunny Smile Speciality Clinic'
+  const clinicName = resolveClinicName(clinic.name)
+  const clinicEmail = resolveClinicEmail(clinic.email)
   const logo = clinic.logo
     ? `<img class="logo" src="${escapeHtml(clinic.logo)}" alt="" />`
     : `<div class="logo-fallback">SS</div>`
@@ -89,7 +92,31 @@ export function renderMedicalCertificateHtml(
     .signature .rule { margin-top: 13mm; border-top: 1px solid #101828; }
     .signature p { margin: 1.5mm 0; font: 11px Arial, sans-serif; }
     .footer { margin-top: 16mm; padding-top: 4mm; border-top: 1px solid #d0d5dd; text-align: center; font: 9px Arial, sans-serif; color: #667085; }
-    @media print { body { background: white; } .toolbar { display: none; } .paper { margin: 0; box-shadow: none; } }
+    @media print {
+      @page { size: A4; margin: 8mm; }
+      html, body { width: 100%; height: auto; background: white; }
+      .toolbar { display: none; }
+      .paper { width: auto; min-height: 0; margin: 0; padding: 0; box-shadow: none; }
+      .header { grid-template-columns: 20mm 1fr auto; gap: 4mm; padding-bottom: 4mm; }
+      .logo,.logo-fallback { width: 19mm; height: 19mm; }
+      .amharic { font-size: 12px; }
+      .clinic { font-size: 17px; }
+      .contact { font-size: 8px; }
+      .title { margin: 6mm 0 2mm; font-size: 20px; }
+      .document-no { margin-bottom: 5mm; }
+      .grid { gap: 2.5mm 5mm; }
+      .line { min-height: 6.5mm; }
+      .value { min-height: 5.5mm; padding-bottom: 1mm; font-size: 10px; }
+      .section { margin-top: 4mm; }
+      .section-title { margin-bottom: 1mm; }
+      .answer { min-height: 11mm; padding: 1mm; font-size: 10px; line-height: 1.35; }
+      .answer.tall { min-height: 16mm; }
+      .leave { margin-top: 4mm; padding: 2.5mm; }
+      .signature { margin-top: 6mm; }
+      .signature .rule { margin-top: 6mm; }
+      .signature p { margin: 1mm 0; font-size: 9px; }
+      .footer { margin-top: 6mm; padding-top: 2.5mm; }
+    }
   </style>
 </head>
 <body>
@@ -98,7 +125,7 @@ export function renderMedicalCertificateHtml(
     <header class="header">
       ${logo}
       <div><div class="amharic">ሰኒ ስማይል ስፔሻሊቲ የጥርስ ክሊኒክ</div><div class="clinic">${escapeHtml(clinicName)}</div></div>
-      <div class="contact">${escapeHtml([clinic.address, clinic.city].filter(Boolean).join(', '))}<br>${escapeHtml(clinic.phone || '')}<br>${escapeHtml(clinic.email || '')}</div>
+      <div class="contact">${escapeHtml([clinic.address, clinic.city].filter(Boolean).join(', '))}<br>${escapeHtml(clinic.phone || '')}<br>${escapeHtml(clinicEmail)}</div>
     </header>
     <h1 class="title">Medical Certificate</h1>
     <div class="document-no">Certificate No. ${escapeHtml(data.certificateNo)}</div>

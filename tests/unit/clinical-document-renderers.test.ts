@@ -10,6 +10,25 @@ const clinic = {
 }
 
 describe('clinical document renderers', () => {
+  it('never renders legacy Dentix branding from stored clinic data', () => {
+    const html = renderMedicalCertificateHtml(
+      {
+        certificateNo: 'MC-2026-0001',
+        patientId: 'patient-1',
+        patientFullName: 'Abebe Kebede',
+        cardNo: 'PAT202600001',
+        examinedAt: '2026-08-20',
+        dentalDiagnosis: 'Acute apical abscess',
+        recommendation: 'Rest and return for review.',
+        physicianName: 'Dr Selam Abebe',
+      },
+      { ...clinic, name: 'Sunny Smile Speciality Cinic' }
+    )
+
+    expect(html).not.toMatch(/dentix/i)
+    expect(html).toContain('Sunny Smile Speciality Clinic')
+  })
+
   it('renders a printable medical certificate with leave dates and doctor details', () => {
     const html = renderMedicalCertificateHtml(
       {

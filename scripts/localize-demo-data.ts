@@ -4,8 +4,8 @@ const prisma = new PrismaClient()
 
 const userMappings = [
   {
-    emails: ['admin@demo-dental.com', 'admin@dentix.et'],
-    nextEmail: 'admin@dentix.et',
+    emails: ['admin@demo-dental.com', 'admin@dentix.et', 'admin@sunnysmile.et'],
+    nextEmail: 'admin@sunnysmile.et',
     name: 'Mekdes Alemu',
     phone: '0911234500',
     employeeId: 'EMP001',
@@ -15,8 +15,8 @@ const userMappings = [
     licenseNumber: 'AA-DEN-ADMIN-001',
   },
   {
-    emails: ['doctor@demo-dental.com', 'doctor@dentix.et'],
-    nextEmail: 'doctor@dentix.et',
+    emails: ['doctor@demo-dental.com', 'doctor@dentix.et', 'doctor@sunnysmile.et'],
+    nextEmail: 'doctor@sunnysmile.et',
     name: 'Dr. Selam Abebe',
     phone: '0911234501',
     employeeId: 'EMP002',
@@ -26,8 +26,8 @@ const userMappings = [
     licenseNumber: 'AA-DEN-ORTHO-014',
   },
   {
-    emails: ['reception@demo-dental.com', 'reception@dentix.et'],
-    nextEmail: 'reception@dentix.et',
+    emails: ['reception@demo-dental.com', 'reception@dentix.et', 'reception@sunnysmile.et'],
+    nextEmail: 'reception@sunnysmile.et',
     name: 'Hanna Tesfaye',
     phone: '0911234502',
     employeeId: 'EMP003',
@@ -82,19 +82,19 @@ async function main() {
   await prisma.hospital.update({
     where: { id: hospital.id },
     data: {
-      name: 'Dentix Bole Dental Clinic',
-      email: 'hello@dentix.et',
+      name: 'Sunny Smile Speciality Clinic',
+      email: 'hello@sunnysmile.et',
       phone: '0116672211',
       address: 'Bole Road, near Edna Mall',
       city: 'Addis Ababa',
       state: 'Addis Ababa',
       pincode: '1000',
       tagline: 'Strong teeth, bright smile.',
-      website: 'www.dentix.et',
+      website: 'www.sunnysmile.et',
       gstNumber: null,
       panNumber: null,
       registrationNo: 'AA-DEN-2024-0142',
-      upiId: 'dentix@telebirr',
+      upiId: 'sunnysmile@telebirr',
       currency: 'ETB',
       timezone: 'Africa/Addis_Ababa',
     },

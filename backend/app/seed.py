@@ -72,7 +72,7 @@ async def seed(session: AsyncSession) -> None:
     hospital = await session.scalar(select(Hospital).where(Hospital.slug == "demo-dental"))
     if hospital is None:
         hospital = Hospital(
-            name="Dentix Bole Dental Centre",
+            name="Sunny Smile Speciality Clinic",
             slug="demo-dental",
             email="clinic@demo-dental.com",
             locale="en-ET",
@@ -83,7 +83,7 @@ async def seed(session: AsyncSession) -> None:
         session.add(hospital)
         await session.flush()
     else:
-        hospital.name = "Dentix Bole Dental Centre"
+        hospital.name = "Sunny Smile Speciality Clinic"
         hospital.locale = "en-ET"
         hospital.country = "ET"
         hospital.currency = "ETB"

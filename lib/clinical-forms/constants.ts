@@ -1,0 +1,1 @@
+export const MAX_PRESCRIPTION_MEDICATIONS = 7
