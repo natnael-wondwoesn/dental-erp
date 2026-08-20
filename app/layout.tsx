@@ -11,8 +11,8 @@ import { Providers } from '@/components/providers'
 
 export const metadata: Metadata = {
   title: {
-    default: 'Dentix — Ethiopian Dental Clinic ERP',
-    template: '%s | Dentix',
+    default: 'Sunny Smile Speciality Clinic — Ethiopian Dental Care',
+    template: '%s | Sunny Smile Speciality Clinic',
   },
   description:
     'Production dental clinic operations for Ethiopia: patient care, scheduling, treatment, ETB billing, laboratory workflows, finance and reporting.',
@@ -44,13 +44,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_ET',
-    title: 'Dentix — Ethiopian Dental Clinic ERP',
+    title: 'Sunny Smile Speciality Clinic — Ethiopian Dental Care',
     description: 'A modern English and Amharic dental clinic operating system for Ethiopia.',
     siteName: 'DentalERP',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Dentix - Ethiopian Dental Clinic ERP',
+    title: 'Sunny Smile Speciality Clinic - Ethiopian Dental Care',
     description:
       'Dental clinic operations for Ethiopia with patient workflows, ETB billing, and multilingual communication.',
   },
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Dentix',
+    title: 'Sunny Smile Speciality Clinic',
   },
 }
 

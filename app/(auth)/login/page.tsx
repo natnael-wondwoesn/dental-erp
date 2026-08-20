@@ -87,7 +87,7 @@ function LoginForm() {
             <Input
               id="email"
               type="email"
-              placeholder="admin@dentix.et"
+              placeholder="admin@sunnysmile.et"
               {...register('email')}
               disabled={isLoading}
             />
@@ -123,7 +123,7 @@ function LoginForm() {
 
         <div className="mt-4 rounded-2xl border border-[#e7edf5] bg-[#f8fbff] p-4 text-center text-xs text-muted-foreground">
           <p className="font-medium text-slate-700">Demo workspace credentials</p>
-          <p className="font-mono mt-1">admin@dentix.et / Admin@123</p>
+          <p className="font-mono mt-1">admin@sunnysmile.et / Admin@123</p>
         </div>
       </CardContent>
     </Card>

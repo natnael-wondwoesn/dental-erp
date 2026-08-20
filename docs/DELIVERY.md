@@ -67,7 +67,7 @@ That's the whole deployment. `docker-compose.landing.yml` builds a single
 is no way to accidentally start a database or backend alongside it, because
 the compose file doesn't declare any.
 
-Set `SITE_URL` to the site's real domain (e.g. `https://www.dentix.et`).
+Set `SITE_URL` to the site's real domain (e.g. `https://www.sunnysmile.et`).
 Leaving it unset publishes `http://localhost:3000` URLs in `sitemap.xml` and
 `robots.txt` — harmless in local development, wrong once the site is live.
 

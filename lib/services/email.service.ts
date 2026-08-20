@@ -104,7 +104,7 @@ class EmailService {
         where: { patientId: payload.patientId },
       })
 
-      if (!preference?.emailEnabled) {
+      if (preference && !preference.emailEnabled) {
         throw new Error('Patient has disabled email communication')
       }
     }

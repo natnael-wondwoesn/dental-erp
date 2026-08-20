@@ -64,9 +64,9 @@ vi.mock('next/link', () => ({
 
 import SignupPage from '@/app/(auth)/signup/page'
 
-const HOSPITAL_PLACEHOLDER = 'Dentix Bole Dental Clinic'
+const HOSPITAL_PLACEHOLDER = 'Sunny Smile Speciality Clinic'
 const ADMIN_PLACEHOLDER = 'Dr. Selam Abebe'
-const EMAIL_PLACEHOLDER = 'selam@dentix.et'
+const EMAIL_PLACEHOLDER = 'selam@sunnysmile.et'
 const PHONE_PLACEHOLDER = '0911234567'
 const SUBMIT_LABEL = 'Create workspace'
 
@@ -138,7 +138,9 @@ describe('SignupPage', () => {
 
     it('renders terms of service notice', () => {
       render(<SignupPage />)
-      expect(screen.getByText(/terms, privacy policy, and clinic data handling rules/i)).toBeInTheDocument()
+      expect(
+        screen.getByText(/terms, privacy policy, and clinic data handling rules/i)
+      ).toBeInTheDocument()
     })
   })
 

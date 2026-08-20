@@ -10,7 +10,10 @@ import type { ProductTier } from '@/lib/product-tier'
 
 const config = {
   clinic: {
-    name: { en: 'Dentix Dental Clinic', am: 'ዴንቲክስ የጥርስ ክሊኒክ' },
+    name: {
+      en: 'Sunny Smile Speciality Clinic',
+      am: 'ሰኒ ስማይል ስፔሻሊቲ የጥርስ ክሊኒክ',
+    },
     tagline: { en: 'Strong teeth, bright smile.', am: 'ጠንካራ ጥርሶች፣ ብሩህ ፈገግታ።' },
   },
   location: {
@@ -20,7 +23,7 @@ const config = {
     woreda: '03',
     mapEmbedUrl: 'https://www.google.com/maps/embed?pb=test',
   },
-  contact: { phones: ['+251911234567'], email: 'hello@dentix.et' },
+  contact: { phones: ['+251911234567'], email: 'hello@sunnysmile.et' },
   hours: [{ day: { en: 'Monday', am: 'ሰኞ' }, open: '08:30', close: '18:00' }],
   services: [{ title: { en: 'Cleaning', am: 'ጽዳት' }, copy: { en: 'Gentle.', am: 'ገር።' } }],
   doctors: [],
@@ -40,12 +43,12 @@ function renderChrome(tier: ProductTier, node: React.ReactNode) {
 describe('SiteHeader', () => {
   it('shows the clinic name from config, not a hardcoded brand', () => {
     renderChrome('landing', <SiteHeader />)
-    expect(screen.getByText('Dentix Dental Clinic')).toBeInTheDocument()
+    expect(screen.getByText('Sunny Smile Speciality Clinic')).toBeInTheDocument()
   })
 
   it('offers the workspace link in full tier', () => {
     renderChrome('full', <SiteHeader />)
-    expect(screen.getByRole('link', { name: /open workspace/i })).toHaveAttribute('href', '/login')
+    expect(screen.getByRole('link', { name: /staff sign in/i })).toHaveAttribute('href', '/login')
   })
 
   it('hides the workspace link in landing tier', () => {

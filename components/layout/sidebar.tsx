@@ -61,7 +61,7 @@ export function Sidebar({ role, hospitalName, hospitalLogo, plan }: SidebarProps
             {!isCollapsed && (
               <div className="flex flex-col">
                 <span className="max-w-[150px] truncate text-[15px] font-semibold leading-tight tracking-[-.02em] text-[#13233a]">
-                  {hospitalName || 'Dentix'}
+                  {hospitalName || 'Sunny Smile Speciality Clinic'}
                 </span>
                 {plan && (
                   <span

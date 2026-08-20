@@ -369,7 +369,7 @@ export default function ClinicSettingsPage() {
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => handleChange('phone', e.target.value)}
-                  placeholder="044-12345678"
+                  placeholder="0116672211"
                   required
                 />
               </div>
@@ -380,7 +380,7 @@ export default function ClinicSettingsPage() {
                   id="alternatePhone"
                   value={formData.alternatePhone}
                   onChange={(e) => handleChange('alternatePhone', e.target.value)}
-                  placeholder="9876543210"
+                  placeholder="0911234567"
                 />
               </div>
 
@@ -609,7 +609,7 @@ export default function ClinicSettingsPage() {
                   id="upiId"
                   value={formData.upiId}
                   onChange={(e) => handleChange('upiId', e.target.value)}
-                  placeholder="dentix@telebirr"
+                  placeholder="sunnysmile@telebirr"
                 />
               </div>
             </div>

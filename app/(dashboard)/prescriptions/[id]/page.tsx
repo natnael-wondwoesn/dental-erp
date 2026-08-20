@@ -1,328 +1,164 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { useConfirmDialog } from '@/components/ui/confirm-dialog'
-import { useRouter, useParams } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { useToast } from '@/hooks/use-toast'
-import { ArrowLeft, Printer, Loader2, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import { ArrowLeft, Loader2, Mail, Printer, Trash2 } from 'lucide-react'
 
-interface PrescriptionDetail {
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { useConfirmDialog } from '@/components/ui/confirm-dialog'
+import { useToast } from '@/hooks/use-toast'
+
+interface PrescriptionSummary {
   id: string
   prescriptionNo: string
-  diagnosis: string | null
-  notes: string | null
-  validUntil: string | null
-  createdAt: string
-  patient: {
-    id: string
-    patientId: string
-    firstName: string
-    lastName: string
-    phone: string
-    email: string | null
-    dateOfBirth: string | null
-    gender: string | null
-    address: string | null
-    city: string | null
-    allergies: string | null
-  }
-  doctor: { id: string; name: string; specialization: string | null; registrationNo: string | null }
-  medications: {
-    id: string
-    medicationName: string
-    dosage: string
-    frequency: string
-    duration: string
-    route: string
-    timing: string | null
-    quantity: number | null
-    instructions: string | null
-  }[]
-}
-
-interface Hospital {
-  name: string
-  tagline: string | null
-  phone: string | null
-  email: string | null
-  address: string | null
-  city: string | null
-  state: string | null
-  pincode: string | null
-  logo: string | null
-  registrationNo: string | null
+  patient: { firstName: string; lastName: string; email: string | null }
 }
 
 export default function PrescriptionDetailPage() {
   const router = useRouter()
-  const params = useParams()
+  const params = useParams<{ id: string }>()
+  const id = params.id
   const { toast } = useToast()
   const { confirm, ConfirmDialogComponent } = useConfirmDialog()
-  const printRef = useRef<HTMLDivElement>(null)
-
-  const [prescription, setPrescription] = useState<PrescriptionDetail | null>(null)
-  const [hospital, setHospital] = useState<Hospital | null>(null)
+  const [prescription, setPrescription] = useState<PrescriptionSummary | null>(null)
+  const [email, setEmail] = useState('')
+  const [previewHtml, setPreviewHtml] = useState('')
   const [loading, setLoading] = useState(true)
-
+  const [sending, setSending] = useState(false)
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await fetch(`/api/prescriptions/${params.id}`)
-        const result = await res.json()
-        if (!res.ok) throw new Error(result.error)
+    Promise.all([
+      fetch(`/api/prescriptions/${id}`).then((response) =>
+        response.json().then((result) => ({ response, result }))
+      ),
+      fetch(`/api/prescriptions/${id}/print`).then((response) => {
+        if (!response.ok) throw new Error('Failed to load printable prescription')
+        return response.text()
+      }),
+    ])
+      .then(([{ response, result }, html]) => {
+        if (!response.ok) throw new Error(result.error || 'Failed to load prescription')
         setPrescription(result.data)
-        setHospital(result.hospital)
-      } catch (err: any) {
+        setEmail(result.data.patient.email || '')
+        setPreviewHtml(html)
+      })
+      .catch((cause) =>
         toast({
           variant: 'destructive',
           title: 'Error',
-          description: err.message || 'Failed to load prescription',
+          description: cause instanceof Error ? cause.message : 'Failed to load prescription',
         })
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchData()
-  }, [params.id])
+      )
+      .finally(() => setLoading(false))
+  }, [id, toast])
 
-  const handlePrint = () => {
-    window.print()
+  const printPrescription = () => {
+    const frame = document.getElementById('prescription-paper-preview') as HTMLIFrameElement | null
+    frame?.contentWindow?.focus()
+    frame?.contentWindow?.print()
   }
 
   const handleDelete = async () => {
-    const ok = await confirm({
+    const approved = await confirm({
       title: 'Delete Prescription',
       description: 'Delete this prescription? This action cannot be undone.',
       confirmLabel: 'Delete',
     })
-    if (!ok) return
+    if (!approved) return
+    const response = await fetch(`/api/prescriptions/${id}`, { method: 'DELETE' })
+    if (!response.ok) {
+      toast({ variant: 'destructive', title: 'Could not delete prescription' })
+      return
+    }
+    toast({ title: 'Prescription deleted' })
+    router.push('/prescriptions')
+  }
+
+  const handleEmail = async () => {
+    if (!email) {
+      toast({ variant: 'destructive', title: 'Enter the patient email address' })
+      return
+    }
+    setSending(true)
     try {
-      const res = await fetch(`/api/prescriptions/${params.id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Failed')
-      toast({ title: 'Deleted' })
-      router.push('/prescriptions')
-    } catch {
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete' })
+      const response = await fetch(`/api/prescriptions/${id}/email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Failed to email prescription')
+      toast({ title: 'Prescription emailed', description: `Sent to ${email}` })
+    } catch (cause) {
+      toast({
+        variant: 'destructive',
+        title: 'Email failed',
+        description: cause instanceof Error ? cause.message : 'Failed to email prescription',
+      })
+    } finally {
+      setSending(false)
     }
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
+      <div className="grid min-h-[50vh] place-items-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     )
   }
 
   if (!prescription) {
-    return (
-      <div className="container mx-auto p-6 max-w-4xl">
-        <p className="text-center text-muted-foreground py-20">Prescription not found</p>
-      </div>
-    )
+    return <div className="p-8 text-center text-muted-foreground">Prescription not found.</div>
   }
 
-  const patientAge = prescription.patient.dateOfBirth
-    ? Math.floor(
-        (Date.now() - new Date(prescription.patient.dateOfBirth).getTime()) /
-          (365.25 * 24 * 60 * 60 * 1000)
-      )
-    : null
-
   return (
-    <>
-      {/* Screen-only controls */}
-      <div className="container mx-auto p-6 max-w-4xl print:hidden">
-        <div className="flex items-center justify-between mb-6">
-          <Button variant="ghost" onClick={() => router.push('/prescriptions')}>
-            <ArrowLeft className="h-4 w-4 mr-2" /> Back
+    <div className="space-y-5 p-4 sm:p-6">
+      <div className="mx-auto flex max-w-6xl flex-col justify-between gap-4 rounded-2xl border bg-card p-4 shadow-sm lg:flex-row lg:items-center">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => router.push('/prescriptions')}>
+            <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleDelete} className="text-destructive">
-              <Trash2 className="h-4 w-4 mr-2" /> Delete
-            </Button>
-            <Button onClick={handlePrint}>
-              <Printer className="h-4 w-4 mr-2" /> Print
-            </Button>
+          <div>
+            <p className="font-semibold">{prescription.prescriptionNo}</p>
+            <p className="text-sm text-muted-foreground">
+              {prescription.patient.firstName} {prescription.patient.lastName}
+            </p>
           </div>
         </div>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Input
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="patient@example.com"
+            className="sm:w-64"
+          />
+          <Button variant="outline" onClick={handleEmail} disabled={sending}>
+            {sending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Mail className="mr-2 h-4 w-4" />
+            )}{' '}
+            Email patient
+          </Button>
+          <Button variant="outline" onClick={handleDelete} className="text-destructive">
+            <Trash2 className="mr-2 h-4 w-4" /> Delete
+          </Button>
+          <Button onClick={printPrescription} disabled={!previewHtml}>
+            <Printer className="mr-2 h-4 w-4" /> Print
+          </Button>
+        </div>
       </div>
-
-      {/* Printable prescription */}
-      <div
-        ref={printRef}
-        className="container mx-auto px-6 pb-6 max-w-4xl print:max-w-full print:px-0 print:pb-0"
-      >
-        <Card className="print:shadow-none print:border-none">
-          <CardContent className="p-8 print:p-6">
-            {/* Header — Clinic Info */}
-            <div className="flex items-start justify-between mb-1">
-              <div className="flex items-center gap-4">
-                {hospital?.logo ? (
-                  <img src={hospital.logo} alt="" className="h-16 w-16 rounded-lg object-cover" />
-                ) : (
-                  <div className="h-16 w-16 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-2xl font-bold">
-                    {hospital?.name?.charAt(0) || 'D'}
-                  </div>
-                )}
-                <div>
-                  <h1 className="text-xl font-bold">{hospital?.name || 'Dental Clinic'}</h1>
-                  {hospital?.tagline && (
-                    <p className="text-sm text-muted-foreground">{hospital.tagline}</p>
-                  )}
-                  <p className="text-xs text-muted-foreground">
-                    {[hospital?.address, hospital?.city, hospital?.state, hospital?.pincode]
-                      .filter(Boolean)
-                      .join(', ')}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {[hospital?.phone && `Ph: ${hospital.phone}`, hospital?.email]
-                      .filter(Boolean)
-                      .join(' | ')}
-                  </p>
-                </div>
-              </div>
-              <div className="text-right">
-                <Badge variant="outline" className="text-base font-mono">
-                  {prescription.prescriptionNo}
-                </Badge>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {new Date(prescription.createdAt).toLocaleDateString('en-IN', {
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                  })}
-                </p>
-              </div>
-            </div>
-
-            <Separator className="my-4" />
-
-            {/* Patient Info */}
-            <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-sm mb-4">
-              <div>
-                <span className="text-muted-foreground">Patient: </span>
-                <span className="font-medium">
-                  {prescription.patient.firstName} {prescription.patient.lastName}
-                </span>
-              </div>
-              <div>
-                <span className="text-muted-foreground">ID: </span>
-                <span className="font-mono">{prescription.patient.patientId}</span>
-              </div>
-              {patientAge !== null && (
-                <div>
-                  <span className="text-muted-foreground">Age/Gender: </span>
-                  <span>
-                    {patientAge} yrs
-                    {prescription.patient.gender ? ` / ${prescription.patient.gender}` : ''}
-                  </span>
-                </div>
-              )}
-              <div>
-                <span className="text-muted-foreground">Phone: </span>
-                <span>{prescription.patient.phone}</span>
-              </div>
-              {prescription.patient.allergies && (
-                <div className="col-span-2 text-destructive font-medium">
-                  Allergies: {prescription.patient.allergies}
-                </div>
-              )}
-            </div>
-
-            {prescription.diagnosis && (
-              <div className="mb-4 text-sm">
-                <span className="text-muted-foreground">Diagnosis: </span>
-                <span className="font-medium">{prescription.diagnosis}</span>
-              </div>
-            )}
-
-            <Separator className="my-4" />
-
-            {/* Rx Symbol */}
-            <div className="text-3xl font-serif font-bold mb-4">&#8478;</div>
-
-            {/* Medications Table */}
-            <table className="w-full text-sm mb-6">
-              <thead>
-                <tr className="border-b text-left">
-                  <th className="pb-2 font-medium w-8">#</th>
-                  <th className="pb-2 font-medium">Medication</th>
-                  <th className="pb-2 font-medium">Dosage</th>
-                  <th className="pb-2 font-medium">Frequency</th>
-                  <th className="pb-2 font-medium">Duration</th>
-                  <th className="pb-2 font-medium hidden print:table-cell">Qty</th>
-                </tr>
-              </thead>
-              <tbody>
-                {prescription.medications.map((med, i) => (
-                  <tr key={med.id} className="border-b last:border-0">
-                    <td className="py-3 text-muted-foreground">{i + 1}</td>
-                    <td className="py-3">
-                      <div className="font-medium">{med.medicationName}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {[med.route !== 'Oral' && med.route, med.timing]
-                          .filter(Boolean)
-                          .join(' · ')}
-                      </div>
-                      {med.instructions && (
-                        <div className="text-xs italic text-muted-foreground mt-0.5">
-                          {med.instructions}
-                        </div>
-                      )}
-                    </td>
-                    <td className="py-3">{med.dosage}</td>
-                    <td className="py-3">{med.frequency}</td>
-                    <td className="py-3">{med.duration}</td>
-                    <td className="py-3 hidden print:table-cell">{med.quantity || '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {prescription.notes && (
-              <div className="mb-6 p-3 bg-muted/50 rounded text-sm">
-                <span className="font-medium">Notes: </span>
-                {prescription.notes}
-              </div>
-            )}
-
-            {prescription.validUntil && (
-              <p className="text-xs text-muted-foreground mb-6">
-                Valid until:{' '}
-                {new Date(prescription.validUntil).toLocaleDateString('en-IN', {
-                  day: '2-digit',
-                  month: 'long',
-                  year: 'numeric',
-                })}
-              </p>
-            )}
-
-            {/* Doctor signature */}
-            <div className="flex justify-end mt-8">
-              <div className="text-right">
-                <div className="border-b border-foreground w-48 mb-1" />
-                <p className="font-medium">{prescription.doctor.name}</p>
-                {prescription.doctor.specialization && (
-                  <p className="text-xs text-muted-foreground">
-                    {prescription.doctor.specialization}
-                  </p>
-                )}
-                {prescription.doctor.registrationNo && (
-                  <p className="text-xs text-muted-foreground">
-                    Reg. No: {prescription.doctor.registrationNo}
-                  </p>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="mx-auto max-w-6xl overflow-hidden rounded-2xl border bg-[#dfe5ec] shadow-inner">
+        <iframe
+          id="prescription-paper-preview"
+          title={`Prescription ${prescription.prescriptionNo}`}
+          srcDoc={previewHtml}
+          className="h-[calc(100vh-13rem)] min-h-[760px] w-full bg-white"
+        />
       </div>
       {ConfirmDialogComponent}
-    </>
+    </div>
   )
 }

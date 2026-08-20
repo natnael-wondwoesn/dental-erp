@@ -177,7 +177,7 @@ describe('Sidebar', () => {
 
   it('renders default name when hospitalName omitted', () => {
     render(<Sidebar role="ADMIN" />)
-    expect(screen.getByText('Dentix')).toBeInTheDocument()
+    expect(screen.getByText('Sunny Smile Speciality Clinic')).toBeInTheDocument()
   })
 
   it('renders all navigation items from config', () => {

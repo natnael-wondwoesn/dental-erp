@@ -104,25 +104,25 @@ class TemplateService {
       key: 'clinicName',
       label: 'Clinic Name',
       description: 'Name of the clinic',
-      example: 'Smile Dental Clinic',
+      example: 'Sunny Smile Speciality Clinic',
     },
     {
       key: 'clinicPhone',
       label: 'Clinic Phone',
       description: 'Clinic contact number',
-      example: '044-12345678',
+      example: '0116672211',
     },
     {
       key: 'clinicEmail',
       label: 'Clinic Email',
       description: 'Clinic email address',
-      example: 'info@yourclinic.com',
+      example: 'hello@sunnysmile.et',
     },
     {
       key: 'clinicAddress',
       label: 'Clinic Address',
       description: 'Clinic full address',
-      example: '123 Main St, Chennai',
+      example: 'Bole Road, Addis Ababa',
     },
 
     {

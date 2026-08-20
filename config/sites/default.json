@@ -1,6 +1,6 @@
 {
   "clinic": {
-    "name": { "en": "Dentix Dental Clinic", "am": "ዴንቲክስ የጥርስ ክሊኒክ" },
+    "name": { "en": "Sunny Smile Speciality Clinic", "am": "ሰኒ ስማይል ስፔሻሊቲ የጥርስ ክሊኒክ" },
     "tagline": { "en": "Strong teeth, bright smile.", "am": "ጠንካራ ጥርሶች፣ ብሩህ ፈገግታ።" }
   },
   "location": {
@@ -13,9 +13,9 @@
   },
   "contact": {
     "phones": ["+251911234567", "+251911234568"],
-    "telegram": "https://t.me/dentixdental",
+    "telegram": "https://t.me/sunnysmiledental",
     "whatsapp": "+251911234567",
-    "email": "hello@dentix.et"
+    "email": "hello@sunnysmile.et"
   },
   "hours": [
     { "day": { "en": "Monday – Friday", "am": "ሰኞ – ዓርብ" }, "open": "08:30", "close": "18:00" },

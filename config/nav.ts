@@ -116,6 +116,30 @@ export const navigation: NavSection[] = [
         roles: ['ADMIN', 'DOCTOR'],
       },
       {
+        title: 'Forms',
+        href: '/forms',
+        icon: FileCheck,
+        roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'],
+        subItems: [
+          {
+            title: 'Forms workspace',
+            href: '/forms',
+            icon: FileCheck,
+          },
+          {
+            title: 'Medical certificates',
+            href: '/forms/medical-certificates',
+            icon: FileText,
+          },
+          {
+            title: 'Prescription paper',
+            href: '/prescriptions',
+            icon: ClipboardList,
+            roles: ['ADMIN', 'DOCTOR'],
+          },
+        ],
+      },
+      {
         title: 'Drug Catalog',
         href: '/medications',
         icon: Pill,

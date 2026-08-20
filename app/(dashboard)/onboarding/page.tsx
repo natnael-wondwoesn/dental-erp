@@ -268,7 +268,11 @@ export default function OnboardingPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="website">Website</Label>
-                      <Input id="website" placeholder="www.dentix.et" {...register('website')} />
+                      <Input
+                        id="website"
+                        placeholder="www.sunnysmile.et"
+                        {...register('website')}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="gstNumber">Tax ID</Label>
@@ -368,14 +372,14 @@ export default function OnboardingPage() {
                           />
                         </div>
                       </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="bankAccountName">Account Holder Name</Label>
-                          <Input
-                            id="bankAccountName"
-                            placeholder="Dr. Selam Abebe"
-                            {...register('bankAccountName')}
-                          />
-                        </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="bankAccountName">Account Holder Name</Label>
+                        <Input
+                          id="bankAccountName"
+                          placeholder="Dr. Selam Abebe"
+                          {...register('bankAccountName')}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>

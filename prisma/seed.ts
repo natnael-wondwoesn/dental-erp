@@ -32,9 +32,9 @@ async function main() {
     where: { slug: 'demo-dental-clinic' },
     update: {},
     create: {
-      name: 'Dentix Dental Clinic',
+      name: 'Sunny Smile Speciality Clinic',
       slug: 'demo-dental-clinic',
-      email: 'hello@dentix.et',
+      email: 'hello@sunnysmile.et',
       phone: '0116672211',
       plan: Plan.PROFESSIONAL,
       isActive: true,
@@ -44,7 +44,7 @@ async function main() {
       state: 'Addis Ababa',
       pincode: '1000',
       tagline: 'Strong teeth, bright smile.',
-      website: 'www.dentix.et',
+      website: 'www.sunnysmile.et',
       gstNumber: null,
       registrationNo: 'AA-DEN-2024-0142',
       currency: 'ETB',
@@ -58,7 +58,7 @@ async function main() {
         saturday: { open: '09:00', close: '14:00' },
         sunday: { open: null, close: null },
       }),
-      upiId: 'dentix@telebirr',
+      upiId: 'sunnysmile@telebirr',
       patientLimit: -1, // Unlimited for PROFESSIONAL
       staffLimit: -1,
       storageLimitMb: -1,
@@ -71,10 +71,10 @@ async function main() {
   const hashedPassword = await bcrypt.hash('Admin@123', 10)
 
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@dentix.et' },
+    where: { email: 'admin@sunnysmile.et' },
     update: {},
     create: {
-      email: 'admin@dentix.et',
+      email: 'admin@sunnysmile.et',
       name: 'Mekdes Alemu',
       password: hashedPassword,
       role: Role.ADMIN,
@@ -87,7 +87,7 @@ async function main() {
           firstName: 'Mekdes',
           lastName: 'Alemu',
           phone: '0911234500',
-          email: 'admin@dentix.et',
+          email: 'admin@sunnysmile.et',
           specialization: 'Clinic Operations',
           licenseNumber: 'AA-DEN-ADMIN-001',
           city: 'Addis Ababa',
@@ -103,10 +103,10 @@ async function main() {
   // Create doctor user
   const doctorPassword = await bcrypt.hash('Doctor@123', 10)
   const doctor = await prisma.user.upsert({
-    where: { email: 'doctor@dentix.et' },
+    where: { email: 'doctor@sunnysmile.et' },
     update: {},
     create: {
-      email: 'doctor@dentix.et',
+      email: 'doctor@sunnysmile.et',
       name: 'Dr. Selam Abebe',
       password: doctorPassword,
       role: Role.DOCTOR,
@@ -119,7 +119,7 @@ async function main() {
           firstName: 'Selam',
           lastName: 'Abebe',
           phone: '0911234501',
-          email: 'doctor@dentix.et',
+          email: 'doctor@sunnysmile.et',
           specialization: 'Orthodontics',
           licenseNumber: 'AA-DEN-ORTHO-014',
           city: 'Addis Ababa',
@@ -135,10 +135,10 @@ async function main() {
   // Create receptionist user
   const receptionistPassword = await bcrypt.hash('Reception@123', 10)
   const receptionist = await prisma.user.upsert({
-    where: { email: 'reception@dentix.et' },
+    where: { email: 'reception@sunnysmile.et' },
     update: {},
     create: {
-      email: 'reception@dentix.et',
+      email: 'reception@sunnysmile.et',
       name: 'Hanna Tesfaye',
       password: receptionistPassword,
       role: Role.RECEPTIONIST,
@@ -151,7 +151,7 @@ async function main() {
           firstName: 'Hanna',
           lastName: 'Tesfaye',
           phone: '0911234502',
-          email: 'reception@dentix.et',
+          email: 'reception@sunnysmile.et',
           city: 'Addis Ababa',
           state: 'Addis Ababa',
           hospitalId: hospital.id,
@@ -1417,7 +1417,7 @@ async function main() {
       firstName: 'Selam',
       lastName: 'Abebe',
       phone: '0911234501',
-      email: 'doctor@dentix.et',
+      email: 'doctor@sunnysmile.et',
       qualification: 'DDS, MSc',
       specialization: 'Prosthodontics',
       licenseNumber: 'AA-DEN-PROS-021',
