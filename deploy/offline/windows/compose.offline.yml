@@ -1,0 +1,61 @@
+name: dental-erp-offline
+
+services:
+  mysql:
+    image: ${MYSQL_IMAGE:?offline bundle must set MYSQL_IMAGE}
+    pull_policy: never
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?installer must set MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-dental_erp}
+      MYSQL_USER: ${MYSQL_USER:-dental}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?installer must set MYSQL_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 -u root -p"$$MYSQL_ROOT_PASSWORD" --silent']
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 60s
+
+  migrate:
+    image: ${DENTAL_ERP_IMAGE:?offline bundle must set DENTAL_ERP_IMAGE}
+    pull_policy: never
+    restart: 'no'
+    command: ['node', 'node_modules/prisma/build/index.js', 'migrate', 'deploy']
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: mysql://${MYSQL_USER:-dental}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE:-dental_erp}
+
+  app:
+    image: ${DENTAL_ERP_IMAGE:?offline bundle must set DENTAL_ERP_IMAGE}
+    pull_policy: never
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      - '${APP_BIND:-127.0.0.1}:${APP_PORT:-80}:3000'
+    environment:
+      NODE_ENV: production
+      PRODUCT_TIER: full
+      SITE_ID: ${SITE_ID:-default}
+      DATABASE_URL: mysql://${MYSQL_USER:-dental}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE:-dental_erp}?connection_limit=10&pool_timeout=20
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?installer must set NEXTAUTH_SECRET}
+      LICENSE_ENFORCEMENT: ${LICENSE_ENFORCEMENT:-required}
+      LICENSE_PRODUCT_ID: ${LICENSE_PRODUCT_ID:-dental-erp}
+      LICENSE_STATE_DIR: /app/.license-state
+    volumes:
+      - uploads:/app/uploads
+      - type: bind
+        source: ${LICENSE_STATE_HOST_DIR:?installer must set LICENSE_STATE_HOST_DIR}
+        target: /app/.license-state
+
+volumes:
+  mysql-data:
+  uploads:

@@ -449,7 +449,7 @@ export function getNavigationForRole(role: string): NavSection[] {
 /**
  * Navigation for a role within a tier.
  *
- * Presentation only. The landing tier's actual enforcement is middleware.ts,
+ * Presentation only. The landing tier's actual enforcement is proxy.ts,
  * which 404s these routes whether or not they appear in a menu.
  */
 export function getNavigationForTier(role: string, tier: ProductTier): NavSection[] {

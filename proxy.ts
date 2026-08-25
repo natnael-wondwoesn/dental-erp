@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { getProductTier } from '@/lib/product-tier'
+import { evaluateApiLicenseGate } from '@/lib/licensing/api-gate'
 
 /**
  * Tier gate.
@@ -36,6 +37,14 @@ const ALLOWED_EXACT = new Set([
 ])
 
 const ALLOWED_PREFIXES = ['/_next/', '/assets/', '/fonts/']
+const LICENSE_RECOVERY_PREFIXES = ['/api/auth/', '/api/patient-portal/auth/']
+const LICENSE_RECOVERY_EXACT = new Set([
+  '/api/license/import',
+  '/api/license/status',
+  '/api/settings/backup',
+  '/api/health',
+  '/api/ready',
+])
 
 // Matches a "." or ".." path segment, optionally followed by a Tomcat-style
 // ";matrix-param" suffix before the segment boundary — e.g. "/assets/..;/x",
@@ -88,8 +97,39 @@ export function isAllowedInLandingTier(pathname: string): boolean {
   return isAllowed(pathname)
 }
 
-export function middleware(request: NextRequest): NextResponse {
-  if (getProductTier() === 'full') return NextResponse.next()
+function isLicenseRecoveryPath(pathname: string): boolean {
+  return (
+    LICENSE_RECOVERY_EXACT.has(pathname) ||
+    LICENSE_RECOVERY_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+  )
+}
+
+export async function proxy(request: NextRequest): Promise<NextResponse> {
+  if (getProductTier() === 'full') {
+    if (
+      request.nextUrl.pathname.startsWith('/api/') &&
+      !['GET', 'HEAD', 'OPTIONS'].includes(request.method) &&
+      !isLicenseRecoveryPath(request.nextUrl.pathname)
+    ) {
+      const decision = await evaluateApiLicenseGate(request.method)
+      if (decision) {
+        return NextResponse.json(
+          {
+            error: 'License write restricted',
+            code: 'LICENSE_WRITE_RESTRICTED',
+            state: decision.state,
+            reason: decision.reason,
+          },
+          { status: 423 }
+        )
+      }
+    }
+    // Overwrite any client-supplied value. Node route helpers use this trusted
+    // marker to distinguish reads from writes before consulting local license state.
+    const requestHeaders = new Headers(request.headers)
+    requestHeaders.set('x-sunny-smile-request-method', request.method)
+    return NextResponse.next({ request: { headers: requestHeaders } })
+  }
   if (isAllowedInLandingTier(request.nextUrl.pathname)) return NextResponse.next()
 
   // 404, not 403 and not a redirect: a landing client's server should give a

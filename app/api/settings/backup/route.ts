@@ -5,7 +5,9 @@ import { format } from 'date-fns'
 
 // GET /api/settings/backup - Export database data
 export async function GET(req: NextRequest) {
-  const { error, hospitalId, user } = await requireAuthAndRole(['ADMIN'])
+  const { error, hospitalId, user } = await requireAuthAndRole(['ADMIN'], {
+    enforceLicense: false,
+  })
   if (error || !hospitalId) {
     return error || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -123,7 +125,7 @@ export async function GET(req: NextRequest) {
 
 // POST /api/settings/backup - Get backup statistics
 export async function POST(req: NextRequest) {
-  const { error, hospitalId } = await requireAuthAndRole(['ADMIN'])
+  const { error, hospitalId } = await requireAuthAndRole(['ADMIN'], { enforceLicense: false })
   if (error || !hospitalId) {
     return error || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }

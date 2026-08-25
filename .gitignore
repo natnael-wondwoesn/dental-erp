@@ -23,6 +23,9 @@
 
 # Production
 /build
+/.license-state/
+backend/.license-state/
+/.clinic-cms-worktree/
 
 # Misc
 .DS_Store

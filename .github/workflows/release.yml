@@ -63,6 +63,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Embed issuer public trust anchors
+        if: github.event_name == 'push'
+        run: python scripts/embed_license_trust_anchors.py --require-nonempty
+        env:
+          LICENSE_ISSUER_PUBLIC_KEYS_JSON: ${{ secrets.LICENSE_ISSUER_PUBLIC_KEYS_JSON }}
+
       - name: Name this platform for cache and artifact keys
         run: echo "PLATFORM_PAIR=${PLATFORM//\//-}" >> "$GITHUB_ENV"
         env:
@@ -122,6 +128,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
     steps:
       - name: Download the digests
         uses: actions/download-artifact@v4
@@ -190,3 +198,96 @@ jobs:
             echo ''
             echo "Architectures: $(paste -sd', ' /tmp/published-platforms)"
           } >> "$GITHUB_STEP_SUMMARY"
+
+  windows-license-agent:
+    name: Build Windows license agent
+    needs: verify
+    if: github.event_name == 'push'
+    runs-on: windows-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - name: Embed issuer public trust anchors
+        run: python scripts/embed_license_trust_anchors.py --require-nonempty
+        env:
+          LICENSE_ISSUER_PUBLIC_KEYS_JSON: ${{ secrets.LICENSE_ISSUER_PUBLIC_KEYS_JSON }}
+      - name: Build one-file Windows agent
+        working-directory: backend
+        run: |
+          uv sync --frozen
+          uv run pyinstaller --clean --onefile --paths . --name dental-license-agent app/licensing/windows_cli.py
+      - name: Smoke-test the executable
+        working-directory: backend
+        shell: pwsh
+        run: |
+          $state = Join-Path $env:RUNNER_TEMP 'license-state'
+          .\dist\dental-license-agent.exe --product-id dental-erp --state-dir $state init
+          if ($LASTEXITCODE -ne 0) { throw 'Windows license agent smoke test failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dental-license-agent-windows-amd64
+          path: backend/dist/dental-license-agent.exe
+          if-no-files-found: error
+          retention-days: 7
+
+  offline-windows-bundle:
+    name: Assemble offline Windows USB bundle
+    needs: [publish, windows-license-agent]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: dental-license-agent-windows-amd64
+          path: /tmp/license-agent
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Export Linux images for Docker Desktop
+        env:
+          VERSION: ${{ needs.publish.outputs.version }}
+        run: |
+          mkdir -p /tmp/dental-erp-offline/bin /tmp/dental-erp-offline/images
+          APP_IMAGE="${REGISTRY}/${IMAGE_NAME}:${VERSION}"
+          docker pull --platform linux/amd64 "$APP_IMAGE"
+          docker pull --platform linux/amd64 mysql:8.4
+          docker save --output /tmp/dental-erp-offline/images/dental-erp.tar "$APP_IMAGE"
+          docker save --output /tmp/dental-erp-offline/images/mysql-8.4.tar mysql:8.4
+          echo "APP_IMAGE=$APP_IMAGE" >> "$GITHUB_ENV"
+      - name: Assemble and hash bundle
+        env:
+          VERSION: ${{ needs.publish.outputs.version }}
+        run: |
+          cp deploy/offline/windows/Install-Offline.ps1 /tmp/dental-erp-offline/
+          cp deploy/offline/windows/Configure-Direct-Cable-Client.ps1 /tmp/dental-erp-offline/
+          cp deploy/offline/windows/OfflineInstaller.psm1 /tmp/dental-erp-offline/
+          cp deploy/offline/windows/compose.offline.yml /tmp/dental-erp-offline/
+          cp /tmp/license-agent/dental-license-agent.exe /tmp/dental-erp-offline/bin/
+          python scripts/build_offline_bundle_manifest.py \
+            --root /tmp/dental-erp-offline \
+            --app-version "$VERSION" \
+            --app-image "$APP_IMAGE" \
+            --database-image mysql:8.4
+          cd /tmp
+          zip -q -r "dental-erp-offline-windows-${VERSION}.zip" dental-erp-offline
+          echo "BUNDLE=/tmp/dental-erp-offline-windows-${VERSION}.zip" >> "$GITHUB_ENV"
+      - name: Publish bundle on the GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || \
+            gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --generate-notes
+          gh release upload "$GITHUB_REF_NAME" "$BUNDLE" --clobber

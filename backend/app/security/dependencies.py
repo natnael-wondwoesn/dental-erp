@@ -3,12 +3,13 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_session
+from app.licensing.runtime import LicenseRuntime, get_license_runtime
 from app.models import Hospital, User
 from app.security.permissions import PermissionKey
 from app.security.tokens import decode_access_token
@@ -82,12 +83,27 @@ async def get_current_principal(
 
 def require_permission(
     permission: PermissionKey,
-) -> Callable[[Principal], Principal]:
+    *,
+    enforce_license: bool = True,
+) -> Callable[..., Principal]:
     async def dependency(
+        request: Request,
         principal: Annotated[Principal, Depends(get_current_principal)],
+        license_runtime: Annotated[LicenseRuntime, Depends(get_license_runtime)],
     ) -> Principal:
         if permission not in principal.permissions:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+        if enforce_license and request.method not in {"GET", "HEAD", "OPTIONS"}:
+            decision = await license_runtime.decide()
+            if decision.enforcement == "required" and not decision.allows_write:
+                raise HTTPException(
+                    status_code=status.HTTP_423_LOCKED,
+                    detail={
+                        "code": "LICENSE_WRITE_RESTRICTED",
+                        "state": decision.state,
+                        "reason": decision.reason,
+                    },
+                )
         return principal
 
     return dependency

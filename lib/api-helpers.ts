@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { jwtVerify } from 'jose'
 import { auth } from './auth'
 import { prisma } from './prisma'
+import { evaluateApiLicenseGate } from './licensing/api-gate'
 
 /**
  * Verify a mobile Bearer token (JWT signed with NEXTAUTH_SECRET via jose).
@@ -80,7 +81,10 @@ export function requireRole(userRole: string, allowedRoles: string[]) {
  * Combined auth check: verifies authentication and role access.
  * Use in API route handlers for consistent auth + role checking.
  */
-export async function requireAuthAndRole(allowedRoles?: string[]) {
+export async function requireAuthAndRole(
+  allowedRoles?: string[],
+  options: { enforceLicense?: boolean } = {}
+) {
   const { error, user, hospitalId } = await getAuthenticatedHospital()
 
   if (error || !user || !hospitalId) {
@@ -96,6 +100,27 @@ export async function requireAuthAndRole(allowedRoles?: string[]) {
     const roleError = requireRole(user.role, allowedRoles)
     if (roleError) {
       return { error: roleError, user: null, hospitalId: null, session: null }
+    }
+  }
+
+  if (options.enforceLicense !== false) {
+    const headersList = await headers()
+    const decision = await evaluateApiLicenseGate(headersList.get('x-sunny-smile-request-method'))
+    if (decision) {
+      return {
+        error: NextResponse.json(
+          {
+            error: 'License write restricted',
+            code: 'LICENSE_WRITE_RESTRICTED',
+            state: decision.state,
+            reason: decision.reason,
+          },
+          { status: 423 }
+        ),
+        user: null,
+        hospitalId: null,
+        session: null,
+      }
     }
   }
 

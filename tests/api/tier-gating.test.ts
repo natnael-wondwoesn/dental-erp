@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { NextRequest } from 'next/server'
 
-import { isAllowedInLandingTier, middleware } from '@/middleware'
+import { isAllowedInLandingTier, proxy } from '@/proxy'
 
 const ORIGINAL = process.env.PRODUCT_TIER
 
@@ -10,8 +10,8 @@ function request(pathname: string): NextRequest {
   return new NextRequest(new URL(pathname, 'https://clinic.example.et'))
 }
 
-function status(pathname: string): number {
-  return middleware(request(pathname)).status
+async function status(pathname: string): Promise<number> {
+  return (await proxy(request(pathname))).status
 }
 
 afterEach(() => {
@@ -26,8 +26,8 @@ describe('full tier', () => {
 
   it.each(['/', '/about', '/contact', '/dashboard', '/login', '/portal', '/api/patients'])(
     'passes %s through untouched',
-    (pathname) => {
-      expect(status(pathname)).toBe(200)
+    async (pathname) => {
+      expect(await status(pathname)).toBe(200)
     }
   )
 })
@@ -45,8 +45,8 @@ describe('landing tier', () => {
     '/sitemap.xml',
     '/icon.svg',
     '/manifest.json',
-  ])('serves the public site path %s', (pathname) => {
-    expect(status(pathname)).toBe(200)
+  ])('serves the public site path %s', async (pathname) => {
+    expect(await status(pathname)).toBe(200)
   })
 
   // Genuine coverage of each allowed prefix. (A bare "/_next/data/foo.json"
@@ -55,8 +55,8 @@ describe('landing tier', () => {
   // with "/_next/" deleted from the prefix list entirely.)
   it.each(['/assets/logo.png', '/fonts/NotoSansEthiopic.woff2', '/_next/static/chunks/main.js'])(
     'serves the static asset path %s',
-    (pathname) => {
-      expect(status(pathname)).toBe(200)
+    async (pathname) => {
+      expect(await status(pathname)).toBe(200)
     }
   )
 
@@ -65,13 +65,13 @@ describe('landing tier', () => {
   // skipTrailingSlashRedirect in next.config.js.
   it.each(['/about/', '/contact/'])(
     'serves the public site path %s with a trailing slash',
-    (pathname) => {
-      expect(status(pathname)).toBe(200)
+    async (pathname) => {
+      expect(await status(pathname)).toBe(200)
     }
   )
 
-  it('still 404s an ERP path with a trailing slash', () => {
-    expect(status('/dashboard/')).toBe(404)
+  it('still 404s an ERP path with a trailing slash', async () => {
+    expect(await status('/dashboard/')).toBe(404)
   })
 
   // Regression guard for the DOT_SEGMENT deny check: dots that are part of an
@@ -85,9 +85,12 @@ describe('landing tier', () => {
     '/assets/..hidden.css',
     '/assets/a..b/c.js',
     '/assets/.well-known/x',
-  ])('still serves the real asset path %s (dots are not a whole path segment)', (pathname) => {
-    expect(status(pathname)).toBe(200)
-  })
+  ])(
+    'still serves the real asset path %s (dots are not a whole path segment)',
+    async (pathname) => {
+      expect(await status(pathname)).toBe(200)
+    }
+  )
 
   it.each([
     '/dashboard',
@@ -99,20 +102,20 @@ describe('landing tier', () => {
     '/api/patients',
     '/api/auth/login',
     '/api/dashboard/stats',
-  ])('returns 404 for the ERP path %s', (pathname) => {
-    expect(status(pathname)).toBe(404)
+  ])('returns 404 for the ERP path %s', async (pathname) => {
+    expect(await status(pathname)).toBe(404)
   })
 
   // Pins the security decision: /api/health is deliberately NOT allowlisted.
   // A 200 there would tell a prober an API layer exists behind a site that
   // is meant to look purely static, even though it's a harmless-sounding
   // uptime-monitoring endpoint.
-  it('returns 404 for /api/health, even though it looks like a harmless health check', () => {
-    expect(status('/api/health')).toBe(404)
+  it('returns 404 for /api/health, even though it looks like a harmless health check', async () => {
+    expect(await status('/api/health')).toBe(404)
   })
 
-  it('returns 404 rather than a redirect, so probing cannot confirm the ERP exists', () => {
-    const response = middleware(request('/dashboard'))
+  it('returns 404 rather than a redirect, so probing cannot confirm the ERP exists', async () => {
+    const response = await proxy(request('/dashboard'))
     expect(response.status).toBe(404)
     expect(response.headers.get('location')).toBeNull()
   })
@@ -166,8 +169,8 @@ describe('an invalid PRODUCT_TIER', () => {
     else process.env.PRODUCT_TIER = ORIGINAL
   })
 
-  it('makes middleware throw rather than route the request under an unknown tier', () => {
+  it('makes proxy throw rather than route the request under an unknown tier', async () => {
     process.env.PRODUCT_TIER = 'Landing'
-    expect(() => middleware(request('/dashboard'))).toThrow(/Invalid PRODUCT_TIER/)
+    await expect(proxy(request('/dashboard'))).rejects.toThrow(/Invalid PRODUCT_TIER/)
   })
 })

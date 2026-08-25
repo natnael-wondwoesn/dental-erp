@@ -1,0 +1,11 @@
+{
+  "description": "Deterministic cross-language activation request vector; seed is test-only.",
+  "private_seed_hex": "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+  "installation_id": "kPrK_qmxVWaYVA9wwBF6Iuo3vVzz7TxHCTwXBygrS4k",
+  "request": {
+    "format": "sunny-smile-activation-request/v1",
+    "protected": "eyJhbGciOiJFZERTQSIsImtpZCI6ImtQcktfcW14VldhWVZBOXd3QkY2SXVvM3ZWeno3VHhIQ1R3WEJ5Z3JTNGsiLCJ0eXAiOiJzdW5ueS1zbWlsZS1hY3RpdmF0aW9uLXJlcXVlc3QrandzIn0",
+    "payload": "eyJhcHBfdmVyc2lvbiI6IjEuMC4wIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDgtMjRUMDA6MDA6MDBaIiwiZGVsaXZlcnkiOiJvZmZsaW5lIiwiaW5zdGFsbGF0aW9uX2lkIjoia1ByS19xbXhWV2FZVkE5d3dCRjZJdW8zdlZ6ejdUeEhDVHdYQnlnclM0ayIsImluc3RhbGxhdGlvbl9wdWJsaWNfa2V5Ijp7ImNydiI6IkVkMjU1MTkiLCJrdHkiOiJPS1AiLCJ4IjoiMTFxWUFZS3hDcmZWU183VHlXUUhPZzdoY3ZQYXBpTWxyd0lhYVBjSFVSbyJ9LCJub25jZSI6ImJtNXVibTV1Ym01dWJtNXVibTV1Ym01dWJtNXVibTV1IiwicGxhdGZvcm0iOiJ3aW5kb3dzIiwicHJvZHVjdF9pZCI6ImRlbnRhbC1lcnAiLCJyZXF1ZXN0X2lkIjoiMDE4ZjQ3YTctNWI5Yy03ZDMxLThlMWEtYzdjNzdkNzlmNDEwIiwic2NoZW1hX3ZlcnNpb24iOjF9",
+    "signature": "HEsKsyA09GOleN2zv1S8CBxS9WUCzCb13Wd0BR9EjvTotUcOuwxNQhavQAMoP6aIkH5qcMcOBn7cRfk4BPhsCw"
+  }
+}

@@ -7,7 +7,7 @@ tier.
 
 - `PRODUCT_TIER=landing` — a public clinic website only. No database, no
   cache, no FastAPI backend, no authenticated area. Enforced by
-  `middleware.ts`, which 404s everything not on an explicit allowlist.
+  `proxy.ts`, which 404s everything not on an explicit allowlist.
 - `PRODUCT_TIER=full` (the default when unset) — the website plus the entire
   ERP: patients, scheduling, billing, staff, and so on.
 
@@ -114,7 +114,7 @@ absent.
 `PRODUCT_TIER=landing` is a runtime gate, not a build-time exclusion — the
 same image is deployed either way, and the ERP's code, routes, and
 dependencies are physically present in the container's filesystem whether or
-not `middleware.ts` will ever route a request to them. The gate is
+not `proxy.ts` will ever route a request to them. The gate is
 enforcement, not deletion. This is a deliberate tradeoff (one image, one
 build pipeline, one thing to patch) and it means "landing-only" describes
 what the deployment serves, not what the deployment contains.

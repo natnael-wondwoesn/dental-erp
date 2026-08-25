@@ -24,6 +24,7 @@ class PermissionKey(StrEnum):
     STAFF_READ = "staff.read"
     STAFF_MANAGE = "staff.manage"
     RBAC_MANAGE = "rbac.manage"
+    LICENSE_MANAGE = "license.manage"
 
 
 ROLE_GRANTS: dict[str, frozenset[PermissionKey]] = {

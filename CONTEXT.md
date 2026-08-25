@@ -32,3 +32,21 @@ Dental ERP is a multi-clinic dental practice system designed first for Ethiopian
 ## Dependency order
 
 Delivery follows business dependency order: shared identity/tenancy/RBAC/audit → patient record → appointment → clinical encounter/treatment → invoice/payment → lab/finance → reporting. Reporting reads from posted operational records rather than maintaining a second source of truth.
+
+## Offline product distribution language
+
+- **Installation**: one deployed product instance on a clinic's main Windows computer. An installation has a locally generated identity and may serve one or more clinic computers over an internet-free LAN.
+- **License**: a vendor-signed, time-limited authorization for one product and one installation. It contains commercial entitlements but never patient or clinical data.
+- **License decision**: the locally computed state that determines whether ordinary writes are allowed. Canonical states are active, grace, expired read-only, invalid, and recovery.
+- **Activation request**: a portable file created by an installation so the online issuer can bind a license without the clinic computer being online.
+- **Rehost**: an operator-approved move from a replaced or failed clinic computer to a new installation identity.
+
+## Offline licensing invariants
+
+1. License authenticity is verified server-side with Ed25519; UI visibility is never enforcement.
+2. The issuer private key never ships in a product or offline installation.
+3. A standard license has exactly five calendar days of grace after expiry.
+4. Expiry never blocks authenticated viewing, audit history, license renewal, backup, or patient-data export.
+5. Online activation and renewal are conveniences; the same lifecycle always works through portable files and USB.
+6. TPM protection is opportunistic. Windows 10/11 without TPM remains supported with a software-protected installation identity.
+7. Two computers may connect directly by Ethernet. Three or more require a switch but never require internet or a Wi-Fi router.

@@ -1,14 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.appointments.router import router as appointments_router
 from app.auth import router as auth_router
 from app.billing.router import router as billing_router
-from app.appointments.router import router as appointments_router
-from app.config import get_settings
 from app.clinical.router import router as clinical_router
+from app.config import get_settings
 from app.dashboard import router as dashboard_router
 from app.finance import router as finance_router
 from app.laboratory import router as laboratory_router
+from app.licensing.router import router as licensing_router
 from app.patients.router import router as patients_router
 from app.reports import router as reports_router
 from app.staff import router as staff_router
@@ -32,6 +33,7 @@ app.include_router(billing_router)
 app.include_router(laboratory_router)
 app.include_router(finance_router)
 app.include_router(reports_router)
+app.include_router(licensing_router)
 
 
 @app.get("/api/health", tags=["operations"])

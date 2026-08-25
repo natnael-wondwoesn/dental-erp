@@ -1,0 +1,46 @@
+name: Windows Licensing Tests
+
+on:
+  pull_request:
+    paths:
+      - 'backend/app/licensing/**'
+      - 'backend/tests/test_identity_store.py'
+      - 'backend/tests/test_windows_dpapi.py'
+      - 'backend/tests/test_windows_cli.py'
+      - 'deploy/offline/windows/**'
+      - 'backend/pyproject.toml'
+      - 'backend/uv.lock'
+      - '.github/workflows/licensing-windows.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dpapi:
+    name: DPAPI machine identity
+    runs-on: windows-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - run: uv sync --frozen
+      - name: Run protected identity tests
+        run: uv run pytest tests/test_identity_store.py tests/test_windows_cli.py tests/test_windows_dpapi.py -q
+      - name: Run offline installer PowerShell tests
+        shell: pwsh
+        working-directory: deploy/offline/windows
+        run: Invoke-Pester -Path tests/OfflineInstaller.Tests.ps1 -Output Detailed
+      - name: Build and smoke-test the packaged agent
+        shell: pwsh
+        run: |
+          uv run pyinstaller --clean --onefile --paths . --name dental-license-agent app/licensing/windows_cli.py
+          $state = Join-Path $env:RUNNER_TEMP 'packaged-license-state'
+          .\dist\dental-license-agent.exe --product-id dental-erp --state-dir $state init
+          if ($LASTEXITCODE -ne 0) { throw 'Packaged Windows license agent smoke test failed' }

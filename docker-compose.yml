@@ -91,12 +91,18 @@ services:
       # then hands that same file to the container — which would otherwise give
       # the application process the database root password it has no use for.
       MYSQL_ROOT_PASSWORD: ''
+      LICENSE_ENFORCEMENT: ${LICENSE_ENFORCEMENT:-disabled}
+      LICENSE_PRODUCT_ID: ${LICENSE_PRODUCT_ID:-dental-erp}
+      LICENSE_STATE_DIR: /app/.license-state
     volumes:
       # Only load-bearing on the default STORAGE_DRIVER=local. With
       # STORAGE_DRIVER=s3 the files live in your bucket and this is inert —
       # harmless to leave mounted, and it means switching drivers later does not
       # also mean editing this file. See docs/STORAGE.md.
       - uploads:/app/uploads
+      - type: bind
+        source: ${LICENSE_STATE_HOST_DIR:-./.license-state}
+        target: /app/.license-state
 
   # Not started by default — nothing uses Redis yet. It is here, behind a
   # profile, because the job queue (Phase 5 of docs/INFRASTRUCTURE.md) will need

@@ -14,7 +14,11 @@ dependencies = [
   "pyjwt>=2.10,<3",
   "sqlalchemy[asyncio]>=2.0.41,<3",
   "uvicorn[standard]>=0.35,<1",
+  "cryptography>=45,<47",
 ]
+
+[project.scripts]
+dental-license-agent = "app.licensing.windows_cli:main"
 
 [dependency-groups]
 dev = [
@@ -22,6 +26,7 @@ dev = [
   "httpx>=0.28,<1",
   "pytest>=8.4,<9",
   "pytest-asyncio>=1.1,<2",
+  "pyinstaller>=6,<7",
   "ruff>=0.12,<1",
 ]
 
@@ -42,4 +47,3 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "ASYNC"]
-

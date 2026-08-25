@@ -1,0 +1,11 @@
+{
+  "description": "Deterministic Ed25519 test vector; the private seed is public test data and must never be used outside tests.",
+  "private_seed_hex": "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+  "public_key_pem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=\n-----END PUBLIC KEY-----\n",
+  "license": {
+    "format": "sunny-smile-offline-license/v1",
+    "protected": "eyJhbGciOiJFZERTQSIsImtpZCI6InRlc3QtMjAyNi0wMSIsInR5cCI6InN1bm55LXNtaWxlLW9mZmxpbmUtbGljZW5zZStqd3MifQ",
+    "payload": "eyJzY2hlbWFfdmVyc2lvbiI6MSwibGljZW5zZV9pZCI6IjAxOGY0N2E3LTViOWMtN2QzMS04ZTFhLWM3Yzc3ZDc5ZjQwMSIsImN1c3RvbWVyX2lkIjoiY3VzdG9tZXItc3Vubnktc21pbGUiLCJwcm9kdWN0X2lkIjoiZGVudGFsLWVycCIsImluc3RhbGxhdGlvbl9pZCI6Imluc3RhbGxhdGlvbi10ZXN0LTAxIiwic2VxdWVuY2UiOjEsImlzc3VlZF9hdCI6IjIwMjYtMDgtMDFUMDA6MDA6MDBaIiwibm90X2JlZm9yZSI6IjIwMjYtMDgtMDFUMDA6MDA6MDBaIiwiZXhwaXJlc19hdCI6IjIwMjYtMDgtMzFUMjM6NTk6NTlaIiwibW9kZSI6InN0YW5kYXJkIiwiZ3JhY2VfZGF5cyI6NSwiZW50aXRsZW1lbnRzIjpbImNvcmUiXX0",
+    "signature": "g_rqbhv-A7yXUWdrpLwLYJd7LQDtGdkVEu9akH00ctji4VErAtTifT1d8dZbBkFGnhduM2EAa8j5c9_y6E-iCA"
+  }
+}
