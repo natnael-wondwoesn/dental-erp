@@ -121,27 +121,27 @@ export default function CommunicationsPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto px-0 py-2 sm:p-4 lg:p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">Communication Center</h1>
+        <h1 className="text-2xl font-bold sm:text-3xl">Communication Center</h1>
         <p className="text-muted-foreground">Manage SMS, Email, Templates, and Patient Feedback</p>
       </div>
 
       <Tabs defaultValue="sms" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="sms">
+        <TabsList className="grid h-auto w-full grid-cols-2 sm:grid-cols-4">
+          <TabsTrigger value="sms" className="min-w-0 whitespace-normal py-2">
             <MessageSquare className="w-4 h-4 mr-2" />
             SMS
           </TabsTrigger>
-          <TabsTrigger value="email">
+          <TabsTrigger value="email" className="min-w-0 whitespace-normal py-2">
             <Mail className="w-4 h-4 mr-2" />
             Email
           </TabsTrigger>
-          <TabsTrigger value="templates">
+          <TabsTrigger value="templates" className="min-w-0 whitespace-normal py-2">
             <FileText className="w-4 h-4 mr-2" />
             Templates
           </TabsTrigger>
-          <TabsTrigger value="surveys">
+          <TabsTrigger value="surveys" className="min-w-0 whitespace-normal py-2">
             <MessageCircle className="w-4 h-4 mr-2" />
             Surveys
           </TabsTrigger>

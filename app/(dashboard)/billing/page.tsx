@@ -197,7 +197,7 @@ export default function BillingPage() {
             {t('Manage invoices, payments, and financial reports')}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Select value={datePreset} onValueChange={setDatePreset}>
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder={t('Select period')} />

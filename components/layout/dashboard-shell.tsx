@@ -36,8 +36,8 @@ export function DashboardShell({
     <AIProvider>
       <SidebarProvider>
         <div className="flex h-screen overflow-hidden bg-[#eef4fb]">
-          {/* Sidebar - hidden on mobile */}
-          <aside className="hidden md:flex">
+          {/* Sidebar - the drawer preserves working width on phones and portrait tablets */}
+          <aside className="hidden lg:flex">
             <Sidebar
               role={user.role}
               hospitalName={hospital?.name}
@@ -59,9 +59,9 @@ export function DashboardShell({
           />
 
           {/* Main content */}
-          <div className="flex flex-1 flex-col overflow-hidden">
+          <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
             <Header user={user} isPlatformControlPlane={isPlatformControlPlane} />
-            <main className="flex-1 overflow-auto bg-[#eef4fb] p-4 md:p-6 lg:p-7">
+            <main className="min-w-0 flex-1 overflow-auto bg-[#eef4fb] p-3 sm:p-4 lg:p-7">
               <Breadcrumb className="mb-5" />
               {children}
             </main>

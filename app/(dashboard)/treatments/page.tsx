@@ -221,7 +221,7 @@ export default function TreatmentsPage() {
             {t('Manage patient treatments and clinical records')}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <ExportMenu
             filename="treatments"
             getData={() =>

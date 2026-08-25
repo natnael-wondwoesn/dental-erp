@@ -219,20 +219,32 @@ export default function FinancialReportsPage() {
 
       {/* Report Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="outstanding" className="flex items-center gap-2">
+        <TabsList className="grid h-auto w-full grid-cols-2 sm:grid-cols-4">
+          <TabsTrigger
+            value="outstanding"
+            className="min-w-0 whitespace-normal py-2 flex items-center gap-2"
+          >
             <AlertCircle className="h-4 w-4" />
             Outstanding
           </TabsTrigger>
-          <TabsTrigger value="procedure_revenue" className="flex items-center gap-2">
+          <TabsTrigger
+            value="procedure_revenue"
+            className="min-w-0 whitespace-normal py-2 flex items-center gap-2"
+          >
             <Stethoscope className="h-4 w-4" />
             By Procedure
           </TabsTrigger>
-          <TabsTrigger value="doctor_revenue" className="flex items-center gap-2">
+          <TabsTrigger
+            value="doctor_revenue"
+            className="min-w-0 whitespace-normal py-2 flex items-center gap-2"
+          >
             <Users className="h-4 w-4" />
             By Doctor
           </TabsTrigger>
-          <TabsTrigger value="daily_collection" className="flex items-center gap-2">
+          <TabsTrigger
+            value="daily_collection"
+            className="min-w-0 whitespace-normal py-2 flex items-center gap-2"
+          >
             <Calendar className="h-4 w-4" />
             Daily Collection
           </TabsTrigger>

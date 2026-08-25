@@ -415,12 +415,14 @@ describe('VPS continuous deployment workflow', () => {
       'utf8'
     )
 
-    expect(workflow).toContain('"${clinic[@]}" run -T --rm dental-frontend-migrate')
-    expect(workflow).toContain('"${control[@]}" run -T --rm control-migrate')
+    expect(workflow).toContain('"${clinic[@]}" run -T --rm dental-frontend-migrate </dev/null')
+    expect(workflow).toContain('"${control[@]}" run -T --rm control-migrate </dev/null')
     expect(workflow).toContain('"${clinic[@]}" up -d --no-deps --force-recreate dental-web')
     expect(workflow).toContain('"${control[@]}" up -d --no-deps --force-recreate control-web')
     expect(workflow).toContain('docker image inspect dental-erp-web:local')
     expect(workflow).toContain('docker inspect "$container"')
+    expect(workflow).toContain('started_epoch="$(date -d "$started_at" +%s)"')
+    expect(workflow).toContain('"$started_epoch" -lt "$deployment_started_epoch"')
   })
 })
 

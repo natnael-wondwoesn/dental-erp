@@ -106,6 +106,8 @@ jobs:
             exit 1
           fi
 
+          deployment_started_epoch="$(date +%s)"
+
           install -m 600 ops/platform-control/compose.yml "$control_path/compose.yml"
           "${clinic[@]}" config --quiet
           "${control[@]}" config --quiet
@@ -116,14 +118,14 @@ jobs:
           "${clinic[@]}" build dental-web
 
           "${clinic[@]}" up -d dental-mysql
-          # -T is load-bearing: this remote script itself arrives on stdin.
-          # An attached compose run would consume the remaining heredoc and
-          # silently skip every recreate command below it.
-          "${clinic[@]}" run -T --rm dental-frontend-migrate
+          # This remote script itself arrives on stdin. Both -T and the explicit
+          # /dev/null redirect are load-bearing: otherwise compose run can consume
+          # the remaining heredoc and silently skip every recreate command below.
+          "${clinic[@]}" run -T --rm dental-frontend-migrate </dev/null
           "${clinic[@]}" up -d --no-deps --force-recreate dental-web
 
           "${control[@]}" up -d control-mysql
-          "${control[@]}" run -T --rm control-migrate
+          "${control[@]}" run -T --rm control-migrate </dev/null
           "${control[@]}" up -d --no-deps --force-recreate control-web
 
           expected_image="$(docker image inspect dental-erp-web:local --format '{{.Id}}')"
@@ -131,6 +133,12 @@ jobs:
             actual_image="$(docker inspect "$container" --format '{{.Image}}')"
             if [ "$actual_image" != "$expected_image" ]; then
               echo "$container is not running the image built for $DEPLOY_SHA." >&2
+              exit 1
+            fi
+            started_at="$(docker inspect "$container" --format '{{.State.StartedAt}}')"
+            started_epoch="$(date -d "$started_at" +%s)"
+            if [ "$started_epoch" -lt "$deployment_started_epoch" ]; then
+              echo "$container was not restarted by this deployment." >&2
               exit 1
             fi
           done

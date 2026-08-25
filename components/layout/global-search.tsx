@@ -145,12 +145,12 @@ export function GlobalSearch() {
   return (
     <>
       {/* Trigger — renders in header */}
-      <div className="ml-auto md:w-72">
+      <div className="ml-auto lg:w-72">
         <button
           type="button"
           aria-label={t('Search patients, appointments, invoices, staff, and treatments')}
           onClick={() => setOpen(true)}
-          className="hidden h-10 w-full max-w-sm items-center gap-2 rounded-full border border-[#e7edf5] bg-[#f6f8fb] px-4 text-sm text-slate-400 transition-colors hover:border-blue-200 hover:bg-[#f1f6fc] md:flex"
+          className="hidden h-10 w-full max-w-sm items-center gap-2 rounded-full border border-[#e7edf5] bg-[#f6f8fb] px-4 text-sm text-slate-400 transition-colors hover:border-blue-200 hover:bg-[#f1f6fc] lg:flex"
         >
           <Search className="h-4 w-4 shrink-0" />
           <span className="flex-1 text-left">{t('Search patients, appointments...')}</span>
@@ -163,7 +163,7 @@ export function GlobalSearch() {
           type="button"
           aria-label={t('Search patients, appointments, invoices, staff, and treatments')}
           onClick={() => setOpen(true)}
-          className="p-2 text-slate-500 transition hover:text-[#0769e7] md:hidden"
+          className="p-2 text-slate-500 transition hover:text-[#0769e7] lg:hidden"
         >
           <Search className="h-5 w-5" />
         </button>

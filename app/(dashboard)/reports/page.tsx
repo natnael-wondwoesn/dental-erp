@@ -342,20 +342,32 @@ export default function ReportsPage() {
 
       {/* Analytics Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="patient" className="flex items-center gap-2">
+        <TabsList className="grid h-auto w-full grid-cols-2 sm:grid-cols-4">
+          <TabsTrigger
+            value="patient"
+            className="min-w-0 whitespace-normal py-2 flex items-center gap-2"
+          >
             <Users className="h-4 w-4" />
             {t('Patient Analytics')}
           </TabsTrigger>
-          <TabsTrigger value="clinical" className="flex items-center gap-2">
+          <TabsTrigger
+            value="clinical"
+            className="min-w-0 whitespace-normal py-2 flex items-center gap-2"
+          >
             <Stethoscope className="h-4 w-4" />
             {t('Clinical Analytics')}
           </TabsTrigger>
-          <TabsTrigger value="financial" className="flex items-center gap-2">
+          <TabsTrigger
+            value="financial"
+            className="min-w-0 whitespace-normal py-2 flex items-center gap-2"
+          >
             <DollarSign className="h-4 w-4" />
             {t('Financial Analytics')}
           </TabsTrigger>
-          <TabsTrigger value="operational" className="flex items-center gap-2">
+          <TabsTrigger
+            value="operational"
+            className="min-w-0 whitespace-normal py-2 flex items-center gap-2"
+          >
             <Activity className="h-4 w-4" />
             {t('Operational Analytics')}
           </TabsTrigger>

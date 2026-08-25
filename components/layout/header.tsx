@@ -36,12 +36,12 @@ export function Header({ user, isPlatformControlPlane = false }: HeaderProps) {
   const { t } = useLanguage()
 
   return (
-    <header className="sticky top-0 z-40 flex h-[72px] items-center gap-3 border-b border-[#e7edf5] bg-white/95 px-4 backdrop-blur md:px-6 lg:px-7">
+    <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b border-[#e7edf5] bg-white/95 px-3 backdrop-blur sm:h-[72px] sm:gap-3 sm:px-4 lg:px-7">
       {/* Mobile menu button */}
       <Button
         variant="ghost"
         size="icon"
-        className="text-slate-600 md:hidden"
+        className="text-slate-600 lg:hidden"
         onClick={() => setMobileOpen(true)}
       >
         <Menu className="h-5 w-5" />
