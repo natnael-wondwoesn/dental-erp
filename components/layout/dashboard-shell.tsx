@@ -23,9 +23,15 @@ interface DashboardShellProps {
     plan: string
     logo?: string | null
   }
+  isPlatformControlPlane?: boolean
 }
 
-export function DashboardShell({ children, user, hospital }: DashboardShellProps) {
+export function DashboardShell({
+  children,
+  user,
+  hospital,
+  isPlatformControlPlane = false,
+}: DashboardShellProps) {
   return (
     <AIProvider>
       <SidebarProvider>
@@ -38,6 +44,7 @@ export function DashboardShell({ children, user, hospital }: DashboardShellProps
               hospitalLogo={hospital?.logo}
               plan={hospital?.plan}
               isPlatformOwner={user.isPlatformOwner}
+              isPlatformControlPlane={isPlatformControlPlane}
             />
           </aside>
 
@@ -48,11 +55,12 @@ export function DashboardShell({ children, user, hospital }: DashboardShellProps
             hospitalLogo={hospital?.logo}
             plan={hospital?.plan}
             isPlatformOwner={user.isPlatformOwner}
+            isPlatformControlPlane={isPlatformControlPlane}
           />
 
           {/* Main content */}
           <div className="flex flex-1 flex-col overflow-hidden">
-            <Header user={user} />
+            <Header user={user} isPlatformControlPlane={isPlatformControlPlane} />
             <main className="flex-1 overflow-auto bg-[#eef4fb] p-4 md:p-6 lg:p-7">
               <Breadcrumb className="mb-5" />
               {children}
@@ -60,9 +68,13 @@ export function DashboardShell({ children, user, hospital }: DashboardShellProps
           </div>
         </div>
       </SidebarProvider>
-      <CommandBar />
-      <ChatWidget />
-      <KeyboardShortcutHelp />
+      {!isPlatformControlPlane && (
+        <>
+          <CommandBar />
+          <ChatWidget />
+          <KeyboardShortcutHelp />
+        </>
+      )}
     </AIProvider>
   )
 }

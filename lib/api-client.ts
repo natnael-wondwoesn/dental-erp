@@ -14,6 +14,7 @@ export interface AuthenticatedUser {
   locale: string
   timezone: string
   isPlatformOwner: boolean
+  isPlatformControlPlane: boolean
 }
 
 export function getAccessToken() {

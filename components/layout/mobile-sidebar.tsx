@@ -17,6 +17,7 @@ interface MobileSidebarProps {
   hospitalLogo?: string | null
   plan?: string
   isPlatformOwner?: boolean
+  isPlatformControlPlane?: boolean
 }
 
 export function MobileSidebar({
@@ -24,9 +25,10 @@ export function MobileSidebar({
   hospitalName,
   hospitalLogo,
   isPlatformOwner,
+  isPlatformControlPlane,
 }: MobileSidebarProps) {
   const pathname = usePathname()
-  const navigation = getNavigationForRole(role, isPlatformOwner)
+  const navigation = getNavigationForRole(role, isPlatformOwner, isPlatformControlPlane)
   const { mobileOpen, setMobileOpen } = useSidebar()
   const { t } = useLanguage()
 
@@ -59,7 +61,7 @@ export function MobileSidebar({
         {/* Header */}
         <div className="flex h-14 items-center justify-between border-b px-4">
           <Link
-            href="/dashboard"
+            href={isPlatformControlPlane ? '/owner' : '/dashboard'}
             className="flex items-center gap-3"
             onClick={() => setMobileOpen(false)}
           >

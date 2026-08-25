@@ -18,11 +18,19 @@ interface SidebarProps {
   hospitalLogo?: string | null
   plan?: string
   isPlatformOwner?: boolean
+  isPlatformControlPlane?: boolean
 }
 
-export function Sidebar({ role, hospitalName, hospitalLogo, plan, isPlatformOwner }: SidebarProps) {
+export function Sidebar({
+  role,
+  hospitalName,
+  hospitalLogo,
+  plan,
+  isPlatformOwner,
+  isPlatformControlPlane,
+}: SidebarProps) {
   const pathname = usePathname()
-  const navigation = getNavigationForRole(role, isPlatformOwner)
+  const navigation = getNavigationForRole(role, isPlatformOwner, isPlatformControlPlane)
   const { isCollapsed, toggleSidebar } = useSidebar()
   const { t } = useLanguage()
   const displayHospitalName = resolveClinicName(hospitalName)
@@ -44,7 +52,7 @@ export function Sidebar({ role, hospitalName, hospitalLogo, plan, isPlatformOwne
         >
           {/* Logo */}
           <Link
-            href="/dashboard"
+            href={isPlatformControlPlane ? '/owner' : '/dashboard'}
             className={cn(
               'flex items-center gap-3 transition-all duration-300',
               isCollapsed && 'justify-center'
@@ -199,7 +207,11 @@ export function Sidebar({ role, hospitalName, hospitalLogo, plan, isPlatformOwne
           )}
         >
           <p className="text-[10px] font-medium text-slate-400">
-            {isCollapsed ? 'v1.0' : 'Dental ERP v1.0'}
+            {isCollapsed
+              ? 'v1.0'
+              : isPlatformControlPlane
+                ? 'Product Control v1.0'
+                : 'Dental ERP v1.0'}
           </p>
         </div>
       </div>

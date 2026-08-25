@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { getProductTier } from '@/lib/product-tier'
 import { evaluateApiLicenseGate } from '@/lib/licensing/api-gate'
+import { isPlatformControlPlane } from '@/lib/platform-mode'
 
 /**
  * Tier gate.
@@ -49,6 +50,16 @@ const LICENSE_RECOVERY_EXACT = new Set([
   '/api/health',
   '/api/ready',
 ])
+
+const CONTROL_PLANE_EXACT = new Set(['/login', '/owner', '/api/health', '/api/ready'])
+const CONTROL_PLANE_PREFIXES = ['/api/auth/', '/api/platform/worker/']
+
+function isAllowedInControlPlane(pathname: string): boolean {
+  return (
+    CONTROL_PLANE_EXACT.has(pathname) ||
+    CONTROL_PLANE_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+  )
+}
 
 // Matches a "." or ".." path segment, optionally followed by a Tomcat-style
 // ";matrix-param" suffix before the segment boundary — e.g. "/assets/..;/x",
@@ -110,6 +121,15 @@ function isLicenseRecoveryPath(pathname: string): boolean {
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   if (getProductTier() === 'full') {
+    if (isPlatformControlPlane()) {
+      if (request.nextUrl.pathname === '/' || request.nextUrl.pathname === '/dashboard') {
+        return NextResponse.redirect(new URL('/owner', request.url))
+      }
+      if (!isAllowedInControlPlane(request.nextUrl.pathname)) {
+        return new NextResponse(null, { status: 404 })
+      }
+      return NextResponse.next()
+    }
     if (
       request.nextUrl.pathname.startsWith('/api/') &&
       !['GET', 'HEAD', 'OPTIONS'].includes(request.method) &&

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -25,7 +25,12 @@ function LoginForm() {
   const searchParams = useSearchParams()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
+  const [isControlPlane, setIsControlPlane] = useState(false)
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
+
+  useEffect(() => {
+    setIsControlPlane(window.location.hostname.startsWith('control.'))
+  }, [])
 
   const {
     register,
@@ -54,7 +59,7 @@ function LoginForm() {
       } else {
         const result = await response.json()
         setAccessToken(result.accessToken)
-        router.push(callbackUrl)
+        router.push(result.user?.isPlatformControlPlane ? '/owner' : callbackUrl)
       }
     } catch {
       toast({
@@ -72,12 +77,16 @@ function LoginForm() {
       <CardHeader className="space-y-1 text-center">
         <div className="flex justify-center mb-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground text-xl font-bold shadow-lg shadow-primary/20">
-            Dn
+            {isControlPlane ? 'NP' : 'Dn'}
           </div>
         </div>
-        <CardTitle className="text-2xl font-bold tracking-tight">Welcome back</CardTitle>
+        <CardTitle className="text-2xl font-bold tracking-tight">
+          {isControlPlane ? 'Product operations' : 'Welcome back'}
+        </CardTitle>
         <CardDescription>
-          Sign in to your clinic workspace for appointments, records, and ETB billing.
+          {isControlPlane
+            ? 'Private vendor access for managing customers, products, releases, and deployments.'
+            : 'Sign in to your clinic workspace for appointments, records, and ETB billing.'}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -87,7 +96,7 @@ function LoginForm() {
             <Input
               id="email"
               type="email"
-              placeholder="admin@sunnysmile.et"
+              placeholder={isControlPlane ? 'vendor@example.com' : 'admin@sunnysmile.et'}
               {...register('email')}
               disabled={isLoading}
             />
@@ -112,19 +121,23 @@ function LoginForm() {
           </Button>
         </form>
 
-        <div className="mt-6 text-center text-sm">
-          <p className="text-muted-foreground">
-            Don&apos;t have an account?{' '}
-            <a href="/signup" className="text-primary hover:underline">
-              Create a clinic workspace
-            </a>
-          </p>
-        </div>
+        {!isControlPlane && (
+          <>
+            <div className="mt-6 text-center text-sm">
+              <p className="text-muted-foreground">
+                Don&apos;t have an account?{' '}
+                <a href="/signup" className="text-primary hover:underline">
+                  Create a clinic workspace
+                </a>
+              </p>
+            </div>
 
-        <div className="mt-4 rounded-2xl border border-[#e7edf5] bg-[#f8fbff] p-4 text-center text-xs text-muted-foreground">
-          <p className="font-medium text-slate-700">Demo workspace credentials</p>
-          <p className="font-mono mt-1">admin@sunnysmile.et / Admin@123</p>
-        </div>
+            <div className="mt-4 rounded-2xl border border-[#e7edf5] bg-[#f8fbff] p-4 text-center text-xs text-muted-foreground">
+              <p className="font-medium text-slate-700">Demo workspace credentials</p>
+              <p className="font-mono mt-1">admin@sunnysmile.et / Admin@123</p>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   )

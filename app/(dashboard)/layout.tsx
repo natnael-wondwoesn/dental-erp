@@ -12,6 +12,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     getCurrentUser().then((user) => {
       if (!user) router.replace('/login')
+      else if (user.isPlatformControlPlane && window.location.pathname !== '/owner') {
+        router.replace('/owner')
+      }
       setIdentity(user)
     })
   }, [router])
@@ -30,6 +33,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         name: identity.clinicName,
         plan: 'SELF_HOSTED',
       }}
+      isPlatformControlPlane={identity.isPlatformControlPlane}
     >
       {children}
     </DashboardShell>

@@ -71,6 +71,13 @@ describe('navigation config', () => {
 })
 
 describe('getNavigationForRole', () => {
+  it('shows only product operations in the vendor control plane', () => {
+    const nav = getNavigationForRole('ADMIN', true, true)
+    expect(nav.flatMap((section) => section.items.map((item) => item.title))).toEqual([
+      'Product Operations',
+    ])
+  })
+
   it('ADMIN sees all sections', () => {
     const nav = getNavigationForRole('ADMIN')
     const titles = nav.map((s) => s.title)

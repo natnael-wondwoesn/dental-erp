@@ -438,7 +438,11 @@ export const navigation: NavSection[] = [
   },
 ]
 
-export function getNavigationForRole(role: string, isPlatformOwner = false): NavSection[] {
+export function getNavigationForRole(
+  role: string,
+  isPlatformOwner = false,
+  isPlatformControlPlane = false
+): NavSection[] {
   return navigation
     .map((section) => ({
       ...section,
@@ -446,7 +450,8 @@ export function getNavigationForRole(role: string, isPlatformOwner = false): Nav
         .filter(
           (item) =>
             (!item.roles || item.roles.includes(role)) &&
-            (!item.platformOwnerOnly || isPlatformOwner)
+            (!item.platformOwnerOnly || isPlatformOwner) &&
+            (!isPlatformControlPlane || item.platformOwnerOnly)
         )
         .map((item) => ({
           ...item,

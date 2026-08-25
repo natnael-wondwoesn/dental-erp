@@ -1,0 +1,65 @@
+name: product-control
+
+services:
+  control-mysql:
+    image: mysql:8.4
+    container_name: product-control-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${CONTROL_MYSQL_ROOT_PASSWORD:?CONTROL_MYSQL_ROOT_PASSWORD is required}
+      MYSQL_DATABASE: ${CONTROL_MYSQL_DATABASE:-product_control}
+      MYSQL_USER: ${CONTROL_MYSQL_USER:-product_control}
+      MYSQL_PASSWORD: ${CONTROL_MYSQL_PASSWORD:?CONTROL_MYSQL_PASSWORD is required}
+    command: ['--max-connections=100']
+    volumes:
+      - control-mysql-data:/var/lib/mysql
+    networks:
+      - control_internal
+    healthcheck:
+      test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 -u root -p"$$MYSQL_ROOT_PASSWORD" --silent']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 45s
+
+  control-migrate:
+    image: ${CONTROL_IMAGE:-dental-erp-web:local}
+    restart: 'no'
+    command: ['node', 'node_modules/prisma/build/index.js', 'migrate', 'deploy']
+    env_file: ['${CONTROL_ENV_FILE:-.env}']
+    environment:
+      DATABASE_URL: mysql://${CONTROL_MYSQL_USER:-product_control}:${CONTROL_MYSQL_PASSWORD}@control-mysql:3306/${CONTROL_MYSQL_DATABASE:-product_control}
+    depends_on:
+      control-mysql:
+        condition: service_healthy
+    networks:
+      - control_internal
+
+  control-web:
+    image: ${CONTROL_IMAGE:-dental-erp-web:local}
+    container_name: product-control-web
+    restart: unless-stopped
+    env_file: ['${CONTROL_ENV_FILE:-.env}']
+    environment:
+      NODE_ENV: production
+      PRODUCT_TIER: full
+      PLATFORM_CONTROL_PLANE_MODE: 'true'
+      LICENSE_ENFORCEMENT: disabled
+      DATABASE_URL: mysql://${CONTROL_MYSQL_USER:-product_control}:${CONTROL_MYSQL_PASSWORD}@control-mysql:3306/${CONTROL_MYSQL_DATABASE:-product_control}?connection_limit=5&pool_timeout=20
+    depends_on:
+      control-mysql:
+        condition: service_healthy
+      control-migrate:
+        condition: service_completed_successfully
+    networks:
+      - control_internal
+      - kora_default
+
+networks:
+  control_internal:
+    driver: bridge
+  kora_default:
+    external: true
+
+volumes:
+  control-mysql-data:

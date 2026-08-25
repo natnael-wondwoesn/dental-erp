@@ -28,9 +28,10 @@ interface HeaderProps {
     email: string
     role: string
   }
+  isPlatformControlPlane?: boolean
 }
 
-export function Header({ user }: HeaderProps) {
+export function Header({ user, isPlatformControlPlane = false }: HeaderProps) {
   const { setMobileOpen } = useSidebar()
   const { t } = useLanguage()
 
@@ -54,25 +55,30 @@ export function Header({ user }: HeaderProps) {
         </p>
       </div>
 
-      {/* Global Search */}
-      <GlobalSearch />
+      {isPlatformControlPlane ? (
+        <div className="flex-1 text-sm font-semibold text-slate-700">Vendor control plane</div>
+      ) : (
+        <GlobalSearch />
+      )}
 
-      <Link
-        href="/appointments/new"
-        className="hidden h-10 items-center gap-2 rounded-full bg-[#0769e7] px-4 text-sm font-semibold text-white shadow-[0_7px_18px_rgba(7,105,231,.18)] transition hover:bg-[#075dcc] xl:inline-flex"
-      >
-        <CalendarPlus className="h-4 w-4" /> {t('New appointment')}
-      </Link>
+      {!isPlatformControlPlane && (
+        <Link
+          href="/appointments/new"
+          className="hidden h-10 items-center gap-2 rounded-full bg-[#0769e7] px-4 text-sm font-semibold text-white shadow-[0_7px_18px_rgba(7,105,231,.18)] transition hover:bg-[#075dcc] xl:inline-flex"
+        >
+          <CalendarPlus className="h-4 w-4" /> {t('New appointment')}
+        </Link>
+      )}
 
-      <LanguageSwitcher compact />
+      {!isPlatformControlPlane && <LanguageSwitcher compact />}
 
       {/* Right side */}
       <div className="flex items-center gap-2">
         {/* Notifications */}
-        <NotificationTray />
+        {!isPlatformControlPlane && <NotificationTray />}
 
         {/* User menu */}
-        <UserMenu user={user} />
+        <UserMenu user={user} isPlatformControlPlane={isPlatformControlPlane} />
       </div>
     </header>
   )

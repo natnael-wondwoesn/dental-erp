@@ -4,6 +4,7 @@ import { SignJWT } from 'jose'
 import { z } from 'zod'
 import { prisma } from './prisma'
 import { resolveClinicName } from './branding'
+import { isPlatformControlPlane } from './platform-mode'
 
 export const loginSchema = z.object({
   email: z.string().email(),
@@ -85,5 +86,6 @@ export function toAuthenticatedUser(user: UserWithAuthContext) {
     locale: user.locale || user.hospital.locale,
     timezone: user.hospital.timezone,
     isPlatformOwner: user.isPlatformOwner,
+    isPlatformControlPlane: isPlatformControlPlane(),
   }
 }

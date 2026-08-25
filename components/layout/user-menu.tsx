@@ -21,6 +21,7 @@ interface UserMenuProps {
     email: string
     role: string
   }
+  isPlatformControlPlane?: boolean
 }
 
 const roleColors: Record<string, string> = {
@@ -31,7 +32,7 @@ const roleColors: Record<string, string> = {
   LAB_TECH: 'secondary',
 }
 
-export function UserMenu({ user }: UserMenuProps) {
+export function UserMenu({ user, isPlatformControlPlane = false }: UserMenuProps) {
   const router = useRouter()
   const initials = user.name
     .split(' ')
@@ -65,15 +66,19 @@ export function UserMenu({ user }: UserMenuProps) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => router.push('/settings')}>
-          <User className="mr-2 h-4 w-4" />
-          <span>Profile</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => router.push('/settings')}>
-          <Settings className="mr-2 h-4 w-4" />
-          <span>Settings</span>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
+        {!isPlatformControlPlane && (
+          <>
+            <DropdownMenuItem onClick={() => router.push('/settings')}>
+              <User className="mr-2 h-4 w-4" />
+              <span>Profile</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push('/settings')}>
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        )}
         <DropdownMenuItem
           className="text-destructive focus:text-destructive"
           onClick={async () => {
