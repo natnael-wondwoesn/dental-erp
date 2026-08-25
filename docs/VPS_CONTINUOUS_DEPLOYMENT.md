@@ -2,9 +2,9 @@
 
 The `Deploy current branch to VPS` workflow deploys every push to
 `feat/two-tier-product-packaging`. It connects to the VPS over SSH, checks out
-the exact pushed commit, validates `compose.vps.yml`, rebuilds the production
-containers, runs migrations through the Compose dependency chain, and verifies
-the public `/api/ready` endpoint.
+the exact pushed commit, builds one audited application image, migrates the
+isolated Sunny Smile and vendor-control databases separately, replaces both web
+containers, and verifies both public `/api/ready` endpoints.
 
 ## One-time VPS preparation
 
@@ -16,6 +16,16 @@ cd /opt/dental-erp
 git remote -v
 test -f .env
 docker compose -f compose.vps.yml --env-file .env config --quiet
+```
+
+The vendor control plane has its own private configuration and database volume:
+
+```bash
+test -f /opt/product-control/.env
+docker compose \
+  -f /opt/product-control/compose.yml \
+  --env-file /opt/product-control/.env \
+  config --quiet
 ```
 
 The VPS checkout must be able to fetch `origin` without an interactive password.
@@ -30,14 +40,15 @@ The ignored production `.env` and Docker volumes are not removed.
 
 In **Settings → Environments → production**, add:
 
-| Secret                | Value                                           |
-| --------------------- | ----------------------------------------------- |
-| `VPS_HOST`            | VPS hostname or IP address                      |
-| `VPS_USER`            | SSH deployment user                             |
-| `VPS_SSH_PRIVATE_KEY` | Private key used only to connect to the VPS     |
-| `VPS_SSH_HOST_KEY`    | Complete trusted `known_hosts` line for the VPS |
-| `VPS_DEPLOY_PATH`     | Repository path, normally `/opt/dental-erp`     |
-| `VPS_PORT`            | Optional SSH port; defaults to `22`             |
+| Secret                | Value                                                     |
+| --------------------- | --------------------------------------------------------- |
+| `VPS_HOST`            | VPS hostname or IP address                                |
+| `VPS_USER`            | SSH deployment user                                       |
+| `VPS_SSH_PRIVATE_KEY` | Private key used only to connect to the VPS               |
+| `VPS_SSH_HOST_KEY`    | Complete trusted `known_hosts` line for the VPS           |
+| `VPS_DEPLOY_PATH`     | Repository path, normally `/opt/dental-erp`               |
+| `VPS_CONTROL_PATH`    | Optional control path; defaults to `/opt/product-control` |
+| `VPS_PORT`            | Optional SSH port; defaults to `22`                       |
 
 Generate a dedicated key pair locally and append its public half to the
 deployment user's `~/.ssh/authorized_keys`:
@@ -53,6 +64,8 @@ an unverified key gathered over the same network path the workflow will use.
 ## Deployment behavior
 
 Deployments are serialized so two pushes cannot run Compose simultaneously.
-GitHub Actions and the VPS both retain diagnostic output if a build, migration,
-container startup, or readiness check fails. The workflow can also be rerun
-manually from the Actions tab.
+The workflow never shares or copies database volumes: it only reuses the exact
+application image. Sunny Smile and the vendor dashboard are migrated through
+their own Compose projects and credentials. GitHub Actions and the VPS retain
+diagnostic output if a build, migration, container startup, or readiness check
+fails. The workflow can also be rerun manually from the Actions tab.

@@ -60,12 +60,14 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
           VPS_PORT: ${{ secrets.VPS_PORT }}
           VPS_DEPLOY_PATH: ${{ secrets.VPS_DEPLOY_PATH }}
+          VPS_CONTROL_PATH: ${{ secrets.VPS_CONTROL_PATH }}
           DEPLOY_BRANCH: ${{ github.ref_name }}
           DEPLOY_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
           port="${VPS_PORT:-22}"
           deploy_path_b64="$(printf '%s' "$VPS_DEPLOY_PATH" | base64 -w 0)"
+          control_path_b64="$(printf '%s' "${VPS_CONTROL_PATH:-/opt/product-control}" | base64 -w 0)"
 
           ssh \
             -i "$HOME/.ssh/deploy_key" \
@@ -74,22 +76,27 @@ jobs:
             -o IdentitiesOnly=yes \
             -o StrictHostKeyChecking=yes \
             "$VPS_USER@$VPS_HOST" \
-            "DEPLOY_BRANCH='$DEPLOY_BRANCH' DEPLOY_SHA='$DEPLOY_SHA' DEPLOY_PATH_B64='$deploy_path_b64' bash -s" <<'REMOTE'
+            "DEPLOY_BRANCH='$DEPLOY_BRANCH' DEPLOY_SHA='$DEPLOY_SHA' DEPLOY_PATH_B64='$deploy_path_b64' CONTROL_PATH_B64='$control_path_b64' bash -s" <<'REMOTE'
           set -Eeuo pipefail
 
           deploy_path="$(printf '%s' "$DEPLOY_PATH_B64" | base64 --decode)"
+          control_path="$(printf '%s' "$CONTROL_PATH_B64" | base64 --decode)"
           cd "$deploy_path"
 
-          compose=(docker compose -f compose.vps.yml --env-file .env)
+          clinic=(docker compose -f compose.vps.yml --env-file .env)
+          control=(docker compose -f "$control_path/compose.yml" --env-file "$control_path/.env")
           deployment_diagnostics() {
             echo "Deployment failed. Current service state:"
-            "${compose[@]}" ps || true
-            "${compose[@]}" logs --tail=120 dental-frontend-migrate dental-web || true
+            "${clinic[@]}" ps || true
+            "${clinic[@]}" logs --tail=120 dental-frontend-migrate dental-web || true
+            "${control[@]}" ps || true
+            "${control[@]}" logs --tail=120 control-migrate control-web || true
           }
           trap deployment_diagnostics ERR
 
           test -f .env
           test -f compose.vps.yml
+          test -f "$control_path/.env"
 
           git fetch --prune origin "$DEPLOY_BRANCH"
           git checkout --force -B "$DEPLOY_BRANCH" "$DEPLOY_SHA"
@@ -99,9 +106,25 @@ jobs:
             exit 1
           fi
 
-          "${compose[@]}" config --quiet
-          "${compose[@]}" up -d --build --remove-orphans
-          "${compose[@]}" ps
+          install -m 600 ops/platform-control/compose.yml "$control_path/compose.yml"
+          "${clinic[@]}" config --quiet
+          "${control[@]}" config --quiet
+
+          # Both web services use this exact locally-built image. Each database
+          # remains isolated and receives migrations before its web container
+          # is replaced.
+          "${clinic[@]}" build dental-web
+
+          "${clinic[@]}" up -d dental-mysql
+          "${clinic[@]}" run --rm dental-frontend-migrate
+          "${clinic[@]}" up -d --no-deps --force-recreate dental-web
+
+          "${control[@]}" up -d control-mysql
+          "${control[@]}" run --rm control-migrate
+          "${control[@]}" up -d --no-deps --force-recreate control-web
+
+          "${clinic[@]}" ps
+          "${control[@]}" ps
           REMOTE
 
       - name: Verify the public readiness endpoint
@@ -115,3 +138,11 @@ jobs:
             --retry-delay 5 \
             --retry-all-errors \
             https://dental-clinic-cms.duckdns.org/api/ready
+          curl \
+            --fail \
+            --show-error \
+            --silent \
+            --retry 12 \
+            --retry-delay 5 \
+            --retry-all-errors \
+            https://control.dental-clinic-cms.duckdns.org/api/ready
