@@ -79,19 +79,20 @@ export async function setHandwritingEntitlement(data: FormData) {
   const enabled = text(data, 'enabled') === 'true'
   const installation = await prisma.platformInstallation.findUnique({ where: { id } })
   if (!installation) throw new Error('Installation not found')
+  if (!installation.managedByWorker) {
+    throw new Error('This legacy installation is inventory-only')
+  }
   const features = normalizedFeatures(installation.features)
   features.handwrittenDiagnosis = enabled
   await prisma.platformInstallation.update({ where: { id }, data: { features } })
-  if (installation.managedByWorker) {
-    await prisma.platformOperation.create({
-      data: {
-        installationId: installation.id,
-        requestedById: session.user.id,
-        action: 'DEPLOY',
-        request: { reason: 'feature-entitlement-change' },
-      },
-    })
-  }
+  await prisma.platformOperation.create({
+    data: {
+      installationId: installation.id,
+      requestedById: session.user.id,
+      action: 'DEPLOY',
+      request: { reason: 'feature-entitlement-change' },
+    },
+  })
   revalidatePath('/owner')
 }
 

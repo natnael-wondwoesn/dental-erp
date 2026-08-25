@@ -283,20 +283,26 @@ export default async function OwnerConsolePage() {
                           Pressure-aware S Pen notes; disabled by default.
                         </p>
                       </div>
-                      <form action={setHandwritingEntitlement}>
-                        <input type="hidden" name="installationId" value={installation.id} />
-                        <input
-                          type="hidden"
-                          name="enabled"
-                          value={features.handwrittenDiagnosis ? 'false' : 'true'}
-                        />
-                        <Button
-                          size="sm"
-                          variant={features.handwrittenDiagnosis ? 'default' : 'outline'}
-                        >
-                          {features.handwrittenDiagnosis ? 'Enabled' : 'Enable'}
-                        </Button>
-                      </form>
+                      {installation.managedByWorker ? (
+                        <form action={setHandwritingEntitlement}>
+                          <input type="hidden" name="installationId" value={installation.id} />
+                          <input
+                            type="hidden"
+                            name="enabled"
+                            value={features.handwrittenDiagnosis ? 'false' : 'true'}
+                          />
+                          <Button
+                            size="sm"
+                            variant={features.handwrittenDiagnosis ? 'default' : 'outline'}
+                          >
+                            {features.handwrittenDiagnosis ? 'Enabled' : 'Enable'}
+                          </Button>
+                        </form>
+                      ) : (
+                        <span className="text-xs font-medium text-muted-foreground">
+                          {features.handwrittenDiagnosis ? 'Enabled manually' : 'Disabled manually'}
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
