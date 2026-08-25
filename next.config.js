@@ -11,6 +11,9 @@ const nextConfig = {
     unoptimized: true,
   },
   experimental: {
+    // Bound production build concurrency so the shared 8 GB VPS does not
+    // exhaust memory while other customer applications remain online.
+    cpus: 2,
     serverActions: {
       bodySizeLimit: '10mb',
     },
