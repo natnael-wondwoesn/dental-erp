@@ -13,6 +13,7 @@ export interface AuthenticatedUser {
   currency: string
   locale: string
   timezone: string
+  isPlatformOwner: boolean
 }
 
 export function getAccessToken() {

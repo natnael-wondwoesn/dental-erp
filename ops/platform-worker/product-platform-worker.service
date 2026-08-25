@@ -1,0 +1,23 @@
+[Unit]
+Description=Sunny Smile product platform allowlisted worker
+After=docker.service network-online.target
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+EnvironmentFile=/etc/sunny-smile/platform-worker.env
+WorkingDirectory=/opt/product-platform-worker
+ExecStart=/usr/bin/python3 /opt/product-platform-worker/platform_worker.py
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/opt/clients /opt/backups/clients /opt/kora/sites /run/docker.sock
+
+[Install]
+WantedBy=multi-user.target

@@ -9,6 +9,7 @@ declare module 'next-auth' {
     staffId?: string
     hospitalId: string
     isHospitalAdmin: boolean
+    isPlatformOwner: boolean
   }
 
   interface Session {
@@ -20,6 +21,7 @@ declare module 'next-auth' {
       staffId?: string
       hospitalId: string
       isHospitalAdmin: boolean
+      isPlatformOwner: boolean
     }
   }
 }
@@ -31,5 +33,6 @@ declare module 'next-auth/jwt' {
     staffId?: string
     hospitalId: string
     isHospitalAdmin: boolean
+    isPlatformOwner: boolean
   }
 }

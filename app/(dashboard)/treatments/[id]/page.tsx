@@ -39,6 +39,8 @@ import {
   Receipt,
 } from 'lucide-react'
 import { VoiceInput } from '@/components/clinical/voice-input'
+import { HandwritingPad } from '@/components/clinical/handwriting-pad'
+import type { ClinicalInkDocument } from '@/lib/clinical-ink'
 import {
   treatmentStatusConfig,
   procedureCategoryConfig,
@@ -106,6 +108,13 @@ interface Treatment {
   } | null
   prescriptions: any[]
   invoiceItems: any[]
+  clinicalInkNotes: Array<{
+    id: string
+    kind: string
+    document: ClinicalInkDocument
+    createdAt: string
+    createdBy: { id: string; name: string }
+  }>
 }
 
 export default function TreatmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -401,6 +410,20 @@ export default function TreatmentDetailPage({ params }: { params: Promise<{ id: 
                 </div>
               )}
 
+              {treatment.clinicalInkNotes?.map((note) => (
+                <div key={note.id} className="space-y-2">
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">
+                      Handwritten diagnosis
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Written by {note.createdBy.name} on {formatDateTime(note.createdAt)}
+                    </p>
+                  </div>
+                  <HandwritingPad value={note.document} onChange={() => undefined} readOnly />
+                </div>
+              ))}
+
               {treatment.findings && (
                 <div>
                   <div className="text-sm font-medium text-muted-foreground">Clinical Findings</div>
@@ -433,6 +456,7 @@ export default function TreatmentDetailPage({ params }: { params: Promise<{ id: 
 
               {!treatment.chiefComplaint &&
                 !treatment.diagnosis &&
+                !treatment.clinicalInkNotes?.length &&
                 !treatment.findings &&
                 !treatment.procedureNotes && (
                   <p className="text-muted-foreground text-center py-4">

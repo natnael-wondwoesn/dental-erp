@@ -244,10 +244,11 @@ describe('12.2 Git Hooks — Pre-commit & Pre-push', () => {
     expect(hook).toContain('lint-staged')
   })
 
-  it('pre-push hook file exists', () => {
+  it('pre-push hook is intentionally disabled', () => {
     expect(fileExists('.husky/pre-push')).toBe(true)
     const hook = readFile('.husky/pre-push')
-    expect(hook).toContain('npm run test')
+    expect(hook).toContain('exit 0')
+    expect(hook).not.toContain('npm run test')
   })
 
   it('lint-staged type checks the whole project, not individual files', () => {

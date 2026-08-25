@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAuthAndRole } from '@/lib/api-helpers'
+import { parseClinicalInkDocument } from '@/lib/clinical-ink'
+import { isFeatureEnabled } from '@/lib/features'
 
 // Generate unique treatment number
 async function generateTreatmentNo(hospitalId: string): Promise<string> {
@@ -188,7 +190,20 @@ export async function POST(request: NextRequest) {
       followUpRequired = false,
       followUpDate,
       cost,
+      diagnosisInk,
+      diagnosisInkDevice,
     } = body
+
+    let inkDocument = null
+    if (diagnosisInk) {
+      if (!isFeatureEnabled('handwrittenDiagnosis')) {
+        return NextResponse.json(
+          { error: 'Handwritten diagnosis is not enabled for this clinic' },
+          { status: 403 }
+        )
+      }
+      inkDocument = parseClinicalInkDocument(diagnosisInk)
+    }
 
     // Validate required fields
     if (!patientId || !procedureId || !doctorId) {
@@ -255,8 +270,26 @@ export async function POST(request: NextRequest) {
         followUpDate: followUpDate ? new Date(followUpDate) : null,
         cost: cost || procedure.basePrice,
         status: 'PLANNED',
+        clinicalInkNotes: inkDocument
+          ? {
+              create: {
+                hospitalId,
+                patientId,
+                createdById: session.user.id,
+                kind: 'DIAGNOSIS',
+                inkVersion: inkDocument.version,
+                document: inkDocument,
+                strokeCount: inkDocument.strokes.length,
+                canvasWidth: inkDocument.width,
+                canvasHeight: inkDocument.height,
+                deviceType:
+                  typeof diagnosisInkDevice === 'string' ? diagnosisInkDevice.slice(0, 191) : null,
+              },
+            }
+          : undefined,
       },
       include: {
+        clinicalInkNotes: true,
         patient: {
           select: {
             id: true,

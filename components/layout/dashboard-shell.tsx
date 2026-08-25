@@ -16,6 +16,7 @@ interface DashboardShellProps {
     name: string
     email: string
     role: string
+    isPlatformOwner?: boolean
   }
   hospital?: {
     name: string
@@ -36,6 +37,7 @@ export function DashboardShell({ children, user, hospital }: DashboardShellProps
               hospitalName={hospital?.name}
               hospitalLogo={hospital?.logo}
               plan={hospital?.plan}
+              isPlatformOwner={user.isPlatformOwner}
             />
           </aside>
 
@@ -45,6 +47,7 @@ export function DashboardShell({ children, user, hospital }: DashboardShellProps
             hospitalName={hospital?.name}
             hospitalLogo={hospital?.logo}
             plan={hospital?.plan}
+            isPlatformOwner={user.isPlatformOwner}
           />
 
           {/* Main content */}

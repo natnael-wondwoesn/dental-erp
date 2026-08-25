@@ -16,11 +16,17 @@ interface MobileSidebarProps {
   hospitalName?: string
   hospitalLogo?: string | null
   plan?: string
+  isPlatformOwner?: boolean
 }
 
-export function MobileSidebar({ role, hospitalName, hospitalLogo }: MobileSidebarProps) {
+export function MobileSidebar({
+  role,
+  hospitalName,
+  hospitalLogo,
+  isPlatformOwner,
+}: MobileSidebarProps) {
   const pathname = usePathname()
-  const navigation = getNavigationForRole(role)
+  const navigation = getNavigationForRole(role, isPlatformOwner)
   const { mobileOpen, setMobileOpen } = useSidebar()
   const { t } = useLanguage()
 

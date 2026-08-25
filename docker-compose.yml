@@ -94,6 +94,7 @@ services:
       LICENSE_ENFORCEMENT: ${LICENSE_ENFORCEMENT:-disabled}
       LICENSE_PRODUCT_ID: ${LICENSE_PRODUCT_ID:-dental-erp}
       LICENSE_STATE_DIR: /app/.license-state
+      FEATURE_HANDWRITTEN_DIAGNOSIS: ${FEATURE_HANDWRITTEN_DIAGNOSIS:-false}
     volumes:
       # Only load-bearing on the default STORAGE_DRIVER=local. With
       # STORAGE_DRIVER=s3 the files live in your bucket and this is inert —

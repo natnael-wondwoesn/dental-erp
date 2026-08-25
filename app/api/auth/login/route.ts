@@ -9,10 +9,18 @@ export async function POST(req: NextRequest) {
     }
 
     const accessToken = await signAccessToken(result.user)
-    return NextResponse.json({
+    const response = NextResponse.json({
       accessToken,
       user: toAuthenticatedUser(result.user),
     })
+    response.cookies.set('dental_erp_access_token', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 8 * 60 * 60,
+    })
+    return response
   } catch (error) {
     console.error('Auth login error:', error)
     return NextResponse.json({ error: 'Authentication failed' }, { status: 500 })

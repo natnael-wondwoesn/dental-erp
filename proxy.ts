@@ -37,7 +37,11 @@ const ALLOWED_EXACT = new Set([
 ])
 
 const ALLOWED_PREFIXES = ['/_next/', '/assets/', '/fonts/']
-const LICENSE_RECOVERY_PREFIXES = ['/api/auth/', '/api/patient-portal/auth/']
+const LICENSE_RECOVERY_PREFIXES = [
+  '/api/auth/',
+  '/api/patient-portal/auth/',
+  '/api/platform/worker/',
+]
 const LICENSE_RECOVERY_EXACT = new Set([
   '/api/license/import',
   '/api/license/status',

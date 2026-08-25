@@ -45,6 +45,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
           staffId: user.staff?.id,
           hospitalId: user.hospitalId,
           isHospitalAdmin: user.isHospitalAdmin,
+          isPlatformOwner: user.isPlatformOwner,
         }
       },
     }),

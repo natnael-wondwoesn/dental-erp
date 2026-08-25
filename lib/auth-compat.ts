@@ -64,6 +64,7 @@ export async function signAccessToken(user: UserWithAuthContext) {
     staffId: user.staff?.id,
     hospitalId: user.hospitalId,
     isHospitalAdmin: user.isHospitalAdmin,
+    isPlatformOwner: user.isPlatformOwner,
   })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
@@ -83,5 +84,6 @@ export function toAuthenticatedUser(user: UserWithAuthContext) {
     currency: user.hospital.currency,
     locale: user.locale || user.hospital.locale,
     timezone: user.hospital.timezone,
+    isPlatformOwner: user.isPlatformOwner,
   }
 }

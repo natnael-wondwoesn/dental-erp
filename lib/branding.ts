@@ -3,7 +3,7 @@ export const SUNNY_SMILE_CLINIC_EMAIL = 'hello@sunnysmile.et'
 
 export function resolveClinicName(name?: string | null): string {
   const value = name?.trim()
-  if (!value || /dentix/i.test(value)) return SUNNY_SMILE_CLINIC_NAME
+  if (!value || /dentix|sunny\s*smile/i.test(value)) return SUNNY_SMILE_CLINIC_NAME
   return value
 }
 

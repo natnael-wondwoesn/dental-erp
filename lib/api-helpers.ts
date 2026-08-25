@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
+import { cookies } from 'next/headers'
 import { jwtVerify } from 'jose'
 import { auth } from './auth'
 import { prisma } from './prisma'
@@ -13,9 +14,10 @@ async function verifyMobileToken(): Promise<any | null> {
   try {
     const headersList = await headers()
     const authHeader = headersList.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) return null
-
-    const token = authHeader.slice(7)
+    const token = authHeader?.startsWith('Bearer ')
+      ? authHeader.slice(7)
+      : (await cookies()).get('dental_erp_access_token')?.value
+    if (!token) return null
     const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET!)
     const { payload } = await jwtVerify(token, secret, { algorithms: ['HS256'] })
 
@@ -27,6 +29,7 @@ async function verifyMobileToken(): Promise<any | null> {
       staffId: payload.staffId,
       hospitalId: payload.hospitalId,
       isHospitalAdmin: payload.isHospitalAdmin,
+      isPlatformOwner: payload.isPlatformOwner,
     }
   } catch {
     return null

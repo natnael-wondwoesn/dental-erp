@@ -46,6 +46,7 @@ export interface NavItem {
   href: string
   icon: LucideIcon
   roles?: string[]
+  platformOwnerOnly?: boolean
   badge?: string
   subItems?: NavItem[]
 }
@@ -426,16 +427,27 @@ export const navigation: NavSection[] = [
           },
         ],
       },
+      {
+        title: 'Product Operations',
+        href: '/owner',
+        icon: Cpu,
+        roles: ['ADMIN'],
+        platformOwnerOnly: true,
+      },
     ],
   },
 ]
 
-export function getNavigationForRole(role: string): NavSection[] {
+export function getNavigationForRole(role: string, isPlatformOwner = false): NavSection[] {
   return navigation
     .map((section) => ({
       ...section,
       items: section.items
-        .filter((item) => !item.roles || item.roles.includes(role))
+        .filter(
+          (item) =>
+            (!item.roles || item.roles.includes(role)) &&
+            (!item.platformOwnerOnly || isPlatformOwner)
+        )
         .map((item) => ({
           ...item,
           subItems: item.subItems?.filter(
@@ -452,7 +464,11 @@ export function getNavigationForRole(role: string): NavSection[] {
  * Presentation only. The landing tier's actual enforcement is proxy.ts,
  * which 404s these routes whether or not they appear in a menu.
  */
-export function getNavigationForTier(role: string, tier: ProductTier): NavSection[] {
+export function getNavigationForTier(
+  role: string,
+  tier: ProductTier,
+  isPlatformOwner = false
+): NavSection[] {
   if (tier === 'landing') return []
-  return getNavigationForRole(role)
+  return getNavigationForRole(role, isPlatformOwner)
 }

@@ -24,6 +24,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         name: identity.name,
         email: identity.email,
         role: identity.roles[0] || 'STAFF',
+        isPlatformOwner: identity.isPlatformOwner,
       }}
       hospital={{
         name: identity.clinicName,

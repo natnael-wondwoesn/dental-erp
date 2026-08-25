@@ -76,7 +76,8 @@ export function UserMenu({ user }: UserMenuProps) {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="text-destructive focus:text-destructive"
-          onClick={() => {
+          onClick={async () => {
+            await fetch('/api/auth/logout', { method: 'POST' })
             clearAccessToken()
             router.replace('/login')
           }}

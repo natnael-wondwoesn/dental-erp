@@ -21,6 +21,8 @@ import { DentalChart } from '@/components/treatments/dental-chart'
 import { procedureCategoryConfig, formatCurrency } from '@/lib/treatment-utils'
 import { TreatmentAssist } from '@/components/ai/treatment-assist'
 import { VoiceInput } from '@/components/clinical/voice-input'
+import { HandwritingPad } from '@/components/clinical/handwriting-pad'
+import type { ClinicalInkDocument } from '@/lib/clinical-ink'
 
 interface Patient {
   id: string
@@ -60,6 +62,8 @@ export default function NewTreatmentPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [patientSearch, setPatientSearch] = useState('')
+  const [handwritingEnabled, setHandwritingEnabled] = useState(false)
+  const [diagnosisInk, setDiagnosisInk] = useState<ClinicalInkDocument | null>(null)
 
   // Form state
   const [formData, setFormData] = useState({
@@ -85,10 +89,11 @@ export default function NewTreatmentPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [patientsRes, doctorsRes, proceduresRes] = await Promise.all([
+        const [patientsRes, doctorsRes, proceduresRes, featuresRes] = await Promise.all([
           fetch('/api/patients?limit=100'),
           fetch('/api/staff/doctors'),
           fetch('/api/procedures?all=true&isActive=true'),
+          fetch('/api/features'),
         ])
 
         if (patientsRes.ok) {
@@ -109,6 +114,11 @@ export default function NewTreatmentPage() {
         if (proceduresRes.ok) {
           const data = await proceduresRes.json()
           setProcedures(data.procedures)
+        }
+
+        if (featuresRes.ok) {
+          const data = await featuresRes.json()
+          setHandwritingEnabled(data.features?.handwrittenDiagnosis === true)
         }
       } catch (error) {
         console.error('Error fetching data:', error)
@@ -185,6 +195,8 @@ export default function NewTreatmentPage() {
           ...formData,
           toothNumbers: formData.toothNumbers.length > 0 ? formData.toothNumbers.join(',') : null,
           cost: formData.cost ? parseFloat(formData.cost) : null,
+          diagnosisInk: diagnosisInk?.strokes.length ? diagnosisInk : null,
+          diagnosisInkDevice: navigator.userAgent,
         }),
       })
 
@@ -194,6 +206,9 @@ export default function NewTreatmentPage() {
       }
 
       const treatment = await response.json()
+      if (formData.patientId) {
+        localStorage.removeItem(`diagnosis-ink:${formData.patientId}:new-treatment`)
+      }
       router.push(`/treatments/${treatment.id}`)
     } catch (error: any) {
       setError(error.message)
@@ -424,6 +439,23 @@ export default function NewTreatmentPage() {
                 rows={2}
               />
             </div>
+
+            {handwritingEnabled && selectedPatient && (
+              <div className="space-y-2">
+                <div>
+                  <Label>Handwritten diagnosis</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Write naturally with an S Pen or stylus. Keep the typed diagnosis above for
+                    search and reports.
+                  </p>
+                </div>
+                <HandwritingPad
+                  value={diagnosisInk}
+                  onChange={setDiagnosisInk}
+                  draftKey={`diagnosis-ink:${selectedPatient.id}:new-treatment`}
+                />
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="findings">Clinical Findings</Label>

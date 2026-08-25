@@ -17,11 +17,12 @@ interface SidebarProps {
   hospitalName?: string
   hospitalLogo?: string | null
   plan?: string
+  isPlatformOwner?: boolean
 }
 
-export function Sidebar({ role, hospitalName, hospitalLogo, plan }: SidebarProps) {
+export function Sidebar({ role, hospitalName, hospitalLogo, plan, isPlatformOwner }: SidebarProps) {
   const pathname = usePathname()
-  const navigation = getNavigationForRole(role)
+  const navigation = getNavigationForRole(role, isPlatformOwner)
   const { isCollapsed, toggleSidebar } = useSidebar()
   const { t } = useLanguage()
   const displayHospitalName = resolveClinicName(hospitalName)

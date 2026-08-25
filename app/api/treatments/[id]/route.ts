@@ -71,6 +71,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             },
           },
         },
+        clinicalInkNotes: {
+          include: {
+            createdBy: { select: { id: true, name: true } },
+          },
+          orderBy: { createdAt: 'asc' },
+        },
       },
     })
 

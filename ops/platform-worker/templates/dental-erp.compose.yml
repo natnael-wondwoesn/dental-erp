@@ -1,0 +1,77 @@
+name: ${COMPOSE_PROJECT_NAME:?COMPOSE_PROJECT_NAME is required}
+
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?required}
+      MYSQL_DATABASE: dental_erp
+      MYSQL_USER: dental
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?required}
+    command: ['--max-connections=80']
+    volumes: ['mysql-data:/var/lib/mysql']
+    networks: ['internal']
+    healthcheck:
+      test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 -u root -p"$$MYSQL_ROOT_PASSWORD" --silent']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+
+  migrate:
+    image: ghcr.io/natnael-wondwoesn/dental-erp:${IMAGE_TAG:?IMAGE_TAG is required}
+    restart: 'no'
+    command: ['node', 'node_modules/prisma/build/index.js', 'migrate', 'deploy']
+    environment:
+      DATABASE_URL: mysql://dental:${MYSQL_PASSWORD}@mysql:3306/dental_erp
+    depends_on:
+      mysql: { condition: service_healthy }
+    networks: ['internal']
+
+  app:
+    image: ghcr.io/natnael-wondwoesn/dental-erp:${IMAGE_TAG:?IMAGE_TAG is required}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PRODUCT_TIER: full
+      SITE_ID: ${SITE_ID:-default}
+      SITE_URL: https://${HOSTNAME:?HOSTNAME is required}
+      NEXTAUTH_URL: https://${HOSTNAME}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?required}
+      DATABASE_URL: mysql://dental:${MYSQL_PASSWORD}@mysql:3306/dental_erp?connection_limit=8&pool_timeout=20
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?required}
+      CRON_SECRET: ${CRON_SECRET:?required}
+      STORAGE_DRIVER: local
+      UPLOAD_DIR: /app/uploads
+      LICENSE_ENFORCEMENT: ${LICENSE_ENFORCEMENT:-disabled}
+      LICENSE_PRODUCT_ID: dental-erp
+      LICENSE_STATE_DIR: /app/.license-state
+      FEATURE_HANDWRITTEN_DIAGNOSIS: ${FEATURE_HANDWRITTEN_DIAGNOSIS:-false}
+    volumes:
+      - uploads:/app/uploads
+      - license-state:/app/.license-state
+    depends_on:
+      mysql: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+    networks:
+      internal: {}
+      edge:
+        aliases: ['${CLIENT_SLUG:?CLIENT_SLUG is required}-web']
+    healthcheck:
+      test: ['CMD-SHELL', 'node -e "require(''http'').get(''http://localhost:3000/api/ready'', r => process.exit(r.statusCode < 400 ? 0 : 1)).on(''error'', () => process.exit(1))"']
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 45s
+
+networks:
+  internal: { internal: true }
+  edge:
+    name: kora_default
+    external: true
+
+volumes:
+  mysql-data: {}
+  uploads: {}
+  license-state: {}

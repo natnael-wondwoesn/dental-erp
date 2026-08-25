@@ -1,0 +1,19 @@
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'clinic_owner') THEN
+    CREATE ROLE clinic_owner LOGIN PASSWORD 'clinic_owner';
+  END IF;
+  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'clinic_app') THEN
+    CREATE ROLE clinic_app LOGIN PASSWORD 'clinic_app';
+  END IF;
+END
+$$;
+ALTER ROLE clinic_owner NOBYPASSRLS;
+ALTER ROLE clinic_app NOBYPASSRLS;
+GRANT ALL ON SCHEMA public TO clinic_owner;
+GRANT USAGE ON SCHEMA public TO clinic_app;
+ALTER DEFAULT PRIVILEGES FOR ROLE clinic_owner IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO clinic_app;
+ALTER DEFAULT PRIVILEGES FOR ROLE clinic_owner IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO clinic_app;
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
