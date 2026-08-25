@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { bookingDateTime, parseBookingDate } from '@/lib/public-booking'
+import { bookingDateTime, parseBookingDate, resolveBookingHours } from '@/lib/public-booking'
 
 /**
  * GET: Public slot availability by hospital slug.
@@ -39,16 +39,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
     }
 
     const hospitalId = hospital.id
-
-    // Parse working hours
-    let workingHours = { start: '09:00', end: '21:00', lunchStart: '13:00', lunchEnd: '14:00' }
-    if (hospital.workingHours) {
-      try {
-        workingHours = JSON.parse(hospital.workingHours)
-      } catch {
-        /* use defaults */
-      }
-    }
 
     // Check holiday
     const holiday = await prisma.holiday.findFirst({
@@ -90,19 +80,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
     // Generate slots
     const slots: { time: string; available: boolean }[] = []
 
-    const activeShift = doctorShift?.isActive === false ? null : doctorShift
-    const startHour = parseInt(
-      activeShift?.startTime?.split(':')[0] || workingHours.start.split(':')[0]
-    )
-    const startMin = parseInt(
-      activeShift?.startTime?.split(':')[1] || workingHours.start.split(':')[1]
-    )
-    const endHour = parseInt(activeShift?.endTime?.split(':')[0] || workingHours.end.split(':')[0])
-    const endMin = parseInt(activeShift?.endTime?.split(':')[1] || workingHours.end.split(':')[1])
-    const lunchStartHour = parseInt(workingHours.lunchStart.split(':')[0])
-    const lunchStartMin = parseInt(workingHours.lunchStart.split(':')[1])
-    const lunchEndHour = parseInt(workingHours.lunchEnd.split(':')[0])
-    const lunchEndMin = parseInt(workingHours.lunchEnd.split(':')[1])
+    const workingHours = resolveBookingHours(hospital.workingHours, dateObj, doctorShift)
+    if (!workingHours) {
+      return NextResponse.json({ available: false, reason: 'Clinic closed', slots: [] })
+    }
+    const [startHour, startMin] = workingHours.start.split(':').map(Number)
+    const [endHour, endMin] = workingHours.end.split(':').map(Number)
 
     let h = startHour
     let m = startMin
@@ -110,9 +93,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
     while (h < endHour || (h === endHour && m < endMin)) {
       const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
 
-      const isLunch =
-        (h > lunchStartHour || (h === lunchStartHour && m >= lunchStartMin)) &&
-        (h < lunchEndHour || (h === lunchEndHour && m < lunchEndMin))
+      const isLunch = Boolean(
+        workingHours.lunchStart &&
+        workingHours.lunchEnd &&
+        timeStr >= workingHours.lunchStart &&
+        timeStr < workingHours.lunchEnd
+      )
 
       const isBooked = existingAppointments.some((apt) => {
         const [ah, am] = apt.scheduledTime.split(':').map(Number)

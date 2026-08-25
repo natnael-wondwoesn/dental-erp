@@ -174,6 +174,40 @@ describe('GET /api/public/[slug]/slots', () => {
     expect(body.slots[0].time).toBe('10:00')
     expect(body.slots[1].time).toBe('10:30')
   })
+
+  it('supports the weekday working-hours shape used by clinic settings', async () => {
+    vi.mocked(prisma.hospital.findUnique).mockResolvedValue({
+      id: 'h1',
+      workingHours: JSON.stringify({
+        monday: { open: '09:00', close: '20:00' },
+        tuesday: { open: '09:00', close: '20:00' },
+        wednesday: { open: '09:00', close: '20:00' },
+        thursday: { open: '09:00', close: '20:00' },
+        friday: { open: '09:00', close: '20:00' },
+        saturday: { open: '09:00', close: '14:00' },
+        sunday: { open: null, close: null },
+      }),
+      patientPortalEnabled: true,
+    } as any)
+    vi.mocked(prisma.holiday.findFirst).mockResolvedValue(null)
+    vi.mocked(prisma.staff.findFirst).mockResolvedValue({ id: 'd1' } as any)
+    vi.mocked(prisma.staffShift.findUnique).mockResolvedValue({
+      startTime: '09:00',
+      endTime: '18:00',
+      isActive: true,
+    } as any)
+    vi.mocked(prisma.appointment.findMany).mockResolvedValue([])
+
+    const res = await publicSlotsGET(
+      makeReq('/api/public/test/slots?doctorId=d1&date=2099-03-18'),
+      makeParams('test')
+    )
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.slots[0]).toEqual({ time: '09:00', available: true })
+    expect(body.slots.at(-1)).toEqual({ time: '17:30', available: true })
+  })
 })
 
 // ═════════════════════════════════════════════════════════════════════════════

@@ -9,6 +9,7 @@ import {
   normalizeEthiopianPhone,
   overlaps,
   parseBookingDate,
+  resolveBookingHours,
 } from '@/lib/public-booking'
 
 const bookingSchema = z.object({
@@ -88,25 +89,25 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
     const shift = await prisma.staffShift.findUnique({
       where: { staffId_dayOfWeek: { staffId: doctorId, dayOfWeek } },
     })
-    let hours = { start: '09:00', end: '21:00', lunchStart: '13:00', lunchEnd: '14:00' }
-    try {
-      if (hospital.workingHours) hours = { ...hours, ...JSON.parse(hospital.workingHours) }
-    } catch {
-      // Keep safe defaults when an old installation contains malformed hours.
+    const hours = resolveBookingHours(hospital.workingHours, dateObj, shift)
+    if (!hours) {
+      return NextResponse.json(
+        { error: 'The clinic is closed on the selected date' },
+        { status: 409 }
+      )
     }
     const slotStart = time
-    const activeShift = shift?.isActive === false ? null : shift
-    const start = activeShift?.startTime || hours.start
-    const end = activeShift?.endTime || hours.end
     if (
-      slotStart < start ||
-      slotStart >= end ||
-      overlaps(
-        slotStart,
-        30,
-        hours.lunchStart,
-        Math.max(0, minutesSinceMidnight(hours.lunchEnd) - minutesSinceMidnight(hours.lunchStart))
-      )
+      slotStart < hours.start ||
+      slotStart >= hours.end ||
+      (hours.lunchStart &&
+        hours.lunchEnd &&
+        overlaps(
+          slotStart,
+          30,
+          hours.lunchStart,
+          Math.max(0, minutesSinceMidnight(hours.lunchEnd) - minutesSinceMidnight(hours.lunchStart))
+        ))
     ) {
       return NextResponse.json(
         { error: 'That time is outside the doctor’s available hours' },

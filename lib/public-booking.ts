@@ -1,4 +1,53 @@
 const ETHIOPIA_OFFSET = '+03:00'
+const DAY_NAMES = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+
+type ShiftHours = { startTime?: string | null; endTime?: string | null; isActive?: boolean } | null
+
+export type BookingHours = {
+  start: string
+  end: string
+  lunchStart?: string
+  lunchEnd?: string
+}
+
+export function resolveBookingHours(
+  rawWorkingHours: string | null,
+  date: Date,
+  shift: ShiftHours
+): BookingHours | null {
+  const defaults: BookingHours = {
+    start: '09:00',
+    end: '21:00',
+    lunchStart: '13:00',
+    lunchEnd: '14:00',
+  }
+  let resolved = defaults
+
+  if (rawWorkingHours) {
+    try {
+      const parsed = JSON.parse(rawWorkingHours)
+      const weekday = parsed?.[DAY_NAMES[date.getUTCDay()]]
+      if (weekday && typeof weekday === 'object') {
+        if (typeof weekday.open !== 'string' || typeof weekday.close !== 'string') return null
+        resolved = { start: weekday.open, end: weekday.close }
+      } else if (typeof parsed?.start === 'string' && typeof parsed?.end === 'string') {
+        resolved = {
+          start: parsed.start,
+          end: parsed.end,
+          lunchStart: typeof parsed.lunchStart === 'string' ? parsed.lunchStart : undefined,
+          lunchEnd: typeof parsed.lunchEnd === 'string' ? parsed.lunchEnd : undefined,
+        }
+      }
+    } catch {
+      // Older installations may contain malformed JSON; retain safe defaults.
+    }
+  }
+
+  if (shift?.isActive !== false && shift?.startTime && shift?.endTime) {
+    return { ...resolved, start: shift.startTime, end: shift.endTime }
+  }
+  return resolved
+}
 
 export function normalizeEthiopianPhone(value: string): string | null {
   const compact = value.trim().replace(/[\s()-]/g, '')
