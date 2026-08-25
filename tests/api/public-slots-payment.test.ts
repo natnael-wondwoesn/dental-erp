@@ -53,7 +53,7 @@ describe('GET /api/public/[slug]/slots', () => {
     vi.mocked(prisma.hospital.findUnique).mockResolvedValue(null)
 
     const res = await publicSlotsGET(
-      makeReq('/api/public/test/slots?doctorId=d1&date=2026-03-15'),
+      makeReq('/api/public/test/slots?doctorId=d1&date=2099-03-15'),
       makeParams('test')
     )
     expect(res.status).toBe(404)
@@ -67,7 +67,7 @@ describe('GET /api/public/[slug]/slots', () => {
     } as any)
 
     const res = await publicSlotsGET(
-      makeReq('/api/public/test/slots?doctorId=d1&date=2026-03-15'),
+      makeReq('/api/public/test/slots?doctorId=d1&date=2099-03-15'),
       makeParams('test')
     )
     expect(res.status).toBe(403)
@@ -84,7 +84,7 @@ describe('GET /api/public/[slug]/slots', () => {
     } as any)
 
     const res = await publicSlotsGET(
-      makeReq('/api/public/test/slots?doctorId=d1&date=2026-01-26'),
+      makeReq('/api/public/test/slots?doctorId=d1&date=2099-01-26'),
       makeParams('test')
     )
     const body = await res.json()
@@ -105,7 +105,7 @@ describe('GET /api/public/[slug]/slots', () => {
     vi.mocked(prisma.staff.findFirst).mockResolvedValue(null)
 
     const res = await publicSlotsGET(
-      makeReq('/api/public/test/slots?doctorId=d-none&date=2026-03-15'),
+      makeReq('/api/public/test/slots?doctorId=d-none&date=2099-03-15'),
       makeParams('test')
     )
     expect(res.status).toBe(404)
@@ -130,7 +130,7 @@ describe('GET /api/public/[slug]/slots', () => {
     ] as any)
 
     const res = await publicSlotsGET(
-      makeReq('/api/public/test/slots?doctorId=d1&date=2026-03-15'),
+      makeReq('/api/public/test/slots?doctorId=d1&date=2099-03-15'),
       makeParams('test')
     )
     const body = await res.json()
@@ -163,7 +163,7 @@ describe('GET /api/public/[slug]/slots', () => {
     vi.mocked(prisma.appointment.findMany).mockResolvedValue([])
 
     const res = await publicSlotsGET(
-      makeReq('/api/public/test/slots?doctorId=d1&date=2026-03-15'),
+      makeReq('/api/public/test/slots?doctorId=d1&date=2099-03-15'),
       makeParams('test')
     )
     const body = await res.json()

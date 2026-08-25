@@ -52,7 +52,7 @@ function Reveal({
 
 export function HeroSection() {
   const { t } = useLanguage()
-  const { config } = useSite()
+  const { config, tier } = useSite()
   const localize = useLocalize()
 
   return (
@@ -76,7 +76,7 @@ export function HeroSection() {
         </p>
         <div className="marketing-hero-enter marketing-hero-enter-4 mt-8 flex flex-wrap gap-3">
           <a
-            href="#services"
+            href={tier === 'full' ? '/book' : '/contact'}
             className="marketing-button-primary inline-flex items-center gap-2 rounded-full bg-[#0877ea] px-7 py-4 text-sm font-semibold text-white shadow-[0_18px_40px_-18px_rgba(8,119,234,.9)]"
           >
             <CalendarDays className="h-4 w-4" />

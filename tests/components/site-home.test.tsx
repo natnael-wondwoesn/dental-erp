@@ -42,10 +42,10 @@ const config = {
   },
 } as SiteConfig
 
-function renderSection(node: React.ReactNode) {
+function renderSection(node: React.ReactNode, tier: 'landing' | 'full' = 'landing') {
   return render(
     <LanguageProvider>
-      <SiteProvider config={config} tier="landing">
+      <SiteProvider config={config} tier={tier}>
         {node}
       </SiteProvider>
     </LanguageProvider>
@@ -56,6 +56,19 @@ describe('HeroSection', () => {
   it('renders the clinic tagline from config', () => {
     renderSection(<HeroSection />)
     expect(screen.getByText('Care you can feel.')).toBeInTheDocument()
+  })
+
+  it('links patients to the separate public booking page', () => {
+    renderSection(<HeroSection />, 'full')
+    expect(screen.getByRole('link', { name: /book appointment/i })).toHaveAttribute('href', '/book')
+  })
+
+  it('sends landing-only visitors to contact because that tier has no booking backend', () => {
+    renderSection(<HeroSection />)
+    expect(screen.getByRole('link', { name: /book appointment/i })).toHaveAttribute(
+      'href',
+      '/contact'
+    )
   })
 })
 

@@ -51,6 +51,15 @@ describe('SiteHeader', () => {
     expect(screen.getByRole('link', { name: /staff sign in/i })).toHaveAttribute('href', '/login')
   })
 
+  it('keeps patient booking separate from staff sign in', () => {
+    renderChrome('full', <SiteHeader />)
+    expect(screen.getAllByRole('link', { name: /book appointment/i })[0]).toHaveAttribute(
+      'href',
+      '/book'
+    )
+    expect(screen.getByRole('link', { name: /staff sign in/i })).toHaveAttribute('href', '/login')
+  })
+
   it('hides the workspace link in landing tier', () => {
     renderChrome('landing', <SiteHeader />)
     expect(screen.queryByRole('link', { name: /open workspace/i })).not.toBeInTheDocument()

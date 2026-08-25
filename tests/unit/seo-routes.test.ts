@@ -29,6 +29,7 @@ afterEach(() => {
 describe('sitemap', () => {
   beforeEach(() => {
     delete process.env.SITE_URL
+    process.env.PRODUCT_TIER = 'landing'
   })
 
   it('returns exactly the three public site routes', async () => {
@@ -57,6 +58,12 @@ describe('sitemap', () => {
     const { sitemap } = await loadModules()
     const entries = sitemap()
     expect(entries[0].url).toBe('http://localhost:3000/')
+  })
+
+  it('advertises public booking only for the full product', async () => {
+    process.env.PRODUCT_TIER = 'full'
+    const { sitemap } = await loadModules()
+    expect(sitemap().map((entry) => entry.url)).toContain('http://localhost:3000/book')
   })
 })
 

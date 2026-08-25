@@ -108,11 +108,8 @@ describe('ContactDetails', () => {
     expect(screen.queryByRole('link', { name: /book online/i })).not.toBeInTheDocument()
   })
 
-  it('offers online booking through the patient portal in full tier', () => {
+  it('offers the separate public booking page in full tier', () => {
     renderContact('full')
-    expect(screen.getByRole('link', { name: /book online/i })).toHaveAttribute(
-      'href',
-      '/portal/book'
-    )
+    expect(screen.getByRole('link', { name: /book online/i })).toHaveAttribute('href', '/book')
   })
 })

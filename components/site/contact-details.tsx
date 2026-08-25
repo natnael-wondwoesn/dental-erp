@@ -54,7 +54,7 @@ export function ContactDetails() {
             )}
             {tier === 'full' && (
               <a
-                href="/portal/book"
+                href="/book"
                 className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-[#0877ea] shadow-sm transition hover:bg-slate-50"
               >
                 {t('Book online')}

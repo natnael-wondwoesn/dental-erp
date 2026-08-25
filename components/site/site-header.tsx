@@ -52,12 +52,20 @@ export function SiteHeader() {
         <div className="flex items-center gap-2">
           <LanguageSwitcher compact />
           {tier === 'full' && (
-            <Link
-              href="/login"
-              className="hidden rounded-full bg-[#0877ea] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#0663c5] md:block"
-            >
-              {t('Staff sign in')}
-            </Link>
+            <>
+              <Link
+                href="/book"
+                className="hidden rounded-full bg-[#0877ea] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0663c5] lg:block"
+              >
+                {t('Book appointment')}
+              </Link>
+              <Link
+                href="/login"
+                className="hidden rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-[#0877ea]/30 hover:text-[#0877ea] md:block"
+              >
+                {t('Staff sign in')}
+              </Link>
+            </>
           )}
           <button
             className="md:hidden"
@@ -78,12 +86,22 @@ export function SiteHeader() {
               </Link>
             ))}
             {tier === 'full' && (
-              <Link
-                href="/login"
-                className="rounded-full bg-[#0877ea] px-5 py-3 text-center text-white"
-              >
-                {t('Staff sign in')}
-              </Link>
+              <>
+                <Link
+                  href="/book"
+                  className="rounded-full bg-[#0877ea] px-5 py-3 text-center text-white"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {t('Book appointment')}
+                </Link>
+                <Link
+                  href="/login"
+                  className="rounded-full border border-slate-200 px-5 py-3 text-center text-slate-700"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {t('Staff sign in')}
+                </Link>
+              </>
             )}
           </nav>
         </div>
