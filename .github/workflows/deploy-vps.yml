@@ -116,12 +116,24 @@ jobs:
           "${clinic[@]}" build dental-web
 
           "${clinic[@]}" up -d dental-mysql
-          "${clinic[@]}" run --rm dental-frontend-migrate
+          # -T is load-bearing: this remote script itself arrives on stdin.
+          # An attached compose run would consume the remaining heredoc and
+          # silently skip every recreate command below it.
+          "${clinic[@]}" run -T --rm dental-frontend-migrate
           "${clinic[@]}" up -d --no-deps --force-recreate dental-web
 
           "${control[@]}" up -d control-mysql
-          "${control[@]}" run --rm control-migrate
+          "${control[@]}" run -T --rm control-migrate
           "${control[@]}" up -d --no-deps --force-recreate control-web
+
+          expected_image="$(docker image inspect dental-erp-web:local --format '{{.Id}}')"
+          for container in dental-web product-control-web; do
+            actual_image="$(docker inspect "$container" --format '{{.Image}}')"
+            if [ "$actual_image" != "$expected_image" ]; then
+              echo "$container is not running the image built for $DEPLOY_SHA." >&2
+              exit 1
+            fi
+          done
 
           "${clinic[@]}" ps
           "${control[@]}" ps

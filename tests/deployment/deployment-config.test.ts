@@ -408,6 +408,22 @@ describe('9.3 Configuration Testing', () => {
   })
 })
 
+describe('VPS continuous deployment workflow', () => {
+  it('runs migration containers without consuming the remote SSH script stdin', () => {
+    const workflow = fs.readFileSync(
+      path.resolve(__dirname, '../../.github/workflows/deploy-vps.yml'),
+      'utf8'
+    )
+
+    expect(workflow).toContain('"${clinic[@]}" run -T --rm dental-frontend-migrate')
+    expect(workflow).toContain('"${control[@]}" run -T --rm control-migrate')
+    expect(workflow).toContain('"${clinic[@]}" up -d --no-deps --force-recreate dental-web')
+    expect(workflow).toContain('"${control[@]}" up -d --no-deps --force-recreate control-web')
+    expect(workflow).toContain('docker image inspect dental-erp-web:local')
+    expect(workflow).toContain('docker inspect "$container"')
+  })
+})
+
 // ---------- 9.5 Rollback Testing Patterns ----------
 
 describe('9.5 Rollback Testing Patterns', () => {
