@@ -1,5 +1,5 @@
-// SMS Service for Indian SMS Gateways
-// Supports: MSG91, TextLocal, Fast2SMS, Twilio India
+// SMS service for Ethiopian clinics, with legacy Indian gateway compatibility.
+// Twilio supports Ethiopian E.164 numbers; MSG91 behavior depends on the account.
 
 import prisma from '@/lib/prisma'
 
@@ -9,6 +9,7 @@ export interface SMSConfig {
   senderId: string
   route?: string
   authKey?: string
+  timezone?: string
 }
 
 export interface SMSPayload {
@@ -18,16 +19,18 @@ export interface SMSPayload {
   patientId?: string
   templateId?: string
   scheduledFor?: Date
+  timezone?: string
 }
 
 class SMSService {
   private config: SMSConfig | null = null
 
-  async initialize() {
+  async initialize(hospitalId?: string) {
     // Load SMS configuration from settings
     const settings = await prisma.setting.findMany({
       where: {
         category: 'sms',
+        ...(hospitalId ? { hospitalId } : {}),
       },
     })
 
@@ -41,6 +44,7 @@ class SMSService {
       senderId: settings.find((s) => s.key === 'sms.senderId')?.value || '',
       route: settings.find((s) => s.key === 'sms.route')?.value,
       authKey: settings.find((s) => s.key === 'sms.authKey')?.value,
+      timezone: settings.find((s) => s.key === 'sms.timezone')?.value || 'Africa/Addis_Ababa',
     }
 
     if (!this.config.apiKey) {
@@ -49,8 +53,7 @@ class SMSService {
   }
 
   async sendSMS(payload: SMSPayload): Promise<string> {
-    // Validate phone number (Indian format)
-    if (!this.isValidIndianPhoneNumber(payload.phone)) {
+    if (!this.isValidPhoneNumber(payload.phone)) {
       throw new Error('Invalid phone number format')
     }
 
@@ -64,14 +67,14 @@ class SMSService {
         throw new Error('Patient is on DND registry')
       }
 
-      if (!preference?.smsEnabled) {
+      if (preference && !preference.smsEnabled) {
         throw new Error('Patient has disabled SMS communication')
       }
     }
 
-    // Check time restrictions (9 AM to 9 PM IST)
-    if (!this.isWithinAllowedTime()) {
-      throw new Error('SMS cannot be sent outside 9 AM - 9 PM IST')
+    const timezone = payload.timezone || 'Africa/Addis_Ababa'
+    if (!this.isWithinAllowedTime(timezone)) {
+      throw new Error(`SMS cannot be sent outside 9 AM - 9 PM in ${timezone}`)
     }
 
     // Create SMS log entry
@@ -95,7 +98,7 @@ class SMSService {
 
     // Send SMS immediately
     try {
-      await this.initialize()
+      await this.initialize(payload.hospitalId)
       const result = await this.sendViaGateway(payload)
 
       // Update SMS log
@@ -133,7 +136,7 @@ class SMSService {
 
   private async sendViaGateway(payload: SMSPayload): Promise<{ messageId: string; cost?: number }> {
     if (!this.config) {
-      await this.initialize()
+      await this.initialize(payload.hospitalId)
     }
 
     switch (this.config?.gateway) {
@@ -152,6 +155,8 @@ class SMSService {
 
   private async sendViaMSG91(payload: SMSPayload): Promise<{ messageId: string; cost?: number }> {
     const url = 'https://api.msg91.com/api/v5/flow/'
+    const normalized = this.normalizePhoneNumber(payload.phone)
+    const country = normalized.startsWith('+251') ? '251' : '91'
 
     const response = await fetch(url, {
       method: 'POST',
@@ -162,11 +167,11 @@ class SMSService {
       body: JSON.stringify({
         sender: this.config?.senderId,
         route: this.config?.route || '4',
-        country: '91',
+        country,
         sms: [
           {
             message: payload.message,
-            to: [this.normalizePhoneNumber(payload.phone)],
+            to: [normalized.slice(country.length + 1)],
           },
         ],
       }),
@@ -188,10 +193,14 @@ class SMSService {
     payload: SMSPayload
   ): Promise<{ messageId: string; cost?: number }> {
     const url = 'https://api.textlocal.in/send/'
+    const normalized = this.normalizePhoneNumber(payload.phone)
+    if (!normalized.startsWith('+91')) {
+      throw new Error('TextLocal is only configured for Indian numbers; use Twilio for Ethiopia')
+    }
 
     const params = new URLSearchParams({
       apikey: this.config?.apiKey || '',
-      numbers: this.normalizePhoneNumber(payload.phone),
+      numbers: normalized.slice(3),
       sender: this.config?.senderId || '',
       message: payload.message,
     })
@@ -220,6 +229,10 @@ class SMSService {
     payload: SMSPayload
   ): Promise<{ messageId: string; cost?: number }> {
     const url = 'https://www.fast2sms.com/dev/bulkV2'
+    const normalized = this.normalizePhoneNumber(payload.phone)
+    if (!normalized.startsWith('+91')) {
+      throw new Error('Fast2SMS is only configured for Indian numbers; use Twilio for Ethiopia')
+    }
 
     const response = await fetch(url, {
       method: 'POST',
@@ -231,7 +244,7 @@ class SMSService {
         sender_id: this.config?.senderId,
         message: payload.message,
         route: this.config?.route || 'v3',
-        numbers: this.normalizePhoneNumber(payload.phone),
+        numbers: normalized.slice(3),
       }),
     })
 
@@ -253,7 +266,7 @@ class SMSService {
     const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`
 
     const params = new URLSearchParams({
-      To: '+91' + this.normalizePhoneNumber(payload.phone),
+      To: this.normalizePhoneNumber(payload.phone),
       From: this.config?.senderId || '',
       Body: payload.message,
     })
@@ -278,26 +291,37 @@ class SMSService {
     }
   }
 
-  private isValidIndianPhoneNumber(phone: string): boolean {
-    // Remove all non-digit characters
-    const cleaned = phone.replace(/\D/g, '')
-
-    // Check if it's a valid 10-digit Indian mobile number
-    return /^[6-9]\d{9}$/.test(cleaned)
+  private isValidPhoneNumber(phone: string): boolean {
+    return this.normalizePhoneNumber(phone) !== ''
   }
 
   private normalizePhoneNumber(phone: string): string {
-    // Remove all non-digit characters and return 10-digit number
-    return phone.replace(/\D/g, '').slice(-10)
+    const trimmed = phone.trim()
+    const digits = trimmed.replace(/\D/g, '')
+
+    // Ethiopian mobile formats: 09XXXXXXXX, 9XXXXXXXX, +2519XXXXXXXX.
+    if (/^09\d{8}$/.test(digits)) return `+251${digits.slice(1)}`
+    if (/^9\d{8}$/.test(digits)) return `+251${digits}`
+    if (/^2519\d{8}$/.test(digits)) return `+${digits}`
+
+    // Preserve existing Indian installations while Ethiopia is the product default.
+    if (/^[6-9]\d{9}$/.test(digits)) return `+91${digits}`
+
+    // Explicit international E.164 input for other configured providers.
+    if (trimmed.startsWith('+') && /^\d{10,15}$/.test(digits)) return `+${digits}`
+    return ''
   }
 
-  private isWithinAllowedTime(): boolean {
-    const now = new Date()
-    const istOffset = 5.5 * 60 * 60 * 1000 // IST is UTC+5:30
-    const istTime = new Date(now.getTime() + istOffset)
-    const hours = istTime.getUTCHours()
+  private isWithinAllowedTime(timezone: string): boolean {
+    const hourPart = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      hour: '2-digit',
+      hourCycle: 'h23',
+    })
+      .formatToParts(new Date())
+      .find((part) => part.type === 'hour')
+    const hours = Number(hourPart?.value)
 
-    // Allow SMS between 9 AM and 9 PM IST
     return hours >= 9 && hours < 21
   }
 
@@ -369,7 +393,7 @@ class SMSService {
     // Implementation depends on gateway
     return {
       balance: 0,
-      currency: 'INR',
+      currency: 'ETB',
     }
   }
 }

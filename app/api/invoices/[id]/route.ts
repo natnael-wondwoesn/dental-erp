@@ -6,7 +6,12 @@ import { DiscountType, InvoiceStatus } from '@prisma/client'
 
 // GET - Get single invoice with full details
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { error, hospitalId } = await requireAuthAndRole()
+  const { error, hospitalId } = await requireAuthAndRole([
+    'ADMIN',
+    'ACCOUNTANT',
+    'RECEPTIONIST',
+    'DOCTOR',
+  ])
   if (error || !hospitalId) {
     return error || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -60,6 +65,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         payments: {
           orderBy: {
             paymentDate: 'desc',
+          },
+          include: {
+            recordedBy: { select: { id: true, name: true, role: true } },
           },
         },
         insuranceClaim: true,

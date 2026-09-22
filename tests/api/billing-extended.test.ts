@@ -36,8 +36,9 @@ describe('GET/POST /api/invoices/[id]/payments', () => {
     mockAuth.requireAuthAndRole.mockResolvedValue({
       error: null,
       hospitalId: 'h1',
-      session: { user: { role: 'ADMIN' } },
+      session: { user: { id: 'user-1', role: 'ADMIN' } },
     })
+    vi.mocked(prisma.invoice.updateMany).mockResolvedValue({ count: 1 })
   })
 
   it('GET returns invoice payments', async () => {
@@ -99,7 +100,6 @@ describe('GET/POST /api/invoices/[id]/payments', () => {
       paymentNo: 'PAY001',
       amount: 10000,
     } as any)
-    vi.mocked(prisma.invoice.update).mockResolvedValue({} as any)
 
     const req = makeRequest('http://localhost/api/invoices/inv1/payments', {
       method: 'POST',
@@ -110,7 +110,7 @@ describe('GET/POST /api/invoices/[id]/payments', () => {
 
     expect(res.status).toBe(201)
     expect(data.payment.paymentNo).toBe('PAY001')
-    expect(prisma.invoice.update).toHaveBeenCalledWith(
+    expect(prisma.invoice.updateMany).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({ status: 'PAID' }),
       })
@@ -133,7 +133,6 @@ describe('GET/POST /api/invoices/[id]/payments', () => {
 
     mockGeneratePaymentNo.mockResolvedValue('PAY002')
     vi.mocked(prisma.payment.create).mockResolvedValue({ id: 'pay2' } as any)
-    vi.mocked(prisma.invoice.update).mockResolvedValue({} as any)
 
     const req = makeRequest('http://localhost/api/invoices/inv2/payments', {
       method: 'POST',
@@ -142,7 +141,7 @@ describe('GET/POST /api/invoices/[id]/payments', () => {
     const res = await POST(req, { params: Promise.resolve({ id: 'inv2' }) })
 
     expect(res.status).toBe(201)
-    expect(prisma.invoice.update).toHaveBeenCalledWith(
+    expect(prisma.invoice.updateMany).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({ status: 'PARTIALLY_PAID' }),
       })
@@ -241,9 +240,9 @@ describe('GET/POST /api/invoices/[id]/payments', () => {
     const { POST } = await import('@/app/api/invoices/[id]/payments/route')
 
     mockAuth.requireAuthAndRole.mockResolvedValue({
-      error: null,
-      hospitalId: 'h1',
-      session: { user: { role: 'DOCTOR' } },
+      error: Response.json({ error: 'Forbidden' }, { status: 403 }),
+      hospitalId: null,
+      session: null,
     })
 
     const req = makeRequest('http://localhost/api/invoices/inv1/payments', {
@@ -253,6 +252,68 @@ describe('GET/POST /api/invoices/[id]/payments', () => {
     const res = await POST(req, { params: Promise.resolve({ id: 'inv1' }) })
 
     expect(res.status).toBe(403)
+  })
+
+  it('POST stores the provider and recording user', async () => {
+    const { POST } = await import('@/app/api/invoices/[id]/payments/route')
+
+    vi.mocked(prisma.invoice.findUnique)
+      .mockResolvedValueOnce({
+        id: 'inv-provider',
+        hospitalId: 'h1',
+        status: 'PENDING',
+        totalAmount: 1000,
+        paidAmount: 0,
+        balanceAmount: 1000,
+      } as any)
+      .mockResolvedValueOnce({ id: 'inv-provider', payments: [] } as any)
+    mockGeneratePaymentNo.mockResolvedValue('PAY003')
+    vi.mocked(prisma.payment.create).mockResolvedValue({ id: 'pay-provider' } as any)
+
+    const req = makeRequest('http://localhost/api/invoices/inv-provider/payments', {
+      method: 'POST',
+      body: {
+        amount: 1000,
+        paymentMethod: 'TELEBIRR',
+        providerName: 'Telebirr',
+        transactionId: 'TB-123',
+      },
+    })
+    const res = await POST(req, { params: Promise.resolve({ id: 'inv-provider' }) })
+
+    expect(res.status).toBe(201)
+    expect(prisma.payment.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          paymentMethod: 'TELEBIRR',
+          providerName: 'Telebirr',
+          recordedById: 'user-1',
+        }),
+      })
+    )
+  })
+
+  it('POST returns conflict when another payment changed the invoice balance', async () => {
+    const { POST } = await import('@/app/api/invoices/[id]/payments/route')
+
+    vi.mocked(prisma.invoice.findUnique).mockResolvedValue({
+      id: 'inv-race',
+      hospitalId: 'h1',
+      status: 'PENDING',
+      totalAmount: 1000,
+      paidAmount: 0,
+      balanceAmount: 1000,
+    } as any)
+    vi.mocked(prisma.invoice.updateMany).mockResolvedValue({ count: 0 })
+
+    const req = makeRequest('http://localhost/api/invoices/inv-race/payments', {
+      method: 'POST',
+      body: { amount: 1000, paymentMethod: 'CASH' },
+    })
+    const res = await POST(req, { params: Promise.resolve({ id: 'inv-race' }) })
+
+    expect(res.status).toBe(409)
+    expect(prisma.payment.create).not.toHaveBeenCalled()
   })
 })
 

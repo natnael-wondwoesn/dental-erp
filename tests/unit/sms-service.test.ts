@@ -52,6 +52,24 @@ beforeEach(async () => {
 // ---------------------------------------------------------------------------
 
 describe('SMSService - Phone Validation', () => {
+  it('accepts Ethiopian local and international mobile formats', async () => {
+    const { smsService } = smsServiceModule
+
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-02-19T09:00:00Z')) // 12 PM in Addis Ababa
+    vi.mocked(prisma.sMSLog.create).mockResolvedValue({ id: 'sms-1' } as any)
+
+    const scheduledFor = new Date('2026-03-01T09:00:00Z')
+    await expect(
+      smsService.sendSMS({ phone: '0911000000', message: 'test', scheduledFor })
+    ).resolves.toBe('sms-1')
+    await expect(
+      smsService.sendSMS({ phone: '+251911000000', message: 'test', scheduledFor })
+    ).resolves.toBe('sms-1')
+
+    vi.useRealTimers()
+  })
+
   it('rejects invalid phone numbers', async () => {
     const { smsService } = smsServiceModule
 
@@ -135,26 +153,27 @@ describe('SMSService - Communication Preferences', () => {
 // ---------------------------------------------------------------------------
 
 describe('SMSService - Time Restrictions', () => {
-  it('rejects SMS outside allowed hours (before 9 AM IST)', async () => {
+  it('rejects SMS outside allowed hours (before 9 AM Addis Ababa)', async () => {
     const { smsService } = smsServiceModule
 
-    // Mock current time to 3 AM IST (3:00 AM IST = 9:30 PM UTC previous day)
-    const mockDate = new Date('2026-02-19T21:30:00Z') // 3 AM IST next day
+    vi.useFakeTimers()
+    // 4 AM UTC = 7 AM in Addis Ababa.
+    const mockDate = new Date('2026-02-19T04:00:00Z')
     vi.setSystemTime(mockDate)
 
     // No patient preferences to check
-    await expect(smsService.sendSMS({ phone: '9876543210', message: 'test' })).rejects.toThrow(
+    await expect(smsService.sendSMS({ phone: '+251911000000', message: 'test' })).rejects.toThrow(
       'outside 9 AM - 9 PM'
     )
 
     vi.useRealTimers()
   })
 
-  it('allows SMS during allowed hours (12 PM IST)', async () => {
+  it('allows SMS during allowed hours (12 PM Addis Ababa)', async () => {
     const { smsService } = smsServiceModule
 
-    // 12 PM IST = 6:30 AM UTC
-    const mockDate = new Date('2026-02-19T06:30:00Z')
+    // 12 PM in Addis Ababa = 9 AM UTC.
+    const mockDate = new Date('2026-02-19T09:00:00Z')
     vi.useFakeTimers()
     vi.setSystemTime(mockDate)
 
@@ -163,7 +182,7 @@ describe('SMSService - Time Restrictions', () => {
     vi.mocked(prisma.setting.findMany).mockResolvedValue([])
 
     // Should get past phone validation and time check, fail at initialize
-    await expect(smsService.sendSMS({ phone: '9876543210', message: 'test' })).rejects.toThrow(
+    await expect(smsService.sendSMS({ phone: '+251911000000', message: 'test' })).rejects.toThrow(
       'SMS gateway not configured'
     )
 
@@ -181,14 +200,14 @@ describe('SMSService - SMS Logging', () => {
 
     // Set time to allowed window
     vi.useFakeTimers()
-    vi.setSystemTime(new Date('2026-02-19T06:30:00Z')) // 12 PM IST
+    vi.setSystemTime(new Date('2026-02-19T09:00:00Z')) // 12 PM in Addis Ababa
 
     vi.mocked(prisma.sMSLog.create).mockResolvedValue({ id: 'sms-1' } as any)
     vi.mocked(prisma.setting.findMany).mockResolvedValue([])
 
     try {
       await smsService.sendSMS({
-        phone: '9876543210',
+        phone: '+251911000000',
         message: 'Hello',
         hospitalId: 'hosp-1',
         // No patientId — skip DND/preference checks
@@ -200,7 +219,7 @@ describe('SMSService - SMS Logging', () => {
     expect(prisma.sMSLog.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          phone: '9876543210',
+          phone: '+251911000000',
           message: 'Hello',
           hospitalId: 'hosp-1',
           status: 'QUEUED',
@@ -215,13 +234,13 @@ describe('SMSService - SMS Logging', () => {
     const { smsService } = smsServiceModule
 
     vi.useFakeTimers()
-    vi.setSystemTime(new Date('2026-02-19T06:30:00Z'))
+    vi.setSystemTime(new Date('2026-02-19T09:00:00Z'))
 
-    const futureDate = new Date('2026-03-01T06:30:00Z')
+    const futureDate = new Date('2026-03-01T09:00:00Z')
     vi.mocked(prisma.sMSLog.create).mockResolvedValue({ id: 'sms-1' } as any)
 
     const result = await smsService.sendSMS({
-      phone: '9876543210',
+      phone: '+251911000000',
       message: 'Scheduled',
       scheduledFor: futureDate,
     })
@@ -384,6 +403,6 @@ describe('SMSService - checkBalance', () => {
     const result = await smsService.checkBalance()
     expect(result).toHaveProperty('balance')
     expect(result).toHaveProperty('currency')
-    expect(result.currency).toBe('INR')
+    expect(result.currency).toBe('ETB')
   })
 })

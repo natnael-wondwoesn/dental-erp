@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { use, useEffect, useState } from 'react'
+import { use, useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import {
@@ -15,8 +15,12 @@ import {
   Plus,
   Search,
   Upload,
+  BellRing,
+  CheckCircle2,
+  Loader2,
 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n'
+import { getCurrentUser } from '@/lib/api-client'
 
 type Patient = {
   id: string
@@ -46,6 +50,18 @@ type Patient = {
   _count?: { appointments?: number; treatments?: number; documents?: number }
 }
 
+type PatientRecall = {
+  id: string
+  lastTreatmentDate: string
+  followUpDate: string
+  reminderDate: string
+  reminderLeadDays: number
+  status: 'SCHEDULED' | 'REMINDER_SENT' | 'RETURNED' | 'CANCELLED'
+  smsStatus: 'PENDING' | 'SENDING' | 'SENT' | 'FAILED' | 'SKIPPED'
+  smsSentAt?: string | null
+  returnedAt?: string | null
+}
+
 export default function PatientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
@@ -53,13 +69,68 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
   const [patient, setPatient] = useState<Patient | null>(null)
   const [loadError, setLoadError] = useState(false)
   const [tab, setTab] = useState<'upcoming' | 'past' | 'records'>('upcoming')
+  const [recalls, setRecalls] = useState<PatientRecall[]>([])
+  const [currentRole, setCurrentRole] = useState<string | null>(null)
+  const [recallBusy, setRecallBusy] = useState(false)
+  const [recallMessage, setRecallMessage] = useState('')
+
+  const loadRecalls = useCallback(
+    () =>
+      fetch(`/api/patients/${id}/recalls`)
+        .then((response) => (response.ok ? response.json() : Promise.reject()))
+        .then((data) => setRecalls(data.recalls || []))
+        .catch(() => setRecalls([])),
+    [id]
+  )
 
   useEffect(() => {
     fetch(`/api/patients/${id}`)
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then((data) => setPatient(data.patient))
       .catch(() => setLoadError(true))
-  }, [id])
+    void loadRecalls()
+    getCurrentUser().then((user) => setCurrentRole(user?.roles[0] || null))
+  }, [id, loadRecalls])
+
+  const scheduleRecall = async () => {
+    setRecallBusy(true)
+    setRecallMessage('')
+    try {
+      const response = await fetch(`/api/patients/${id}/recalls`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ followUpMonths: 6, reminderLeadDays: 7 }),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Unable to schedule recall')
+      setRecallMessage('Six-month recall scheduled.')
+      await loadRecalls()
+    } catch (error) {
+      setRecallMessage(error instanceof Error ? error.message : 'Unable to schedule recall')
+    } finally {
+      setRecallBusy(false)
+    }
+  }
+
+  const markRecallReturned = async (recallId: string) => {
+    setRecallBusy(true)
+    setRecallMessage('')
+    try {
+      const response = await fetch(`/api/patients/${id}/recalls/${recallId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'RETURNED' }),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Unable to update recall')
+      setRecallMessage('Patient return recorded.')
+      await loadRecalls()
+    } catch (error) {
+      setRecallMessage(error instanceof Error ? error.message : 'Unable to update recall')
+    } finally {
+      setRecallBusy(false)
+    }
+  }
 
   if (loadError) {
     return <p className="p-6 text-sm text-destructive">Unable to load this patient record.</p>
@@ -255,6 +326,65 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
           </div>
 
           <aside className="space-y-5">
+            <section className="rounded-[22px] border border-slate-100 bg-white p-6 shadow-[0_8px_30px_rgba(28,55,90,.06)]">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="flex items-center gap-2 font-semibold">
+                    <BellRing className="h-4 w-4 text-[#086be6]" /> Six-month recall
+                  </h2>
+                  <p className="mt-1 text-xs text-slate-400">Check-up and SMS reminder tracking</p>
+                </div>
+                {['ADMIN', 'RECEPTIONIST'].includes(currentRole || '') && (
+                  <button
+                    onClick={scheduleRecall}
+                    disabled={recallBusy}
+                    className="rounded-xl bg-[#086be6] px-3 py-2 text-xs font-semibold text-white disabled:opacity-60"
+                  >
+                    {recallBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Schedule'}
+                  </button>
+                )}
+              </div>
+
+              {recallMessage && <p className="mt-3 text-xs text-slate-600">{recallMessage}</p>}
+
+              <div className="mt-4 space-y-3">
+                {recalls.length === 0 ? (
+                  <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-400">
+                    No recall scheduled.
+                  </p>
+                ) : (
+                  recalls.slice(0, 3).map((recall) => (
+                    <article key={recall.id} className="rounded-xl border border-slate-100 p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold">
+                            Follow-up {format(new Date(recall.followUpDate), 'MMM d, yyyy')}
+                          </p>
+                          <p className="mt-1 text-xs text-slate-400">
+                            Reminder {format(new Date(recall.reminderDate), 'MMM d, yyyy')} · SMS{' '}
+                            {recall.smsStatus.toLowerCase()}
+                          </p>
+                        </div>
+                        <span className="rounded-full bg-[#eef5ff] px-2 py-1 text-[10px] font-semibold text-[#086be6]">
+                          {recall.status.replace('_', ' ')}
+                        </span>
+                      </div>
+                      {['ADMIN', 'RECEPTIONIST'].includes(currentRole || '') &&
+                        !['RETURNED', 'CANCELLED'].includes(recall.status) && (
+                          <button
+                            onClick={() => markRecallReturned(recall.id)}
+                            disabled={recallBusy}
+                            className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 disabled:opacity-60"
+                          >
+                            <CheckCircle2 className="h-4 w-4" /> Mark returned
+                          </button>
+                        )}
+                    </article>
+                  ))
+                )}
+              </div>
+            </section>
+
             <section className="overflow-hidden rounded-[22px] border border-slate-100 bg-white shadow-[0_8px_30px_rgba(28,55,90,.06)]">
               <div className="flex items-center justify-between px-6 py-5">
                 <h2 className="font-semibold">{t('Notes')}</h2>

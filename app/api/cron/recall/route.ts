@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { smsService } from '@/lib/services/sms.service'
 
 /**
  * GET /api/cron/recall
- * Scheduled: weekly (Monday 07:00 IST)
+ * Scheduled daily during the clinic's permitted SMS window.
  * Identifies patients who need to be recalled:
  *   1. No visit in 6+ months
  *   2. Incomplete treatment plans
@@ -17,6 +18,97 @@ export async function GET(req: Request) {
   }
 
   const now = new Date()
+  const staleProcessingCutoff = new Date(now.getTime() - 15 * 60 * 1000)
+
+  // Make crashed/abandoned claims retryable, while concurrent cron invocations
+  // are still protected by the SENDING compare-and-set below.
+  await prisma.patientRecall.updateMany({
+    where: {
+      smsStatus: 'SENDING',
+      processingAt: { lt: staleProcessingCutoff },
+      status: 'SCHEDULED',
+    },
+    data: { smsStatus: 'FAILED', processingAt: null, lastSmsError: 'Previous send timed out' },
+  })
+
+  const dueRecalls =
+    (await prisma.patientRecall.findMany({
+      where: {
+        status: 'SCHEDULED',
+        reminderDate: { lte: now },
+        followUpDate: { gte: now },
+        smsAttempts: { lt: 3 },
+        smsStatus: { in: ['PENDING', 'FAILED'] },
+      },
+      include: {
+        patient: { select: { firstName: true, lastName: true, phone: true } },
+        hospital: { select: { name: true, phone: true, timezone: true } },
+      },
+      orderBy: { reminderDate: 'asc' },
+      take: 200,
+    })) ?? []
+
+  const recallReminders = { due: dueRecalls.length, sent: 0, failed: 0, skipped: 0 }
+  for (const recall of dueRecalls) {
+    const claimed = await prisma.patientRecall.updateMany({
+      where: {
+        id: recall.id,
+        status: 'SCHEDULED',
+        smsStatus: recall.smsStatus,
+        smsAttempts: recall.smsAttempts,
+      },
+      data: {
+        smsStatus: 'SENDING',
+        processingAt: now,
+        smsAttempts: { increment: 1 },
+        lastSmsError: null,
+      },
+    })
+    if (claimed.count !== 1) {
+      recallReminders.skipped++
+      continue
+    }
+
+    const patientName = `${recall.patient.firstName} ${recall.patient.lastName}`.trim()
+    const checkupDate = new Intl.DateTimeFormat('en-ET', {
+      timeZone: recall.hospital.timezone || 'Africa/Addis_Ababa',
+      dateStyle: 'medium',
+    }).format(recall.followUpDate)
+    const contact = recall.hospital.phone ? ` Contact us at ${recall.hospital.phone}.` : ''
+    const message = `Hello ${patientName}, your dental check-up is coming up on ${checkupDate}. Please visit ${recall.hospital.name} for your check-up.${contact}`
+
+    try {
+      const smsLogId = await smsService.sendSMS({
+        hospitalId: recall.hospitalId,
+        patientId: recall.patientId,
+        phone: recall.patient.phone,
+        message,
+        timezone: recall.hospital.timezone || 'Africa/Addis_Ababa',
+      })
+      await prisma.patientRecall.update({
+        where: { id: recall.id },
+        data: {
+          status: 'REMINDER_SENT',
+          smsStatus: 'SENT',
+          smsLogId,
+          smsSentAt: new Date(),
+          processingAt: null,
+        },
+      })
+      recallReminders.sent++
+    } catch (error) {
+      await prisma.patientRecall.update({
+        where: { id: recall.id },
+        data: {
+          smsStatus: 'FAILED',
+          processingAt: null,
+          lastSmsError: error instanceof Error ? error.message : 'Unknown SMS error',
+        },
+      })
+      recallReminders.failed++
+    }
+  }
+
   const sixMonthsAgo = new Date()
   sixMonthsAgo.setMonth(now.getMonth() - 6)
 
@@ -138,5 +230,5 @@ export async function GET(req: Request) {
     })
   }
 
-  return NextResponse.json({ results, processedAt: now.toISOString() })
+  return NextResponse.json({ results, recallReminders, processedAt: now.toISOString() })
 }

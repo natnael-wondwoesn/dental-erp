@@ -91,6 +91,11 @@ export const paymentMethodConfig: Record<
     icon: 'Smartphone',
     description: 'UPI payment (GPay, PhonePe, etc.)',
   },
+  TELEBIRR: {
+    label: 'Telebirr',
+    icon: 'Smartphone',
+    description: 'Telebirr mobile payment',
+  },
   BANK_TRANSFER: {
     label: 'Bank Transfer',
     icon: 'Building2',
@@ -115,6 +120,11 @@ export const paymentMethodConfig: Record<
     label: 'Online',
     icon: 'Globe',
     description: 'Online payment gateway',
+  },
+  OTHER: {
+    label: 'Other',
+    icon: 'Wallet',
+    description: 'Other configured payment provider',
   },
 }
 

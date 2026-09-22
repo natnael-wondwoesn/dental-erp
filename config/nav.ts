@@ -91,6 +91,12 @@ export const navigation: NavSection[] = [
             icon: Calendar,
           },
           {
+            title: "Today's Queue",
+            href: '/appointments/queue',
+            icon: Clock,
+            roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'],
+          },
+          {
             title: 'Waitlist',
             href: '/appointments/waitlist',
             icon: Clock,

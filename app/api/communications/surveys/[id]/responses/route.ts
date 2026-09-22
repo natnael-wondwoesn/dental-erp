@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { requireAuthAndRole } from '@/lib/api-helpers'
 import { z } from 'zod'
 
 const submitResponseSchema = z.object({
@@ -76,20 +77,28 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
 // GET /api/communications/surveys/[id]/responses - Get survey responses
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { error, hospitalId } = await requireAuthAndRole(['ADMIN'])
+  if (error || !hospitalId) {
+    return error || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
     const { id } = await params
-    // This endpoint requires authentication
-    // const session = await auth();
-    // if (!session?.user) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
+
+    const survey = await prisma.survey.findFirst({
+      where: { id, hospitalId },
+      select: { id: true },
+    })
+    if (!survey) {
+      return NextResponse.json({ error: 'Survey not found' }, { status: 404 })
+    }
 
     const searchParams = req.nextUrl.searchParams
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 100
 
     const responses = await prisma.surveyResponse.findMany({
       where: {
-        surveyId: id,
+        surveyId: survey.id,
       },
       orderBy: {
         createdAt: 'desc',

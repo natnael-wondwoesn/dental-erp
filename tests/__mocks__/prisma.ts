@@ -42,6 +42,18 @@ const mockPrismaClient = {
     count: vi.fn(),
   },
 
+  // PatientRecall
+  patientRecall: {
+    findUnique: vi.fn(),
+    findFirst: vi.fn(),
+    findMany: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    updateMany: vi.fn(),
+    delete: vi.fn(),
+    count: vi.fn(),
+  },
+
   // Appointment
   appointment: {
     findUnique: vi.fn(),
@@ -49,6 +61,7 @@ const mockPrismaClient = {
     findMany: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
+    updateMany: vi.fn(),
     delete: vi.fn(),
     count: vi.fn(),
     groupBy: vi.fn(),

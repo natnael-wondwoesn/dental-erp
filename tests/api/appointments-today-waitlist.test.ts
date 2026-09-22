@@ -120,6 +120,15 @@ describe('Appointments Today & Waitlist API', () => {
       )
     })
 
+    it('treats the all-doctors UI value as no doctor filter', async () => {
+      ;(prisma.appointment.findMany as any).mockResolvedValue([])
+
+      await todayModule.GET(makeTodayRequest({ doctorId: 'all' }))
+      const call = vi.mocked(prisma.appointment.findMany).mock.calls[0][0]
+
+      expect(call?.where).not.toHaveProperty('doctorId')
+    })
+
     it('returns 401 when not authenticated', async () => {
       mockAuth.requireAuthAndRole.mockResolvedValue({
         error: Response.json({ error: 'Unauthorized' }, { status: 401 }),

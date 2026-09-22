@@ -47,6 +47,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         status: 'CHECKED_IN',
         checkedInAt,
         waitTime,
+        assignedAt: null,
       },
       include: {
         patient: {

@@ -2,11 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAuthAndRole } from '@/lib/api-helpers'
 import { generatePaymentNo } from '@/lib/billing-utils'
-import { PaymentMethod, PaymentStatus } from '@prisma/client'
+import { PaymentMethod } from '@prisma/client'
 
 // GET - Get payments for an invoice
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { error, hospitalId } = await requireAuthAndRole()
+  const { error, hospitalId } = await requireAuthAndRole([
+    'ADMIN',
+    'ACCOUNTANT',
+    'RECEPTIONIST',
+    'DOCTOR',
+  ])
   if (error || !hospitalId) {
     return error || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -35,6 +40,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       orderBy: {
         paymentDate: 'desc',
       },
+      include: {
+        recordedBy: { select: { id: true, name: true, role: true } },
+      },
     })
 
     return NextResponse.json({
@@ -49,20 +57,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 // POST - Record a payment for an invoice
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { error, hospitalId, session } = await requireAuthAndRole()
+  const { error, hospitalId, session } = await requireAuthAndRole([
+    'ADMIN',
+    'ACCOUNTANT',
+    'RECEPTIONIST',
+  ])
   if (error || !hospitalId) {
     return error || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
-    // Check if user has permission
-    if (!['ADMIN', 'ACCOUNTANT', 'RECEPTIONIST'].includes(session.user.role)) {
-      return NextResponse.json(
-        { error: "You don't have permission to record payments" },
-        { status: 403 }
-      )
-    }
-
     const { id } = await params
     const body = await request.json()
 
@@ -72,6 +76,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       paymentDate = new Date(),
       transactionId,
       bankName,
+      providerName,
       chequeNumber,
       chequeDate,
       upiId,
@@ -83,8 +88,15 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: 'Valid payment amount is required' }, { status: 400 })
     }
 
-    if (!paymentMethod) {
+    if (!paymentMethod || !Object.values(PaymentMethod).includes(paymentMethod)) {
       return NextResponse.json({ error: 'Payment method is required' }, { status: 400 })
+    }
+
+    if (['TELEBIRR', 'BANK_TRANSFER', 'OTHER'].includes(paymentMethod) && !providerName) {
+      return NextResponse.json(
+        { error: 'Payment provider or bank is required for this payment method' },
+        { status: 400 }
+      )
     }
 
     // Check if invoice exists
@@ -117,28 +129,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       )
     }
 
-    // Generate payment number
-    const paymentNo = await generatePaymentNo(prisma)
-
-    // Create payment
-    const payment = await prisma.payment.create({
-      data: {
-        hospitalId,
-        paymentNo,
-        invoiceId: id,
-        amount,
-        paymentMethod: paymentMethod as PaymentMethod,
-        paymentDate: new Date(paymentDate),
-        status: 'COMPLETED',
-        transactionId,
-        bankName,
-        chequeNumber,
-        chequeDate: chequeDate ? new Date(chequeDate) : null,
-        upiId,
-        notes,
-      },
-    })
-
     // Update invoice amounts
     const newPaidAmount = Number(invoice.paidAmount) + amount
     const newBalanceAmount = Number(invoice.totalAmount) - newPaidAmount
@@ -158,42 +148,82 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       newStatus = newBalanceAmount <= 0 ? 'PAID' : 'PARTIALLY_PAID'
     }
 
-    await prisma.invoice.update({
-      where: { id, hospitalId },
-      data: {
-        paidAmount: newPaidAmount,
-        balanceAmount: newBalanceAmount,
-        status: newStatus,
-      },
-    })
+    const result = await prisma.$transaction(async (tx) => {
+      // Reserve the exact balance we read. If another payment changed it first,
+      // this update affects zero rows and no Payment record is created.
+      const reserved = await tx.invoice.updateMany({
+        where: {
+          id,
+          hospitalId,
+          status: invoice.status,
+          balanceAmount: invoice.balanceAmount,
+        },
+        data: {
+          paidAmount: newPaidAmount,
+          balanceAmount: newBalanceAmount,
+          status: newStatus,
+        },
+      })
 
-    // Return updated invoice with payment
-    const updatedInvoice = await prisma.invoice.findUnique({
-      where: { id, hospitalId },
-      include: {
-        patient: {
-          select: {
-            id: true,
-            patientId: true,
-            firstName: true,
-            lastName: true,
+      if (reserved.count !== 1) return null
+
+      const paymentNo = await generatePaymentNo(tx)
+      const payment = await tx.payment.create({
+        data: {
+          hospitalId,
+          paymentNo,
+          invoiceId: id,
+          amount,
+          paymentMethod: paymentMethod as PaymentMethod,
+          paymentDate: new Date(paymentDate),
+          status: 'COMPLETED',
+          transactionId,
+          bankName: bankName || (paymentMethod === 'BANK_TRANSFER' ? providerName : null),
+          providerName,
+          recordedById: session.user.id,
+          chequeNumber,
+          chequeDate: chequeDate ? new Date(chequeDate) : null,
+          upiId,
+          notes,
+        },
+        include: {
+          recordedBy: { select: { id: true, name: true, role: true } },
+        },
+      })
+
+      const updatedInvoice = await tx.invoice.findUnique({
+        where: { id, hospitalId },
+        include: {
+          patient: {
+            select: {
+              id: true,
+              patientId: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+          payments: {
+            orderBy: {
+              paymentDate: 'desc',
+            },
+            include: {
+              recordedBy: { select: { id: true, name: true, role: true } },
+            },
           },
         },
-        payments: {
-          orderBy: {
-            paymentDate: 'desc',
-          },
-        },
-      },
+      })
+
+      return { payment, invoice: updatedInvoice }
     })
 
-    return NextResponse.json(
-      {
-        payment,
-        invoice: updatedInvoice,
-      },
-      { status: 201 }
-    )
+    if (!result) {
+      return NextResponse.json(
+        { error: 'Invoice balance changed while recording payment. Refresh and try again.' },
+        { status: 409 }
+      )
+    }
+
+    return NextResponse.json(result, { status: 201 })
   } catch (error) {
     console.error('Error recording payment:', error)
     return NextResponse.json({ error: 'Failed to record payment' }, { status: 500 })

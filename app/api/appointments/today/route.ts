@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       },
     }
 
-    if (doctorId) {
+    if (doctorId && doctorId !== 'all') {
       where.doctorId = doctorId
     }
 

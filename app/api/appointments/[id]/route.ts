@@ -84,6 +84,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Appointment not found' }, { status: 404 })
     }
 
+    // A checked-in patient must be claimed through the compare-and-set take
+    // endpoint. Allowing a generic update here would reintroduce the race that
+    // lets two doctors start the same appointment.
+    if (status === 'IN_PROGRESS' && existingAppointment.status === 'CHECKED_IN') {
+      return NextResponse.json(
+        { error: 'Use the Take Patient action to start a checked-in appointment' },
+        { status: 409 }
+      )
+    }
+
     // Build update data
     const updateData: any = {}
 

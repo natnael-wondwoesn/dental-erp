@@ -257,6 +257,7 @@ describe('Surveys Detail & Responses API', () => {
   // ─── GET /api/communications/surveys/[id]/responses ───
   describe('GET /api/communications/surveys/[id]/responses', () => {
     it('returns responses with statistics', async () => {
+      ;(prisma.survey.findFirst as any).mockResolvedValue({ id: 'survey-1' })
       ;(prisma.surveyResponse.findMany as any).mockResolvedValue([
         { id: 'r1', rating: 5, sentiment: 'positive', answers: JSON.stringify({ q1: 'Great' }) },
         { id: 'r2', rating: 3, sentiment: 'neutral', answers: JSON.stringify({ q1: 'OK' }) },
@@ -277,12 +278,39 @@ describe('Surveys Detail & Responses API', () => {
     })
 
     it('handles empty responses', async () => {
+      ;(prisma.survey.findFirst as any).mockResolvedValue({ id: 'survey-1' })
       ;(prisma.surveyResponse.findMany as any).mockResolvedValue([])
 
       const res = await responsesModule.GET(makeResponseRequest('GET'), ctx)
       const body = await res.json()
       expect(body.statistics.totalResponses).toBe(0)
       expect(body.statistics.avgRating).toBe(0)
+    })
+
+    it('requires an administrator', async () => {
+      mockAuth.requireAuthAndRole.mockResolvedValue({
+        error: Response.json({ error: 'Forbidden' }, { status: 403 }),
+        hospitalId: null,
+        session: null,
+      })
+
+      const res = await responsesModule.GET(makeResponseRequest('GET'), ctx)
+
+      expect(res.status).toBe(403)
+      expect(mockAuth.requireAuthAndRole).toHaveBeenCalledWith(['ADMIN'])
+      expect(prisma.surveyResponse.findMany).not.toHaveBeenCalled()
+    })
+
+    it('does not expose another hospital survey', async () => {
+      ;(prisma.survey.findFirst as any).mockResolvedValue(null)
+
+      const res = await responsesModule.GET(makeResponseRequest('GET'), ctx)
+
+      expect(res.status).toBe(404)
+      expect(prisma.survey.findFirst).toHaveBeenCalledWith({
+        where: { id: 'survey-1', hospitalId: 'hospital-1' },
+        select: { id: true },
+      })
     })
   })
 })

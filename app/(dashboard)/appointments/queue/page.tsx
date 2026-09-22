@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { getCurrentUser } from '@/lib/api-client'
+import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -84,8 +86,11 @@ interface Doctor {
 
 export default function QueueManagementPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [currentRole, setCurrentRole] = useState<string | null>(null)
+  const [takingId, setTakingId] = useState<string | null>(null)
 
   const [queue, setQueue] = useState<{
     waiting: Appointment[]
@@ -115,7 +120,7 @@ export default function QueueManagementPage() {
   const fetchQueue = async () => {
     try {
       const params = new URLSearchParams()
-      if (selectedDoctor) params.append('doctorId', selectedDoctor)
+      if (selectedDoctor && selectedDoctor !== 'all') params.append('doctorId', selectedDoctor)
 
       const response = await fetch(`/api/appointments/today?${params}`)
       if (response.ok) {
@@ -145,6 +150,7 @@ export default function QueueManagementPage() {
 
   useEffect(() => {
     fetchDoctors()
+    getCurrentUser().then((user) => setCurrentRole(user?.roles[0] || null))
   }, [])
 
   useEffect(() => {
@@ -181,16 +187,29 @@ export default function QueueManagementPage() {
     }
   }
 
-  const handleStartProgress = async (id: string) => {
+  const handleTakePatient = async (id: string) => {
+    setTakingId(id)
     try {
-      const response = await fetch(`/api/appointments/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'IN_PROGRESS' }),
+      const response = await fetch(`/api/appointments/${id}/take`, {
+        method: 'POST',
       })
-      if (response.ok) fetchQueue()
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Unable to take patient')
+
+      toast({
+        title: 'Patient assigned',
+        description: 'The patient is now assigned to you.',
+      })
+      fetchQueue()
     } catch (error) {
-      console.error('Error:', error)
+      toast({
+        title: 'Patient not assigned',
+        description: error instanceof Error ? error.message : 'Unable to take patient',
+        variant: 'destructive',
+      })
+      fetchQueue()
+    } finally {
+      setTakingId(null)
     }
   }
 
@@ -310,11 +329,15 @@ export default function QueueManagementPage() {
                 </Button>
               </>
             )}
-            {appointment.status === 'CHECKED_IN' && (
+            {appointment.status === 'CHECKED_IN' && currentRole === 'DOCTOR' && (
               <>
-                <Button size="sm" onClick={() => handleStartProgress(appointment.id)}>
+                <Button
+                  size="sm"
+                  disabled={takingId === appointment.id}
+                  onClick={() => handleTakePatient(appointment.id)}
+                >
                   <Play className="h-4 w-4 mr-1" />
-                  Start
+                  {takingId === appointment.id ? 'Taking...' : 'Take Patient'}
                 </Button>
               </>
             )}

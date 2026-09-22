@@ -133,6 +133,8 @@ interface Invoice {
     paymentDate: string
     status: string
     transactionId: string | null
+    providerName: string | null
+    recordedBy: { id: string; name: string; role: string } | null
     notes: string | null
     refundAmount: string | number | null
     refundDate: string | null
@@ -162,6 +164,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
   const [paymentMethod, setPaymentMethod] = useState('')
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0])
   const [transactionId, setTransactionId] = useState('')
+  const [paymentProvider, setPaymentProvider] = useState('')
   const [paymentNotes, setPaymentNotes] = useState('')
 
   // Payment link state
@@ -212,6 +215,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
           paymentMethod,
           paymentDate,
           transactionId: transactionId || undefined,
+          providerName: paymentProvider || undefined,
           notes: paymentNotes || undefined,
         }),
       })
@@ -228,6 +232,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
       setPaymentAmount('')
       setPaymentMethod('')
       setTransactionId('')
+      setPaymentProvider('')
       setPaymentNotes('')
     } catch (error: any) {
       setError(error.message)
@@ -529,6 +534,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                       <TableHead>Payment</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead>Method</TableHead>
+                      <TableHead>Provider / Recorded by</TableHead>
                       <TableHead className="text-right">Amount</TableHead>
                       <TableHead>Status</TableHead>
                     </TableRow>
@@ -548,6 +554,12 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                               TXN: {payment.transactionId}
                             </div>
                           )}
+                        </TableCell>
+                        <TableCell>
+                          <div>{payment.providerName || '—'}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {payment.recordedBy?.name || 'Historical record'}
+                          </div>
                         </TableCell>
                         <TableCell>{formatDate(payment.paymentDate)}</TableCell>
                         <TableCell>
@@ -757,11 +769,29 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                   <SelectItem value="CASH">Cash</SelectItem>
                   <SelectItem value="CARD">Card</SelectItem>
                   <SelectItem value="UPI">UPI</SelectItem>
+                  <SelectItem value="TELEBIRR">Telebirr</SelectItem>
                   <SelectItem value="BANK_TRANSFER">Bank Transfer</SelectItem>
                   <SelectItem value="CHEQUE">Cheque</SelectItem>
+                  <SelectItem value="OTHER">Other Provider</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+            {['TELEBIRR', 'BANK_TRANSFER', 'OTHER'].includes(paymentMethod) && (
+              <div className="space-y-2">
+                <Label>{paymentMethod === 'BANK_TRANSFER' ? 'Bank' : 'Payment Provider'}</Label>
+                <Input
+                  value={paymentProvider}
+                  onChange={(e) => setPaymentProvider(e.target.value)}
+                  placeholder={
+                    paymentMethod === 'TELEBIRR'
+                      ? 'Telebirr'
+                      : paymentMethod === 'BANK_TRANSFER'
+                        ? 'e.g. Commercial Bank of Ethiopia'
+                        : 'Provider name'
+                  }
+                />
+              </div>
+            )}
             <div className="space-y-2">
               <Label>Payment Date</Label>
               <Input
