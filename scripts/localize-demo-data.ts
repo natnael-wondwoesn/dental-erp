@@ -95,6 +95,8 @@ async function main() {
       panNumber: null,
       registrationNo: 'AA-DEN-2024-0142',
       upiId: 'sunnysmile@telebirr',
+      locale: 'en-ET',
+      country: 'ET',
       currency: 'ETB',
       timezone: 'Africa/Addis_Ababa',
     },

@@ -47,7 +47,6 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  IndianRupee,
   Banknote,
   Smartphone,
   Building2,
@@ -555,12 +554,6 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                             </div>
                           )}
                         </TableCell>
-                        <TableCell>
-                          <div>{payment.providerName || '—'}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {payment.recordedBy?.name || 'Historical record'}
-                          </div>
-                        </TableCell>
                         <TableCell>{formatDate(payment.paymentDate)}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
@@ -568,6 +561,12 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                             {paymentMethodConfig[
                               payment.paymentMethod as keyof typeof paymentMethodConfig
                             ]?.label || payment.paymentMethod}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>{payment.providerName || '—'}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {payment.recordedBy?.name || 'Historical record'}
                           </div>
                         </TableCell>
                         <TableCell className="text-right font-medium">
@@ -746,12 +745,14 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
             <div className="space-y-2">
               <Label>Amount</Label>
               <div className="relative">
-                <IndianRupee className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                  ETB
+                </span>
                 <Input
                   type="number"
                   value={paymentAmount}
                   onChange={(e) => setPaymentAmount(e.target.value)}
-                  className="pl-9"
+                  className="pl-12"
                   max={Number(invoice.balanceAmount)}
                 />
               </div>
@@ -768,7 +769,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                 <SelectContent>
                   <SelectItem value="CASH">Cash</SelectItem>
                   <SelectItem value="CARD">Card</SelectItem>
-                  <SelectItem value="UPI">UPI</SelectItem>
+                  <SelectItem value="UPI">Mobile Money (legacy)</SelectItem>
                   <SelectItem value="TELEBIRR">Telebirr</SelectItem>
                   <SelectItem value="BANK_TRANSFER">Bank Transfer</SelectItem>
                   <SelectItem value="CHEQUE">Cheque</SelectItem>

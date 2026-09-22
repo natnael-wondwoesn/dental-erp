@@ -57,13 +57,13 @@ import {
   formatDateTime as billingFormatDateTime,
 } from '@/lib/billing-utils'
 
-describe('Section 10.1 — Current Locale (India)', () => {
+describe('Section 10.1 — Current Locale (Ethiopia)', () => {
   // ─── Currency Display ───────────────────────────────────────────────
 
   describe('Currency Display', () => {
-    it('formatCurrency from utils displays ₹ symbol', () => {
+    it('formatCurrency from utils displays ETB', () => {
       const result = formatCurrency(500)
-      expect(result).toContain('₹')
+      expect(result).toContain('ETB')
     })
 
     it('billingFormatCurrency displays ETB with 2 decimal places', () => {
@@ -72,21 +72,19 @@ describe('Section 10.1 — Current Locale (India)', () => {
       expect(result).toMatch(/500\.00/)
     })
 
-    it('uses Indian number formatting — lakhs (1,00,000 not 100,000)', () => {
+    it('uses international number formatting for Ethiopian English', () => {
       const result = formatCurrency(100000)
-      // en-IN formats 100000 as 1,00,000
-      expect(result).toContain('1,00,000')
+      expect(result).toContain('100,000')
     })
 
-    it('uses Indian number formatting — crores', () => {
+    it('groups large Ethiopian currency values consistently', () => {
       const result = formatCurrency(10000000)
-      // en-IN formats 10000000 as 1,00,00,000
-      expect(result).toContain('1,00,00,000')
+      expect(result).toContain('10,000,000')
     })
 
-    it('zero amount renders as ₹0', () => {
+    it('zero amount renders as ETB 0', () => {
       const result = formatCurrency(0)
-      expect(result).toContain('₹')
+      expect(result).toContain('ETB')
       expect(result).toMatch(/0/)
     })
 
@@ -97,7 +95,7 @@ describe('Section 10.1 — Current Locale (India)', () => {
 
     it('negative amounts are handled', () => {
       const result = formatCurrency(-1500)
-      expect(result).toContain('₹')
+      expect(result).toContain('ETB')
       expect(result).toContain('1,500')
     })
 
@@ -109,17 +107,16 @@ describe('Section 10.1 — Current Locale (India)', () => {
   // ─── Date Format ────────────────────────────────────────────────────
 
   describe('Date Format', () => {
-    it('formatDate uses en-IN locale', () => {
+    it('formatDate uses the Ethiopian English locale', () => {
       const result = formatDate(new Date(2026, 2, 8)) // March 8, 2026
-      // en-IN with day:2-digit, month:short, year:numeric => "08 Mar 2026"
       expect(result).toMatch(/08/)
       expect(result).toMatch(/Mar/)
       expect(result).toMatch(/2026/)
     })
 
-    it('output format is DD Mon YYYY', () => {
+    it('uses the Ethiopian English month-day-year ordering', () => {
       const result = formatDate(new Date(2026, 0, 15)) // Jan 15, 2026
-      expect(result).toMatch(/15.*Jan.*2026/)
+      expect(result).toMatch(/Jan.*15.*2026/)
     })
 
     it('invalid date returns "-"', () => {

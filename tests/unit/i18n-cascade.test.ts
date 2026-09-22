@@ -82,6 +82,7 @@ describe('getLocaleLabel', () => {
   // data the runtime ships, and pinning it makes the suite fail on a Node
   // upgrade for no useful reason.
   it('names each supported locale by region rather than by tag', () => {
+    expect(getLocaleLabel('en-ET')).toMatch(/English.*Ethiopia/)
     expect(getLocaleLabel('en-IN')).toMatch(/English.*India/)
     expect(getLocaleLabel('en-US')).toMatch(/English.*United States/)
   })

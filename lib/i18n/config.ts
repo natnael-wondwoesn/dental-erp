@@ -8,12 +8,12 @@
  * See docs/LOCALIZATION.md for the wider plan.
  */
 
-export const locales = ['en-IN', 'en-US'] as const
+export const locales = ['en-ET', 'en-IN', 'en-US'] as const
 
 export type Locale = (typeof locales)[number]
 
-/** India remains the default — this app started as an Indian dental ERP. */
-export const defaultLocale: Locale = 'en-IN'
+/** Ethiopian English is the product default; legacy tenant locales remain supported. */
+export const defaultLocale: Locale = 'en-ET'
 
 export interface LocaleDefaults {
   /** ISO 4217 currency code. */
@@ -25,6 +25,7 @@ export interface LocaleDefaults {
 }
 
 export const localeDefaults: Record<Locale, LocaleDefaults> = {
+  'en-ET': { currency: 'ETB', country: 'ET', timezone: 'Africa/Addis_Ababa' },
   'en-IN': { currency: 'INR', country: 'IN', timezone: 'Asia/Kolkata' },
   'en-US': { currency: 'USD', country: 'US', timezone: 'America/New_York' },
 }

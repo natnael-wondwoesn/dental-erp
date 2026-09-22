@@ -342,7 +342,7 @@ describe('getLocaleForRequest', () => {
     auth.mockResolvedValue(null)
     getAuthenticatedPatient.mockResolvedValue(null)
 
-    expect(await getLocaleForRequest()).toBe('en-IN')
+    expect(await getLocaleForRequest()).toBe('en-ET')
   })
 
   // Load-bearing: a formatting concern must never take a page down.
@@ -350,13 +350,13 @@ describe('getLocaleForRequest', () => {
     auth.mockResolvedValue({ user: STAFF })
     prisma.user.findUnique.mockRejectedValue(new Error("Can't reach database server"))
 
-    await expect(getLocaleForRequest()).resolves.toBe('en-IN')
+    await expect(getLocaleForRequest()).resolves.toBe('en-ET')
   })
 
   it('returns the default rather than throwing when auth() fails', async () => {
     auth.mockRejectedValue(new Error('JWT decryption failed'))
 
-    await expect(getLocaleForRequest()).resolves.toBe('en-IN')
+    await expect(getLocaleForRequest()).resolves.toBe('en-ET')
   })
 
   it('falls through an unsupported stored override to the clinic', async () => {
@@ -385,12 +385,12 @@ describe('getLocaleForPatientRequest', () => {
   it('returns the default when there is no portal cookie', async () => {
     getAuthenticatedPatient.mockResolvedValue(null)
 
-    expect(await getLocaleForPatientRequest()).toBe('en-IN')
+    expect(await getLocaleForPatientRequest()).toBe('en-ET')
   })
 
   it('returns the default rather than throwing when the lookup fails', async () => {
     getAuthenticatedPatient.mockRejectedValue(new Error('boom'))
 
-    await expect(getLocaleForPatientRequest()).resolves.toBe('en-IN')
+    await expect(getLocaleForPatientRequest()).resolves.toBe('en-ET')
   })
 })

@@ -36,10 +36,10 @@ describe('Utils - cn (classnames merger)', () => {
 })
 
 describe('Utils - formatCurrency', () => {
-  it('should format positive amounts correctly in INR', () => {
+  it('should format positive amounts correctly in ETB', () => {
     const result = formatCurrency(1000)
     expect(result).toContain('1,000')
-    expect(result).toMatch(/₹|INR/)
+    expect(result).toContain('ETB')
   })
 
   it('should format zero correctly', () => {
@@ -52,10 +52,9 @@ describe('Utils - formatCurrency', () => {
     expect(result).toContain('1,234')
   })
 
-  it('should format large amounts with Indian comma format', () => {
+  it('should format large amounts with international comma grouping', () => {
     const result = formatCurrency(1234567)
-    // Indian format: 12,34,567
-    expect(result).toMatch(/12,34,567|1,234,567/)
+    expect(result).toContain('1,234,567')
   })
 })
 

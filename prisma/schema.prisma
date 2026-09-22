@@ -31,12 +31,12 @@ model Hospital {
   website        String?
   tagline        String?
 
-  // Localization. Defaults keep existing clinics on Indian formatting.
+  // Localization. Ethiopian defaults match this product's primary market.
   // `country` will select the tax provider — see docs/LOCALIZATION.md.
-  locale   String @default("en-IN")
-  country  String @default("IN")
-  currency String @default("INR")
-  timezone String @default("Asia/Kolkata")
+  locale   String @default("en-ET")
+  country  String @default("ET")
+  currency String @default("ETB")
+  timezone String @default("Africa/Addis_Ababa")
 
   plan           Plan      @default(FREE)
   planExpiresAt  DateTime?
@@ -163,7 +163,7 @@ model SubscriptionPayment {
   id                String                    @id @default(cuid())
   subscriptionId    String
   amount            Decimal                   @db.Decimal(10, 2)
-  currency          String                    @default("INR")
+  currency          String                    @default("ETB")
   status            SubscriptionPaymentStatus @default(PENDING)
   paymentMethod     String?
   externalPaymentId String?

@@ -87,9 +87,9 @@ export const paymentMethodConfig: Record<
     description: 'Debit/Credit card',
   },
   UPI: {
-    label: 'UPI',
+    label: 'Mobile Money',
     icon: 'Smartphone',
-    description: 'UPI payment (GPay, PhonePe, etc.)',
+    description: 'Legacy mobile-money payment',
   },
   TELEBIRR: {
     label: 'Telebirr',
@@ -99,7 +99,7 @@ export const paymentMethodConfig: Record<
   BANK_TRANSFER: {
     label: 'Bank Transfer',
     icon: 'Building2',
-    description: 'NEFT/RTGS/IMPS',
+    description: 'Bank account transfer',
   },
   CHEQUE: {
     label: 'Cheque',

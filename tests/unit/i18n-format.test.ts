@@ -16,12 +16,14 @@ import {
 } from '@/lib/i18n/format'
 
 describe('i18n config', () => {
-  it('defaults to Indian English', () => {
-    expect(defaultLocale).toBe('en-IN')
+  it('defaults to Ethiopian English', () => {
+    expect(defaultLocale).toBe('en-ET')
+    expect(locales).toContain('en-ET')
     expect(locales).toContain('en-IN')
   })
 
   it('recognises supported locales', () => {
+    expect(isSupportedLocale('en-ET')).toBe(true)
     expect(isSupportedLocale('en-IN')).toBe(true)
     expect(isSupportedLocale('en-US')).toBe(true)
     expect(isSupportedLocale('xx-XX')).toBe(false)
@@ -30,12 +32,17 @@ describe('i18n config', () => {
 
   // A stale or hand-edited Hospital.locale must never break formatting.
   it('falls back to the default for unknown or missing locales', () => {
-    expect(resolveLocale('de-DE')).toBe('en-IN')
-    expect(resolveLocale(undefined)).toBe('en-IN')
+    expect(resolveLocale('de-DE')).toBe('en-ET')
+    expect(resolveLocale(undefined)).toBe('en-ET')
     expect(resolveLocale('en-US')).toBe('en-US')
   })
 
   it('maps each locale to its currency, country and timezone', () => {
+    expect(getLocaleDefaults('en-ET')).toEqual({
+      currency: 'ETB',
+      country: 'ET',
+      timezone: 'Africa/Addis_Ababa',
+    })
     expect(getLocaleDefaults('en-IN')).toEqual({
       currency: 'INR',
       country: 'IN',
@@ -46,15 +53,15 @@ describe('i18n config', () => {
 })
 
 describe('formatCurrency', () => {
-  it('defaults to rupees so existing call sites are unchanged', () => {
-    expect(formatCurrency(1000)).toContain('₹')
+  it('defaults to Ethiopian birr', () => {
+    expect(formatCurrency(1000)).toContain('ETB')
     expect(formatCurrency(1000)).toContain('1,000')
   })
 
   it('uses the Indian grouping system for en-IN', () => {
     // The grouping differs, not just the symbol: 1,00,000 rather than 100,000.
-    expect(formatCurrency(100000)).toContain('1,00,000')
-    expect(formatCurrency(10000000)).toContain('1,00,00,000')
+    expect(formatCurrency(100000, { locale: 'en-IN' })).toContain('1,00,000')
+    expect(formatCurrency(10000000, { locale: 'en-IN' })).toContain('1,00,00,000')
   })
 
   it('uses western grouping and dollars for en-US', () => {
@@ -95,7 +102,7 @@ describe('formatCurrency', () => {
 
 describe('formatNumber', () => {
   it('groups by locale without a currency symbol', () => {
-    expect(formatNumber(100000)).toBe('1,00,000')
+    expect(formatNumber(100000)).toBe('100,000')
     expect(formatNumber(100000, { locale: 'en-US' })).toBe('100,000')
   })
 
@@ -145,7 +152,7 @@ describe('createFormatters', () => {
   })
 
   it('falls back to the default locale for unsupported input', () => {
-    expect(createFormatters('fr-FR').locale).toBe('en-IN')
-    expect(createFormatters(null).currency).toBe('INR')
+    expect(createFormatters('fr-FR').locale).toBe('en-ET')
+    expect(createFormatters(null).currency).toBe('ETB')
   })
 })

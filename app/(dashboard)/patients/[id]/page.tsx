@@ -103,10 +103,10 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
       })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || 'Unable to schedule recall')
-      setRecallMessage('Six-month recall scheduled.')
+      setRecallMessage(t('Six-month recall scheduled.'))
       await loadRecalls()
     } catch (error) {
-      setRecallMessage(error instanceof Error ? error.message : 'Unable to schedule recall')
+      setRecallMessage(error instanceof Error ? error.message : t('Unable to schedule recall'))
     } finally {
       setRecallBusy(false)
     }
@@ -123,10 +123,10 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
       })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || 'Unable to update recall')
-      setRecallMessage('Patient return recorded.')
+      setRecallMessage(t('Patient return recorded.'))
       await loadRecalls()
     } catch (error) {
-      setRecallMessage(error instanceof Error ? error.message : 'Unable to update recall')
+      setRecallMessage(error instanceof Error ? error.message : t('Unable to update recall'))
     } finally {
       setRecallBusy(false)
     }
@@ -330,9 +330,11 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <h2 className="flex items-center gap-2 font-semibold">
-                    <BellRing className="h-4 w-4 text-[#086be6]" /> Six-month recall
+                    <BellRing className="h-4 w-4 text-[#086be6]" /> {t('Six-month recall')}
                   </h2>
-                  <p className="mt-1 text-xs text-slate-400">Check-up and SMS reminder tracking</p>
+                  <p className="mt-1 text-xs text-slate-400">
+                    {t('Check-up and SMS reminder tracking')}
+                  </p>
                 </div>
                 {['ADMIN', 'RECEPTIONIST'].includes(currentRole || '') && (
                   <button
@@ -340,7 +342,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                     disabled={recallBusy}
                     className="rounded-xl bg-[#086be6] px-3 py-2 text-xs font-semibold text-white disabled:opacity-60"
                   >
-                    {recallBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Schedule'}
+                    {recallBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : t('Schedule')}
                   </button>
                 )}
               </div>
@@ -350,7 +352,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
               <div className="mt-4 space-y-3">
                 {recalls.length === 0 ? (
                   <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-400">
-                    No recall scheduled.
+                    {t('No recall scheduled.')}
                   </p>
                 ) : (
                   recalls.slice(0, 3).map((recall) => (
@@ -358,11 +360,11 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="text-sm font-semibold">
-                            Follow-up {format(new Date(recall.followUpDate), 'MMM d, yyyy')}
+                            {t('Follow-up')} {format(new Date(recall.followUpDate), 'MMM d, yyyy')}
                           </p>
                           <p className="mt-1 text-xs text-slate-400">
-                            Reminder {format(new Date(recall.reminderDate), 'MMM d, yyyy')} · SMS{' '}
-                            {recall.smsStatus.toLowerCase()}
+                            {t('Reminder')} {format(new Date(recall.reminderDate), 'MMM d, yyyy')} ·{' '}
+                            {t('SMS')} {recall.smsStatus.toLowerCase()}
                           </p>
                         </div>
                         <span className="rounded-full bg-[#eef5ff] px-2 py-1 text-[10px] font-semibold text-[#086be6]">
@@ -376,7 +378,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                             disabled={recallBusy}
                             className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 disabled:opacity-60"
                           >
-                            <CheckCircle2 className="h-4 w-4" /> Mark returned
+                            <CheckCircle2 className="h-4 w-4" /> {t('Mark returned')}
                           </button>
                         )}
                     </article>

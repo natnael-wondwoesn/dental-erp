@@ -3,7 +3,7 @@
  *
  * Before this existed there were three near-duplicate `formatCurrency`
  * implementations (lib/utils.ts, lib/billing-utils.ts, lib/treatment-utils.ts),
- * each hardcoding `en-IN` and `INR` with slightly different fraction-digit
+ * each hardcoding a locale and currency with slightly different fraction-digit
  * rules. Those modules now delegate here and keep their own defaults, so
  * behaviour is unchanged while there is finally one place to add a locale.
  *
@@ -13,7 +13,7 @@ import { defaultLocale, getLocaleDefaults, resolveLocale } from './config'
 
 export interface CurrencyFormatOptions {
   locale?: string
-  /** ISO 4217. Defaults to the locale's currency (INR for en-IN). */
+  /** ISO 4217. Defaults to the resolved locale's currency (ETB by default). */
   currency?: string
   minimumFractionDigits?: number
   maximumFractionDigits?: number

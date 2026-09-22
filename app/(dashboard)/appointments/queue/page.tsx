@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getCurrentUser } from '@/lib/api-client'
 import { useToast } from '@/hooks/use-toast'
+import { useLanguage } from '@/lib/i18n'
+import { ErpModuleOverview } from '@/components/dashboard/erp-overview'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -87,6 +89,7 @@ interface Doctor {
 export default function QueueManagementPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useLanguage()
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [currentRole, setCurrentRole] = useState<string | null>(null)
@@ -265,7 +268,7 @@ export default function QueueManagementPage() {
     appointment: Appointment
     showActions?: boolean
   }) => (
-    <Card className="mb-3">
+    <Card className="mb-3 rounded-2xl border-[#e5edf7] shadow-none">
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-3">
@@ -360,7 +363,7 @@ export default function QueueManagementPage() {
     </Card>
   )
 
-  const today = new Date().toLocaleDateString('en-IN', {
+  const today = new Date().toLocaleDateString('en-ET', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -369,6 +372,17 @@ export default function QueueManagementPage() {
 
   return (
     <div className="space-y-6">
+      <ErpModuleOverview
+        moduleId="appointments"
+        eyebrow={t('Live patient flow')}
+        title={t('One queue from arrival to completed care')}
+        description={t(
+          'Reception and clinical teams share the same live view for check-in, doctor assignment, chair flow and completion.'
+        )}
+        compact
+        showActions={false}
+      />
+
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
@@ -403,8 +417,8 @@ export default function QueueManagementPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-7">
-        <Card>
+      <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7">
+        <Card className="rounded-[22px] border-[#dce7f5] bg-white shadow-[0_8px_30px_rgba(28,55,90,.05)]">
           <CardContent className="pt-4">
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-muted-foreground" />
@@ -413,7 +427,7 @@ export default function QueueManagementPage() {
             <p className="text-2xl font-bold">{stats.total}</p>
           </CardContent>
         </Card>
-        <Card className="bg-amber-50 border-amber-200">
+        <Card className="rounded-[22px] border-[#dce7f5] bg-white shadow-[0_8px_30px_rgba(28,55,90,.05)]">
           <CardContent className="pt-4">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-amber-600" />
@@ -422,7 +436,7 @@ export default function QueueManagementPage() {
             <p className="text-2xl font-bold text-amber-700">{stats.waiting}</p>
           </CardContent>
         </Card>
-        <Card className="bg-purple-50 border-purple-200">
+        <Card className="rounded-[22px] border-[#dce7f5] bg-white shadow-[0_8px_30px_rgba(28,55,90,.05)]">
           <CardContent className="pt-4">
             <div className="flex items-center gap-2">
               <Play className="h-4 w-4 text-purple-600" />
@@ -431,7 +445,7 @@ export default function QueueManagementPage() {
             <p className="text-2xl font-bold text-purple-700">{stats.inProgress}</p>
           </CardContent>
         </Card>
-        <Card className="bg-blue-50 border-blue-200">
+        <Card className="rounded-[22px] border-[#dce7f5] bg-white shadow-[0_8px_30px_rgba(28,55,90,.05)]">
           <CardContent className="pt-4">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-blue-600" />
@@ -440,7 +454,7 @@ export default function QueueManagementPage() {
             <p className="text-2xl font-bold text-blue-700">{stats.upcoming}</p>
           </CardContent>
         </Card>
-        <Card className="bg-green-50 border-green-200">
+        <Card className="rounded-[22px] border-[#dce7f5] bg-white shadow-[0_8px_30px_rgba(28,55,90,.05)]">
           <CardContent className="pt-4">
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-600" />
@@ -449,7 +463,7 @@ export default function QueueManagementPage() {
             <p className="text-2xl font-bold text-green-700">{stats.completed}</p>
           </CardContent>
         </Card>
-        <Card className="bg-red-50 border-red-200">
+        <Card className="rounded-[22px] border-[#dce7f5] bg-white shadow-[0_8px_30px_rgba(28,55,90,.05)]">
           <CardContent className="pt-4">
             <div className="flex items-center gap-2">
               <XCircle className="h-4 w-4 text-red-600" />
@@ -458,7 +472,7 @@ export default function QueueManagementPage() {
             <p className="text-2xl font-bold text-red-700">{stats.noShow}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="rounded-[22px] border-[#dce7f5] bg-white shadow-[0_8px_30px_rgba(28,55,90,.05)]">
           <CardContent className="pt-4">
             <div className="flex items-center gap-2">
               <Timer className="h-4 w-4 text-muted-foreground" />
@@ -476,8 +490,8 @@ export default function QueueManagementPage() {
       ) : (
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Waiting */}
-          <Card className="border-amber-200">
-            <CardHeader className="bg-amber-50 border-b border-amber-200">
+          <Card className="overflow-hidden rounded-[22px] border-[#dce7f5] bg-white shadow-[0_8px_30px_rgba(28,55,90,.05)]">
+            <CardHeader className="border-b border-[#e5edf7] bg-[#fffaf0]">
               <CardTitle className="flex items-center gap-2 text-amber-700">
                 <Clock className="h-5 w-5" />
                 Waiting ({queue.waiting.length})
@@ -494,8 +508,8 @@ export default function QueueManagementPage() {
           </Card>
 
           {/* In Progress */}
-          <Card className="border-purple-200">
-            <CardHeader className="bg-purple-50 border-b border-purple-200">
+          <Card className="overflow-hidden rounded-[22px] border-[#dce7f5] bg-white shadow-[0_8px_30px_rgba(28,55,90,.05)]">
+            <CardHeader className="border-b border-[#e5edf7] bg-[#faf7ff]">
               <CardTitle className="flex items-center gap-2 text-purple-700">
                 <Play className="h-5 w-5" />
                 In Progress ({queue.inProgress.length})
@@ -512,8 +526,8 @@ export default function QueueManagementPage() {
           </Card>
 
           {/* Upcoming */}
-          <Card className="border-blue-200">
-            <CardHeader className="bg-blue-50 border-b border-blue-200">
+          <Card className="overflow-hidden rounded-[22px] border-[#dce7f5] bg-white shadow-[0_8px_30px_rgba(28,55,90,.05)]">
+            <CardHeader className="border-b border-[#e5edf7] bg-[#f5f9ff]">
               <CardTitle className="flex items-center gap-2 text-blue-700">
                 <Calendar className="h-5 w-5" />
                 Upcoming ({queue.upcoming.length})
@@ -533,7 +547,7 @@ export default function QueueManagementPage() {
 
       {/* Completed Section */}
       {queue.completed.length > 0 && (
-        <Card>
+        <Card className="rounded-[22px] border-[#dce7f5] bg-white shadow-[0_8px_30px_rgba(28,55,90,.05)]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-green-700">
               <CheckCircle className="h-5 w-5" />
