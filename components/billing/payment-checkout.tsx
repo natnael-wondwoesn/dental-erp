@@ -117,7 +117,7 @@ export function PaymentCheckout({
       const options = {
         key: checkout.key,
         amount: checkout.amount,
-        currency: checkout.currency || 'INR',
+        currency: checkout.currency || 'ETB',
         name: hospital.name,
         description: `Payment for ${invoiceNo}`,
         order_id: checkout.orderId,
@@ -220,9 +220,9 @@ export function PaymentCheckout({
   }
 
   const formatCurrency = (val: number) =>
-    new Intl.NumberFormat('en-IN', {
+    new Intl.NumberFormat('en-ET', {
       style: 'currency',
-      currency: 'INR',
+      currency: 'ETB',
       minimumFractionDigits: 0,
     }).format(val)
 

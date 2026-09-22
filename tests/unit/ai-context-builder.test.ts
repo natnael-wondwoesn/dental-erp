@@ -758,10 +758,10 @@ describe('serializeContext', () => {
       expect(result).toContain('Current medications: Metformin 500mg')
     })
 
-    it('includes outstanding balance with rupee formatting', () => {
+    it('includes outstanding balance with Ethiopian birr formatting', () => {
       const result = serializeContext(fullCtx)
 
-      expect(result).toMatch(/Outstanding balance: ₹[\d,]+/)
+      expect(result).toMatch(/Outstanding balance: ETB [\d,]+/)
     })
 
     it('includes risk score out of 100', () => {

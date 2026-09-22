@@ -5,7 +5,8 @@
 - atomic doctor patient claiming and queue behavior;
 - payment provider/recorder attribution and concurrent payment protection;
 - survey response access control and clinic isolation;
-- six-month recall scheduling, SMS delivery state, retries, and patient return tracking.
+- six-month recall scheduling, SMS delivery state, retries, and patient return tracking;
+- Ethiopian UI and data defaults across queue, billing, AI assistance, and communications settings.
 
 This guide does not claim that GoodDoc integration or inventory purchase workflows are complete yet. Recall SMS requires a configured provider and an external scheduler in the target environment before live delivery can be signed off.
 
@@ -57,6 +58,53 @@ Record the synthetic IDs below:
 | Recall                    |            |
 
 For every case, record **PASS**, **FAIL**, or **BLOCKED** and attach the timestamp, URL, and screenshot for failures.
+
+## 1A. Ethiopian localization smoke test
+
+### LOC-01 — Clinic identity and core workflow UI
+
+1. Open the dashboard, Today’s Queue, an invoice, and Payment Plans.
+2. Compare their page shell, navigation, spacing, cards, typography, and controls.
+3. Check the clinic, staff, patient, address, phone, currency, and timezone shown on those pages.
+
+Expected:
+
+- The pages use the same established ERP shell and component styling.
+- The clinic is in Addis Ababa and sample people use Ethiopian names and `09…`/`+251…` phone numbers.
+- Monetary values display as ETB/birr; no rupee symbol or Indian locale content is visible.
+- Dates and times use the clinic’s `Africa/Addis_Ababa` settings.
+
+Result/notes: ______________________________
+
+### LOC-02 — English and Amharic behavior
+
+1. On Today’s Queue and a patient profile, switch the interface to Amharic.
+2. Confirm the newly added queue/recall labels translate and remain readable.
+3. Switch back to English.
+4. Open the AI treatment assistant consent-language selector.
+
+Expected:
+
+- New workflow labels participate in the same language switch as the rest of the app.
+- English and Amharic are offered; Hindi and Tamil are not offered.
+- Switching languages does not change clinic data, amounts, or workflow state.
+
+Result/notes: ______________________________
+
+### LOC-03 — Billing and communications defaults
+
+1. Open **Settings → Billing** and **Settings → Communications**.
+2. Confirm the billing defaults and SMS test-number guidance.
+3. Open an invoice payment dialog and a payment plan.
+
+Expected:
+
+- Billing defaults show ETB and Ethiopian VAT terminology.
+- SMS guidance expects `+251` format and uses Africa/Addis_Ababa local hours.
+- Payment methods show Telebirr, bank transfer, and mobile-money wording where applicable.
+- Legacy provider options, if retained for old installations, are explicitly labeled as legacy.
+
+Result/notes: ______________________________
 
 ## 2. Queue and atomic doctor assignment
 

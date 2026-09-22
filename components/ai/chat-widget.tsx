@@ -100,7 +100,7 @@ export function ChatWidget() {
   const { chatMessages, chatLoading, sendChat, clearChat } = useAI()
 
   const voice = useWebVoice({
-    lang: 'en-IN',
+    lang: 'en-ET',
     onFinalTranscript: (text) => {
       if (text.trim() && !chatLoading) {
         setInput('')

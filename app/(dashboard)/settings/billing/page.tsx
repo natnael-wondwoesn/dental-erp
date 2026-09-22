@@ -22,8 +22,8 @@ export default function BillingSettingsPage() {
   const [saving, setSaving] = useState(false)
 
   const [settings, setSettings] = useState({
-    cgstRate: '9',
-    sgstRate: '9',
+    cgstRate: '15',
+    sgstRate: '0',
     defaultPaymentTerms: '30',
     invoicePrefix: 'INV',
     receiptPrefix: 'REC',
@@ -31,8 +31,8 @@ export default function BillingSettingsPage() {
     invoiceNotes: 'Thank you for choosing our services.',
     termsAndConditions:
       'Payment is due within 30 days from the invoice date.\nLate payments may incur additional charges.',
-    currencySymbol: '₹',
-    currencyCode: 'INR',
+    currencySymbol: 'ETB',
+    currencyCode: 'ETB',
     enableAutoInvoice: 'true',
     lateFeePercentage: '2',
     minimumDueAmount: '100',
@@ -115,12 +115,12 @@ export default function BillingSettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Tax Configuration</CardTitle>
-            <CardDescription>GST and tax rates for invoicing</CardDescription>
+            <CardDescription>Configure Ethiopian VAT and any additional tax</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="cgstRate">CGST Rate (%)</Label>
+                <Label htmlFor="cgstRate">VAT Rate (%)</Label>
                 <Input
                   id="cgstRate"
                   type="number"
@@ -128,11 +128,11 @@ export default function BillingSettingsPage() {
                   value={settings.cgstRate}
                   onChange={(e) => setSettings({ ...settings, cgstRate: e.target.value })}
                 />
-                <p className="text-sm text-muted-foreground mt-1">Central Goods and Services Tax</p>
+                <p className="text-sm text-muted-foreground mt-1">Ethiopian value-added tax</p>
               </div>
 
               <div>
-                <Label htmlFor="sgstRate">SGST Rate (%)</Label>
+                <Label htmlFor="sgstRate">Additional Tax Rate (%)</Label>
                 <Input
                   id="sgstRate"
                   type="number"
@@ -140,15 +140,17 @@ export default function BillingSettingsPage() {
                   value={settings.sgstRate}
                   onChange={(e) => setSettings({ ...settings, sgstRate: e.target.value })}
                 />
-                <p className="text-sm text-muted-foreground mt-1">State Goods and Services Tax</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Optional additional tax, if applicable
+                </p>
               </div>
             </div>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm text-blue-800">
-                <strong>Total GST:</strong>{' '}
-                {parseFloat(settings.cgstRate) + parseFloat(settings.sgstRate)}% (CGST{' '}
-                {settings.cgstRate}% + SGST {settings.sgstRate}%)
+                <strong>Total tax:</strong>{' '}
+                {parseFloat(settings.cgstRate) + parseFloat(settings.sgstRate)}% (VAT{' '}
+                {settings.cgstRate}% + additional tax {settings.sgstRate}%)
               </p>
             </div>
           </CardContent>
@@ -265,7 +267,7 @@ export default function BillingSettingsPage() {
                   id="currencyCode"
                   value={settings.currencyCode}
                   onChange={(e) => setSettings({ ...settings, currencyCode: e.target.value })}
-                  placeholder="INR"
+                  placeholder="ETB"
                 />
               </div>
 
@@ -275,7 +277,7 @@ export default function BillingSettingsPage() {
                   id="currencySymbol"
                   value={settings.currencySymbol}
                   onChange={(e) => setSettings({ ...settings, currencySymbol: e.target.value })}
-                  placeholder="₹"
+                  placeholder="ETB"
                 />
               </div>
             </div>

@@ -206,7 +206,7 @@ async function costEstimate(hospitalId: string, body: Record<string, unknown>) {
         {
           role: 'system',
           content:
-            'Generate a dental treatment cost breakdown. Include base costs, materials estimate, and GST at 12%.\n\nOutput valid JSON ONLY:\n{"lineItems":[{"description":"...","quantity":1,"unitCost":0,"total":0}],"subtotal":0,"gst":0,"grandTotal":0,"notes":"..."}',
+            'Generate a dental treatment cost breakdown in Ethiopian birr. Include base costs and materials. Do not assume a tax rate; return tax as 0 unless a rate is supplied in the request.\n\nOutput valid JSON ONLY:\n{"lineItems":[{"description":"...","quantity":1,"unitCost":0,"total":0}],"subtotal":0,"gst":0,"grandTotal":0,"notes":"..."}',
         },
         {
           role: 'user',

@@ -32,7 +32,6 @@ import {
   Calendar,
   Clock,
   AlertCircle,
-  IndianRupee,
   CreditCard,
   Banknote,
 } from 'lucide-react'
@@ -676,7 +675,7 @@ export default function FinancialReportsPage() {
                         Card
                       </div>
                     </TableHead>
-                    <TableHead className="text-right">UPI</TableHead>
+                    <TableHead className="text-right">Mobile Money</TableHead>
                     <TableHead className="text-right">Bank Transfer</TableHead>
                     <TableHead className="text-right">Total</TableHead>
                     <TableHead className="text-center">Count</TableHead>

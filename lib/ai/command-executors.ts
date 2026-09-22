@@ -463,7 +463,7 @@ export async function execCreateTreatment(params: Record<string, string>, hospit
 
   return {
     success: true,
-    message: `Treatment ${treatment.treatmentNo} created: ${procedure.name} for ${patient.firstName} ${patient.lastName} by Dr. ${doctor.firstName}. Cost: ₹${Number(treatment.cost).toLocaleString('en-IN')}.`,
+    message: `Treatment ${treatment.treatmentNo} created: ${procedure.name} for ${patient.firstName} ${patient.lastName} by Dr. ${doctor.firstName}. Cost: ETB ${Number(treatment.cost).toLocaleString('en-ET')}.`,
   }
 }
 
@@ -539,7 +539,7 @@ export async function execShowTreatments(params: Record<string, string>, hospita
       patient: `${t.patient.firstName} ${t.patient.lastName}`,
       procedure: t.procedure.name,
       doctor: `Dr. ${t.doctor.firstName}`,
-      cost: `₹${Number(t.cost).toLocaleString('en-IN')}`,
+      cost: `ETB ${Number(t.cost).toLocaleString('en-ET')}`,
       status: t.status,
       date: t.createdAt.toISOString().split('T')[0],
     })),
@@ -602,7 +602,7 @@ export async function execCreateInvoice(params: Record<string, string>, hospital
 
   return {
     success: true,
-    message: `Invoice ${invoice.invoiceNo} created for ${patient.firstName} ${patient.lastName}. Subtotal: ₹${subtotal.toLocaleString('en-IN')}, GST: ₹${(cgstAmount + sgstAmount).toFixed(2)}, Total: ₹${totalAmount.toFixed(2)}. Includes ${unbilled.length} treatment(s).`,
+    message: `Invoice ${invoice.invoiceNo} created for ${patient.firstName} ${patient.lastName}. Subtotal: ETB ${subtotal.toLocaleString('en-ET')}, tax: ETB ${(cgstAmount + sgstAmount).toFixed(2)}, total: ETB ${totalAmount.toFixed(2)}. Includes ${unbilled.length} treatment(s).`,
     invoiceNo: invoice.invoiceNo,
   }
 }
@@ -642,7 +642,7 @@ export async function execRecordPayment(params: Record<string, string>, hospital
   if (amount > Number(invoice.balanceAmount)) {
     return {
       success: false,
-      message: `Amount ₹${amount} exceeds balance ₹${Number(invoice.balanceAmount).toLocaleString('en-IN')}.`,
+      message: `Amount ETB ${amount} exceeds balance ETB ${Number(invoice.balanceAmount).toLocaleString('en-ET')}.`,
     }
   }
 
@@ -674,7 +674,7 @@ export async function execRecordPayment(params: Record<string, string>, hospital
 
   return {
     success: true,
-    message: `Payment ${paymentNo} of ₹${amount.toLocaleString('en-IN')} recorded for invoice ${invoice.invoiceNo} (${invoice.patient.firstName} ${invoice.patient.lastName}). ${newBalance <= 0 ? 'Invoice fully paid.' : `Remaining balance: ₹${newBalance.toFixed(2)}.`}`,
+    message: `Payment ${paymentNo} of ETB ${amount.toLocaleString('en-ET')} recorded for invoice ${invoice.invoiceNo} (${invoice.patient.firstName} ${invoice.patient.lastName}). ${newBalance <= 0 ? 'Invoice fully paid.' : `Remaining balance: ETB ${newBalance.toFixed(2)}.`}`,
   }
 }
 
@@ -699,9 +699,9 @@ export async function execShowInvoices(params: Record<string, string>, hospitalI
     invoices: invoices.map((i) => ({
       invoiceNo: i.invoiceNo,
       patient: `${i.patient.firstName} ${i.patient.lastName}`,
-      total: `₹${Number(i.totalAmount).toLocaleString('en-IN')}`,
-      paid: `₹${Number(i.paidAmount).toLocaleString('en-IN')}`,
-      balance: `₹${Number(i.balanceAmount).toLocaleString('en-IN')}`,
+      total: `ETB ${Number(i.totalAmount).toLocaleString('en-ET')}`,
+      paid: `ETB ${Number(i.paidAmount).toLocaleString('en-ET')}`,
+      balance: `ETB ${Number(i.balanceAmount).toLocaleString('en-ET')}`,
       status: i.status,
       date: i.createdAt.toISOString().split('T')[0],
     })),
@@ -718,11 +718,11 @@ export async function execCheckOverdue(hospitalId: string) {
   return {
     success: true,
     count: overdue.length,
-    totalOverdue: `₹${overdue.reduce((s, i) => s + Number(i.balanceAmount), 0).toLocaleString('en-IN')}`,
+    totalOverdue: `ETB ${overdue.reduce((s, i) => s + Number(i.balanceAmount), 0).toLocaleString('en-ET')}`,
     invoices: overdue.map((i) => ({
       invoiceNo: i.invoiceNo,
       patient: `${i.patient.firstName} ${i.patient.lastName}`,
-      balance: `₹${Number(i.balanceAmount).toLocaleString('en-IN')}`,
+      balance: `ETB ${Number(i.balanceAmount).toLocaleString('en-ET')}`,
     })),
   }
 }
@@ -759,8 +759,8 @@ export async function execShowRevenue(params: Record<string, string>, hospitalId
   return {
     success: true,
     period,
-    totalBilled: `₹${billed.toLocaleString('en-IN')}`,
-    totalCollected: `₹${collected.toLocaleString('en-IN')}`,
+    totalBilled: `ETB ${billed.toLocaleString('en-ET')}`,
+    totalCollected: `ETB ${collected.toLocaleString('en-ET')}`,
     collectionRate: billed > 0 ? `${((collected / billed) * 100).toFixed(1)}%` : 'N/A',
     invoiceCount: invoices.length,
   }
@@ -1256,7 +1256,7 @@ export async function execDailySummary(hospitalId: string) {
         remaining: todayAppointments - completedToday - cancelledToday - noShowToday,
       },
       billing: {
-        todayCollected: `₹${Number(todayRevenue._sum.amount || 0).toLocaleString('en-IN')}`,
+        todayCollected: `ETB ${Number(todayRevenue._sum.amount || 0).toLocaleString('en-ET')}`,
         pendingInvoices,
         overdueInvoices,
       },
@@ -1311,7 +1311,7 @@ export async function execCheckPatient(params: Record<string, string>, hospitalI
       gender: patient.gender,
       email: patient.email,
       medicalFlags: flags,
-      outstandingBalance: `₹${patient.invoices.reduce((s, i) => s + Number(i.balanceAmount), 0).toLocaleString('en-IN')}`,
+      outstandingBalance: `ETB ${patient.invoices.reduce((s, i) => s + Number(i.balanceAmount), 0).toLocaleString('en-ET')}`,
       recentAppointments: patient.appointments.map(
         (a) => `${a.scheduledDate.toISOString().split('T')[0]} – ${a.appointmentType} (${a.status})`
       ),

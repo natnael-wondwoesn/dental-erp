@@ -349,7 +349,7 @@ export default function CommunicationSettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>SMS Gateway Settings</CardTitle>
-              <CardDescription>Configure your Indian SMS gateway provider</CardDescription>
+              <CardDescription>Configure SMS delivery for Ethiopian phone numbers</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
@@ -370,10 +370,10 @@ export default function CommunicationSettingsPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="MSG91">MSG91</SelectItem>
-                      <SelectItem value="TEXTLOCAL">TextLocal</SelectItem>
-                      <SelectItem value="FAST2SMS">Fast2SMS</SelectItem>
-                      <SelectItem value="TWILIO">Twilio India</SelectItem>
+                      <SelectItem value="TWILIO">Twilio</SelectItem>
+                      <SelectItem value="MSG91">MSG91 (legacy)</SelectItem>
+                      <SelectItem value="TEXTLOCAL">TextLocal (legacy)</SelectItem>
+                      <SelectItem value="FAST2SMS">Fast2SMS (legacy)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -423,12 +423,12 @@ export default function CommunicationSettingsPage() {
                     <Label htmlFor="test-phone">Test Phone Number</Label>
                     <Input
                       id="test-phone"
-                      placeholder="9876543210"
+                      placeholder="+251911234567"
                       value={testPhone}
                       onChange={(e) => setTestPhone(e.target.value)}
                     />
                     <p className="text-xs text-muted-foreground">
-                      Enter a 10-digit Indian mobile number
+                      Enter an Ethiopian number in +251 format
                     </p>
                   </div>
                   <Button onClick={handleTestSMS} disabled={testing} variant="outline">
@@ -440,10 +440,10 @@ export default function CommunicationSettingsPage() {
               <Separator />
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-semibold text-blue-900 mb-2">TRAI Compliance</h4>
+                <h4 className="font-semibold text-blue-900 mb-2">Messaging Compliance</h4>
                 <ul className="text-sm text-blue-800 space-y-1">
-                  <li>• SMS will only be sent between 9 AM - 9 PM IST</li>
-                  <li>• DND registry will be checked before sending</li>
+                  <li>• Send messages during appropriate local hours (Africa/Addis_Ababa)</li>
+                  <li>• Use an approved sender identity where required</li>
                   <li>• Patient consent is required for promotional messages</li>
                 </ul>
               </div>

@@ -125,12 +125,12 @@ export function AIUsageStats() {
         <div className="flex items-center gap-6 mt-2">
           <div>
             <p className="text-xs text-muted-foreground">This Month</p>
-            <p className="text-sm font-bold">₹{stats.thisMonth.costINR.toFixed(2)}</p>
+            <p className="text-sm font-bold">ETB {stats.thisMonth.costINR.toFixed(2)}</p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">All-Time</p>
             <p className="text-sm font-semibold text-muted-foreground">
-              ₹{stats.allTime.costINR.toFixed(2)}
+              ETB {stats.allTime.costINR.toFixed(2)}
             </p>
           </div>
           <div>
