@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
 const isCI = !!process.env.CI
+const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
 
 /**
  * Browsers exercised locally. CI runs chromium only: the suite is ~480 tests,
@@ -36,7 +37,7 @@ export default defineConfig({
   // `open: 'never'` stops the reporter from starting a blocking preview server.
   reporter: isCI ? [['line'], ['html', { open: 'never' }]] : [['html', { open: 'on-failure' }]],
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -46,7 +47,7 @@ export default defineConfig({
     // per-test timeout repeatedly in CI. CI builds first and serves the
     // production output instead.
     command: isCI ? 'npm run start' : 'npm run dev',
-    url: 'http://localhost:3000',
+    url: baseURL,
     reuseExistingServer: !isCI,
     timeout: 120000,
   },

@@ -14,6 +14,26 @@ survey-authorization, and responsive smoke paths exercised below. Live SMS
 delivery and production scheduler execution require the configured deployment
 environment and were not simulated as successful provider deliveries.
 
+## Final pre-deployment re-validation
+
+Build under test: `c4a00bb` plus Playwright base-URL configurability recorded in
+the deployment commit. Base URL: `http://localhost:3001`. Browser: Chromium and
+Codex in-app browser. Database: local Docker MySQL with all 14 migrations applied.
+
+| Area              | Check                                                                                              | Result  | Evidence                                                                                                                                                                           |
+| ----------------- | -------------------------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Full regression   | Entire Vitest suite                                                                                | PASS    | 212 files; 4,575 tests passed.                                                                                                                                                     |
+| Browser workflows | Queue, payment plans, payment list, invoice payment dialog                                         | PASS    | 29/29 Chromium tests passed serially against full ERP mode. Parallel run passed 25/29; four failures were login timeouts only and all passed in serial rerun.                      |
+| Localization      | Dashboard, queue, invoice, payment plans, billing settings, communication settings, patient recall | PASS    | Live pages used Sunny Smile/Addis Ababa identity, ETB, Ethiopian VAT, `+251`, Africa/Addis_Ababa, English/Amharic; no Hindi, Tamil, rupee symbol, or Indian SMS guidance appeared. |
+| Payment dialog    | Methods and currency                                                                               | PASS    | ETB amount; Cash, Card, Mobile Money (legacy), Telebirr, Bank Transfer, Cheque, Other Provider.                                                                                    |
+| Amharic           | Queue and recall workflow                                                                          | PASS    | Queue overview and six-month recall labels switched to Amharic; state/data unchanged; UI restored to English afterward.                                                            |
+| Migration         | Production migration readiness                                                                     | PASS    | `prisma migrate status`: 14 migrations found; schema up to date. Production build generated all 242 static pages.                                                                  |
+| Live SMS          | Real Ethiopian provider delivery                                                                   | BLOCKED | No production-capable provider credential/safe recipient available locally. Failure, retry, claim, and authorization paths passed automated coverage.                              |
+| Second tenant     | Live cross-clinic browser exercise                                                                 | BLOCKED | No second configured local tenant. API tenant-isolation tests passed.                                                                                                              |
+
+Release recommendation: **CONDITIONAL GO**. Deploy application and migrations;
+then execute readiness checks plus live SMS/second-tenant follow-up below.
+
 ## Executed checks
 
 | Area       | Check                                      | Result | Evidence                                                                                                                                                              |
