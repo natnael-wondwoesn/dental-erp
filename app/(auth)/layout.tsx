@@ -22,7 +22,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <section className="hidden rounded-[32px] border border-white/60 bg-[#0f2d55] p-10 text-white shadow-[0_24px_70px_rgba(15,45,85,0.22)] lg:flex lg:flex-col lg:justify-between">
             <div className="space-y-6">
               <div className="inline-flex w-fit items-center rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-100">
-                {controlPlane ? 'Natnael Product Operations' : 'Sunny Smile Speciality Clinic'}
+                {controlPlane ? 'Natnael Product Operations' : 'D/R Lemlem Special Dental Clinic'}
               </div>
               <div className="space-y-4">
                 <h1 className="max-w-xl text-4xl font-semibold tracking-[-0.05em]">

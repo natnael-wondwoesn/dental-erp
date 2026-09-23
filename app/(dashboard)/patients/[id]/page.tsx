@@ -18,6 +18,7 @@ import {
   BellRing,
   CheckCircle2,
   Loader2,
+  Stethoscope,
 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n'
 import { getCurrentUser } from '@/lib/api-client'
@@ -169,6 +170,12 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
             <ArrowLeft className="h-4 w-4" /> {t('Patient list')}
           </button>
           <div className="flex items-center gap-2">
+            <Link
+              href={`/patients/${patient.id}/chart`}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#086be6] px-4 py-2 text-sm font-semibold text-white shadow-sm"
+            >
+              <Stethoscope className="h-4 w-4" /> {t('Dental chart')}
+            </Link>
             <Link
               href={`/patients/${patient.id}/medical-history`}
               className="inline-flex items-center gap-2 rounded-xl border bg-white px-4 py-2 text-sm font-semibold shadow-sm"

@@ -14,7 +14,7 @@ describe('PublicBookingForm', () => {
   it('loads public doctors without requiring staff or patient authentication', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(() =>
       response({
-        hospitalName: 'Sunny Smile Speciality Clinic',
+        hospitalName: 'D/R Lemlem Special Dental Clinic',
         doctors: [{ id: 'd1', firstName: 'Selam', lastName: 'Abebe', specialization: 'General' }],
       })
     )

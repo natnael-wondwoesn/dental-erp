@@ -4,8 +4,13 @@ const prisma = new PrismaClient()
 
 const userMappings = [
   {
-    emails: ['admin@demo-dental.com', 'admin@dentix.et', 'admin@sunnysmile.et'],
-    nextEmail: 'admin@sunnysmile.et',
+    emails: [
+      'admin@demo-dental.com',
+      'admin@dentix.et',
+      'admin@sunnysmile.et',
+      'admin@lemlemdental.et',
+    ],
+    nextEmail: 'admin@lemlemdental.et',
     name: 'Mekdes Alemu',
     phone: '0911234500',
     employeeId: 'EMP001',
@@ -15,8 +20,13 @@ const userMappings = [
     licenseNumber: 'AA-DEN-ADMIN-001',
   },
   {
-    emails: ['doctor@demo-dental.com', 'doctor@dentix.et', 'doctor@sunnysmile.et'],
-    nextEmail: 'doctor@sunnysmile.et',
+    emails: [
+      'doctor@demo-dental.com',
+      'doctor@dentix.et',
+      'doctor@sunnysmile.et',
+      'doctor@lemlemdental.et',
+    ],
+    nextEmail: 'doctor@lemlemdental.et',
     name: 'Dr. Selam Abebe',
     phone: '0911234501',
     employeeId: 'EMP002',
@@ -26,8 +36,13 @@ const userMappings = [
     licenseNumber: 'AA-DEN-ORTHO-014',
   },
   {
-    emails: ['reception@demo-dental.com', 'reception@dentix.et', 'reception@sunnysmile.et'],
-    nextEmail: 'reception@sunnysmile.et',
+    emails: [
+      'reception@demo-dental.com',
+      'reception@dentix.et',
+      'reception@sunnysmile.et',
+      'reception@lemlemdental.et',
+    ],
+    nextEmail: 'reception@lemlemdental.et',
     name: 'Hanna Tesfaye',
     phone: '0911234502',
     employeeId: 'EMP003',
@@ -82,19 +97,20 @@ async function main() {
   await prisma.hospital.update({
     where: { id: hospital.id },
     data: {
-      name: 'Sunny Smile Speciality Clinic',
-      email: 'hello@sunnysmile.et',
-      phone: '0116672211',
+      name: 'D/R Lemlem Special Dental Clinic',
+      email: 'hello@lemlemdental.et',
+      phone: '0911-529475',
+      alternatePhone: '0911-529480',
       address: 'Bole Road, near Edna Mall',
       city: 'Addis Ababa',
       state: 'Addis Ababa',
       pincode: '1000',
       tagline: 'Strong teeth, bright smile.',
-      website: 'www.sunnysmile.et',
+      website: 'www.lemlemdental.et',
       gstNumber: null,
       panNumber: null,
       registrationNo: 'AA-DEN-2024-0142',
-      upiId: 'sunnysmile@telebirr',
+      upiId: 'lemlemdental@telebirr',
       locale: 'en-ET',
       country: 'ET',
       currency: 'ETB',

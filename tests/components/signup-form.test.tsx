@@ -64,9 +64,9 @@ vi.mock('next/link', () => ({
 
 import SignupPage from '@/app/(auth)/signup/page'
 
-const HOSPITAL_PLACEHOLDER = 'Sunny Smile Speciality Clinic'
+const HOSPITAL_PLACEHOLDER = 'D/R Lemlem Special Dental Clinic'
 const ADMIN_PLACEHOLDER = 'Dr. Selam Abebe'
-const EMAIL_PLACEHOLDER = 'selam@sunnysmile.et'
+const EMAIL_PLACEHOLDER = 'selam@lemlemdental.et'
 const PHONE_PLACEHOLDER = '0911234567'
 const SUBMIT_LABEL = 'Create workspace'
 

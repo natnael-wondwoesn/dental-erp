@@ -609,7 +609,7 @@ export default function ClinicSettingsPage() {
                   id="upiId"
                   value={formData.upiId}
                   onChange={(e) => handleChange('upiId', e.target.value)}
-                  placeholder="sunnysmile@telebirr"
+                  placeholder="lemlemdental@telebirr"
                 />
               </div>
             </div>

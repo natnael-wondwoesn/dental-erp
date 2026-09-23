@@ -1,4 +1,4 @@
-import { resolveClinicEmail, resolveClinicName } from '@/lib/branding'
+import { resolveClinicName } from '@/lib/branding'
 
 export const MEDICAL_CERTIFICATE_TEMPLATE_NAME = 'Medical Certificate'
 
@@ -30,11 +30,12 @@ export interface MedicalCertificateClinic {
   address?: string | null
   city?: string | null
   phone?: string | null
+  alternatePhone?: string | null
   email?: string | null
   registrationNo?: string | null
 }
 
-function escapeHtml(value: unknown): string {
+function e(value: unknown): string {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -43,8 +44,12 @@ function escapeHtml(value: unknown): string {
     .replace(/'/g, '&#039;')
 }
 
-function line(label: string, value?: string, wide = false) {
-  return `<div class="line ${wide ? 'wide' : ''}"><span class="label">${escapeHtml(label)}</span><span class="value">${escapeHtml(value || ' ')}</span></div>`
+function value(content?: string) {
+  return `<span class="value">${e(content || ' ')}</span>`
+}
+
+function toothLogo() {
+  return `<svg class="tooth-logo" viewBox="0 0 64 72" aria-hidden="true"><path d="M18 7c6 0 9 4 14 4s8-4 14-4c9 0 14 8 12 18-2 8-7 12-9 21-2 10-3 19-8 19-6 0-4-17-9-17s-3 17-9 17c-5 0-6-9-8-19-2-9-7-13-9-21C4 15 9 7 18 7Z"/><path d="M21 25c3 4 7 6 11 6s8-2 11-6M23 39h18"/></svg>`
 }
 
 export function renderMedicalCertificateHtml(
@@ -52,96 +57,24 @@ export function renderMedicalCertificateHtml(
   clinic: MedicalCertificateClinic
 ): string {
   const clinicName = resolveClinicName(clinic.name)
-  const clinicEmail = resolveClinicEmail(clinic.email)
-  const logo = clinic.logo
-    ? `<img class="logo" src="${escapeHtml(clinic.logo)}" alt="" />`
-    : `<div class="logo-fallback">SS</div>`
+  const phones = [clinic.phone, clinic.alternatePhone].filter(Boolean).join(' / ')
+  const findings = [data.dentalDiagnosis, data.medicalDiagnosis].filter(Boolean).join(' — ')
+  const leave = [data.leaveFrom, data.leaveTo].filter(Boolean).join(' to ')
+  const logo = clinic.logo ? `<img class="logo" src="${e(clinic.logo)}" alt="" />` : toothLogo()
 
   return `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>${escapeHtml(data.certificateNo)} — Medical Certificate</title>
-  <style>
-    @page { size: A4; margin: 12mm; }
-    * { box-sizing: border-box; }
-    body { margin: 0; color: #101828; background: #eef2f6; font-family: Georgia, 'Times New Roman', serif; }
-    .toolbar { max-width: 210mm; margin: 16px auto 0; display: flex; justify-content: flex-end; }
-    .toolbar button { border: 0; border-radius: 999px; background: #0b6fe8; color: white; padding: 11px 20px; font: 600 14px system-ui; cursor: pointer; }
-    .paper { width: 210mm; min-height: 297mm; margin: 16px auto; padding: 18mm 17mm; background: white; box-shadow: 0 20px 55px rgba(15, 35, 60, .16); }
-    .header { display: grid; grid-template-columns: 25mm 1fr auto; gap: 8mm; align-items: center; border-bottom: 2px solid #18314f; padding-bottom: 7mm; }
-    .logo,.logo-fallback { width: 24mm; height: 24mm; object-fit: contain; border-radius: 4mm; }
-    .logo-fallback { display: grid; place-items: center; color: white; background: #0b6fe8; font: 700 24px system-ui; }
-    .amharic { font-family: 'Noto Sans Ethiopic', Arial, sans-serif; font-size: 15px; font-weight: 700; }
-    .clinic { font-size: 21px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; }
-    .contact { text-align: right; font: 10px/1.5 Arial, sans-serif; color: #53657a; }
-    .title { margin: 14mm 0 4mm; text-align: center; font-size: 24px; font-weight: 700; }
-    .document-no { text-align: center; font: 11px Arial, sans-serif; color: #607086; margin-bottom: 10mm; }
-    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6mm 7mm; }
-    .line { min-height: 9mm; display: flex; gap: 3mm; align-items: end; }
-    .line.wide { grid-column: 1 / -1; }
-    .label { flex: none; font-size: 13px; white-space: nowrap; }
-    .value { flex: 1; min-height: 7mm; border-bottom: 1px dotted #344054; padding: 0 2mm 1.5mm; font: 12px/1.4 Arial, sans-serif; }
-    .section { margin-top: 9mm; }
-    .section-title { font-size: 13px; margin-bottom: 2mm; }
-    .answer { min-height: 18mm; border-bottom: 1px dotted #667085; padding: 2mm 1mm; white-space: pre-wrap; font: 12px/1.55 Arial, sans-serif; }
-    .answer.tall { min-height: 27mm; }
-    .leave { margin-top: 8mm; display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; padding: 5mm; background: #f4f8fc; border: 1px solid #d4e1ee; border-radius: 3mm; }
-    .signature { margin-top: 18mm; margin-left: auto; width: 78mm; }
-    .signature .rule { margin-top: 13mm; border-top: 1px solid #101828; }
-    .signature p { margin: 1.5mm 0; font: 11px Arial, sans-serif; }
-    .footer { margin-top: 16mm; padding-top: 4mm; border-top: 1px solid #d0d5dd; text-align: center; font: 9px Arial, sans-serif; color: #667085; }
-    @media print {
-      @page { size: A4; margin: 8mm; }
-      html, body { width: 100%; height: auto; background: white; }
-      .toolbar { display: none; }
-      .paper { width: auto; min-height: 0; margin: 0; padding: 0; box-shadow: none; }
-      .header { grid-template-columns: 20mm 1fr auto; gap: 4mm; padding-bottom: 4mm; }
-      .logo,.logo-fallback { width: 19mm; height: 19mm; }
-      .amharic { font-size: 12px; }
-      .clinic { font-size: 17px; }
-      .contact { font-size: 8px; }
-      .title { margin: 6mm 0 2mm; font-size: 20px; }
-      .document-no { margin-bottom: 5mm; }
-      .grid { gap: 2.5mm 5mm; }
-      .line { min-height: 6.5mm; }
-      .value { min-height: 5.5mm; padding-bottom: 1mm; font-size: 10px; }
-      .section { margin-top: 4mm; }
-      .section-title { margin-bottom: 1mm; }
-      .answer { min-height: 11mm; padding: 1mm; font-size: 10px; line-height: 1.35; }
-      .answer.tall { min-height: 16mm; }
-      .leave { margin-top: 4mm; padding: 2.5mm; }
-      .signature { margin-top: 6mm; }
-      .signature .rule { margin-top: 6mm; }
-      .signature p { margin: 1mm 0; font-size: 9px; }
-      .footer { margin-top: 6mm; padding-top: 2.5mm; }
-    }
-  </style>
-</head>
-<body>
-  <div class="toolbar"><button onclick="window.print()">Print certificate</button></div>
-  <main class="paper">
-    <header class="header">
-      ${logo}
-      <div><div class="amharic">ሰኒ ስማይል ስፔሻሊቲ የጥርስ ክሊኒክ</div><div class="clinic">${escapeHtml(clinicName)}</div></div>
-      <div class="contact">${escapeHtml([clinic.address, clinic.city].filter(Boolean).join(', '))}<br>${escapeHtml(clinic.phone || '')}<br>${escapeHtml(clinicEmail)}</div>
-    </header>
-    <h1 class="title">Medical Certificate</h1>
-    <div class="document-no">Certificate No. ${escapeHtml(data.certificateNo)}</div>
-    <section class="grid">
-      ${line("Patient's full name", data.patientFullName, true)}
-      ${line('Sex', data.sex)}${line('Age', data.age)}${line('Card No.', data.cardNo)}
-      ${line('City', data.city)}${line('Sub City', data.subCity)}${line('Woreda', data.woreda)}
-      ${line('Date examined and treated', data.examinedAt, true)}
-    </section>
-    <section class="section"><div class="section-title">Dental diagnosis</div><div class="answer">${escapeHtml(data.dentalDiagnosis)}</div></section>
-    <section class="section"><div class="section-title">Medical diagnosis</div><div class="answer">${escapeHtml(data.medicalDiagnosis || 'No additional medical diagnosis recorded.')}</div></section>
-    <section class="section"><div class="section-title">Recommendation</div><div class="answer tall">${escapeHtml(data.recommendation)}</div></section>
-    ${data.leaveFrom || data.leaveTo ? `<section class="leave">${line('Medical leave from', data.leaveFrom)}${line('Return / leave through', data.leaveTo)}</section>` : ''}
-    <section class="signature"><div class="rule"></div><p><strong>${escapeHtml(data.physicianName)}</strong></p><p>${escapeHtml(data.physicianQualification || 'Dental Surgeon')}</p><p>${data.physicianRegistration ? `Registration No. ${escapeHtml(data.physicianRegistration)}` : ''}</p><p>Signature &amp; clinic stamp</p></section>
-    <footer class="footer">Issued by ${escapeHtml(clinicName)} · Verify using certificate number ${escapeHtml(data.certificateNo)}</footer>
-  </main>
-</body>
-</html>`
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${e(data.certificateNo)} — Medical Certificate</title>
+<style>
+@page{size:A5 portrait;margin:7mm}*{box-sizing:border-box}body{margin:0;background:#e9ecef;color:#213b73;font-family:Georgia,'Times New Roman',serif}.toolbar{width:148mm;margin:14px auto 0;display:flex;justify-content:flex-end}.toolbar button{border:0;border-radius:999px;background:#213b73;color:#fff;padding:10px 18px;font:600 13px system-ui;cursor:pointer}.paper{width:148mm;min-height:210mm;margin:14px auto;padding:9mm 10mm 8mm;background:#fff;box-shadow:0 16px 45px #17233c2b}.masthead{display:grid;grid-template-columns:17mm 1fr;align-items:center;gap:3mm;text-align:center}.logo,.tooth-logo{width:15mm;height:17mm;object-fit:contain}.tooth-logo{fill:none;stroke:#49649b;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.clinic-am{font-family:'Noto Sans Ethiopic',Arial,sans-serif;font-size:12px;font-weight:700;line-height:1.25}.clinic-en{font:700 13px/1.25 Arial,sans-serif;letter-spacing:.02em;text-transform:uppercase}.phones{font:12px/1.35 Arial,sans-serif;letter-spacing:.03em}.card-row{display:flex;justify-content:flex-end;margin-top:5mm}.card{width:55mm;font-size:10px}.am-label{font-family:'Noto Sans Ethiopic',Arial,sans-serif;font-size:9px}.card-line{display:flex;align-items:end;gap:2mm}.card-line .value{min-height:5mm}.title{text-align:center;margin:6mm 0}.title .am-title{font-family:'Noto Sans Ethiopic',Arial,sans-serif;font-size:14px;font-weight:700}.title h1{display:inline-block;margin:1mm 0 0;border-bottom:1.5px solid #213b73;font-size:20px;line-height:1.1;text-transform:uppercase}.row{display:flex;align-items:end;gap:2mm;min-height:8mm;font-size:11px}.row .label{white-space:nowrap}.row .value{flex:1;min-height:6mm;border-bottom:1px solid #60749c;padding:0 1.5mm 1mm;color:#111;font:10px/1.3 Arial,sans-serif}.patient{display:grid;grid-template-columns:1fr 28mm 28mm;gap:3mm}.stack{margin-top:2mm}.stack .row{min-height:12mm}.recommendation{margin-top:2mm}.recommendation .row{align-items:start;min-height:32mm}.recommendation .label{padding-top:2mm}.recommendation .value{min-height:30mm;white-space:pre-wrap}.outcome{margin-top:6mm;padding-left:18mm}.outcome .row{min-height:11mm}.signature{width:67mm;margin:13mm auto 0;text-align:center}.signature .rule{border-top:1px solid #60749c}.signature .am-label{margin-top:2mm}.signature .en{font-size:11px}.doctor{color:#111;font:9px/1.35 Arial,sans-serif}.print-note{text-align:center;color:#667085;font:8px Arial,sans-serif;margin-top:7mm}@media print{html,body{width:148mm;min-height:210mm;background:#fff}.toolbar{display:none}.paper{width:auto;min-height:0;margin:0;padding:0;box-shadow:none}.print-note{display:none}}
+</style></head><body><div class="toolbar"><button onclick="window.print()">Print certificate</button></div><main class="paper">
+<header class="masthead">${logo}<div><div class="clinic-am">ዶ/ር ለምለም ልዩ የጥርስ ሕክምና ክሊኒክ</div><div class="clinic-en">${e(clinicName)}</div><div class="phones">${e(phones)}</div></div></header>
+<div class="card-row"><div class="card"><div class="am-label">የካርድ ቁጥር</div><div class="card-line"><span>CARD No.</span>${value(data.cardNo)}</div></div></div>
+<div class="title"><div class="am-title">የሕክምና የምስክር ወረቀት</div><h1>Medical Certificate</h1></div>
+<section class="patient"><div class="row"><span class="label"><span class="am-label">አቶ/ወ/ሮ</span><br>Mr/Mrs</span>${value(data.patientFullName)}</div><div class="row"><span class="label"><span class="am-label">ዕድሜ</span><br>Age</span>${value(data.age)}</div><div class="row"><span class="label"><span class="am-label">ፆታ</span><br>Sex</span>${value(data.sex)}</div></section>
+<section class="stack"><div class="row"><span class="label"><span class="am-label">የተመረመሩት / የታከሙበት ቀን</span><br>Examined &amp;/or Treated</span>${value(data.examinedAt)}</div><div class="row"><span class="label"><span class="am-label">የምርመራ ውጤት</span><br>And Found to have</span>${value(findings)}</div></section>
+<section class="recommendation"><div class="row"><span class="label"><span class="am-label">የሐኪሙ ትእዛዝ</span><br>Doctor’s Recommendation</span>${value(data.recommendation)}</div></section>
+<section class="outcome"><div class="row"><span class="label"><span class="am-label">የተፈቀደላቸው ዕረፍት</span><br>Rest Recommendation</span>${value(leave)}</div><div class="row"><span class="label"><span class="am-label">ለሥራ ብቁ የሚሆኑበት</span><br>Fit for work</span>${value(data.leaveTo)}</div></section>
+<section class="signature"><div class="doctor">${e(data.physicianName)}${data.physicianQualification ? ` · ${e(data.physicianQualification)}` : ''}${data.physicianRegistration ? ` · ${e(data.physicianRegistration)}` : ''}</div><div class="rule"></div><div class="am-label">የሐኪሙ ፊርማና ማህተም</div><div class="en">Dr. Signature &amp; Stamp</div></section><div class="print-note">${e(data.certificateNo)}</div>
+</main></body></html>`
 }

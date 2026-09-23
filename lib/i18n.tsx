@@ -66,7 +66,7 @@ export const amharic: Record<string, string> = {
   'Clear treatment plans': 'ግልጽ የሕክምና ዕቅዶች',
   'Modern clinical technology': 'ዘመናዊ የክሊኒክ ቴክኖሎጂ',
   'Warm, unrushed appointments': 'ሞቅ ያለና ያልተጣደፈ ቀጠሮ',
-  'About Sunny Smile Speciality Clinic': 'ስለ ሰኒ ስማይል ስፔሻሊቲ ክሊኒክ',
+  'About D/R Lemlem Special Dental Clinic': 'ስለ ዶ/ር ለምለም ልዩ የጥርስ ሕክምና ክሊኒክ',
   'High-quality dental care tailored to your needs, combining oral health with thoughtful aesthetics.':
     'የአፍ ጤናን ከተመጣጠነ ውበት ጋር በማጣመር ለፍላጎትዎ የተስማማ ከፍተኛ ጥራት ያለው የጥርስ ሕክምና።',
   'More about us': 'ተጨማሪ ይወቁ',

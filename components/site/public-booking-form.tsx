@@ -64,7 +64,7 @@ export function PublicBookingIntro() {
 export function PublicBookingForm({ clinicSlug }: { clinicSlug: string }) {
   const { t } = useLanguage()
   const [doctors, setDoctors] = useState<Doctor[]>([])
-  const [hospitalName, setHospitalName] = useState('Sunny Smile Speciality Clinic')
+  const [hospitalName, setHospitalName] = useState('D/R Lemlem Special Dental Clinic')
   const [loadingDoctors, setLoadingDoctors] = useState(true)
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -94,7 +94,7 @@ export function PublicBookingForm({ clinicSlug }: { clinicSlug: string }) {
         if (!response.ok) throw new Error(data.error || 'Online booking is unavailable right now')
         if (active) {
           setDoctors(data.doctors || [])
-          setHospitalName(data.hospitalName || 'Sunny Smile Speciality Clinic')
+          setHospitalName(data.hospitalName || 'D/R Lemlem Special Dental Clinic')
         }
       })
       .catch((caught: Error) => active && setError(caught.message))

@@ -28,6 +28,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       address: true,
       city: true,
       phone: true,
+      alternatePhone: true,
       email: true,
       registrationNo: true,
     },
@@ -35,7 +36,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const data = submission.data as unknown as MedicalCertificateData
   const html = renderMedicalCertificateHtml(
     data,
-    clinic || { name: 'Sunny Smile Speciality Clinic' }
+    clinic || { name: 'D/R Lemlem Special Dental Clinic' }
   )
 
   return new Response(html, {

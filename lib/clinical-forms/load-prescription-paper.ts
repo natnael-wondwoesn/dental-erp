@@ -19,6 +19,7 @@ export async function loadPrescriptionPaper(id: string, hospitalId: string) {
       address: true,
       city: true,
       phone: true,
+      alternatePhone: true,
       email: true,
       registrationNo: true,
     },
@@ -38,7 +39,9 @@ export async function loadPrescriptionPaper(id: string, hospitalId: string) {
       age: age ? String(age) : '',
       phone: prescription.patient.phone,
       email: prescription.patient.email || '',
-      address: [prescription.patient.address, prescription.patient.city].filter(Boolean).join(', '),
+      region: prescription.patient.state || '',
+      town: prescription.patient.city || '',
+      houseNo: prescription.patient.address || '',
     },
     diagnosis: prescription.diagnosis || '',
     notes: prescription.notes || '',
@@ -59,5 +62,5 @@ export async function loadPrescriptionPaper(id: string, hospitalId: string) {
       registration: prescription.doctor.licenseNumber || '',
     },
   }
-  return { prescription, clinic: clinic || { name: 'Sunny Smile Speciality Clinic' }, data }
+  return { prescription, clinic: clinic || { name: 'D/R Lemlem Special Dental Clinic' }, data }
 }

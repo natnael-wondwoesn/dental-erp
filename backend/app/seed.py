@@ -72,9 +72,9 @@ async def seed(session: AsyncSession) -> None:
     hospital = await session.scalar(select(Hospital).where(Hospital.slug == "demo-dental"))
     if hospital is None:
         hospital = Hospital(
-            name="Sunny Smile Speciality Clinic",
+            name="D/R Lemlem Special Dental Clinic",
             slug="demo-dental",
-            email="clinic@demo-dental.com",
+            email="hello@lemlemdental.et",
             locale="en-ET",
             country="ET",
             currency="ETB",
@@ -83,7 +83,8 @@ async def seed(session: AsyncSession) -> None:
         session.add(hospital)
         await session.flush()
     else:
-        hospital.name = "Sunny Smile Speciality Clinic"
+        hospital.name = "D/R Lemlem Special Dental Clinic"
+        hospital.email = "hello@lemlemdental.et"
         hospital.locale = "en-ET"
         hospital.country = "ET"
         hospital.currency = "ETB"
@@ -119,11 +120,11 @@ async def seed(session: AsyncSession) -> None:
         )
         await session.flush()
 
-    admin = await session.scalar(select(User).where(User.email == "admin@demo-dental.com"))
+    admin = await session.scalar(select(User).where(User.email.in_(["admin@demo-dental.com", "admin@lemlemdental.et"])))
     if admin is None:
         admin = User(
             hospital_id=hospital.id,
-            email="admin@demo-dental.com",
+            email="admin@lemlemdental.et",
             password_hash=hash_password("Admin@123"),
             name="Demo Administrator",
             is_hospital_admin=True,
@@ -131,6 +132,8 @@ async def seed(session: AsyncSession) -> None:
         )
         session.add(admin)
         await session.flush()
+    else:
+        admin.email = "admin@lemlemdental.et"
 
     patients = list(
         (await session.scalars(select(Patient).where(Patient.hospital_id == hospital.id))).all()

@@ -106,7 +106,7 @@ export default function SignupPage() {
             <Label htmlFor="hospitalName">Hospital/Clinic Name</Label>
             <Input
               id="hospitalName"
-              placeholder="Sunny Smile Speciality Clinic"
+              placeholder="D/R Lemlem Special Dental Clinic"
               {...register('hospitalName')}
               disabled={isLoading}
             />
@@ -133,7 +133,7 @@ export default function SignupPage() {
             <Input
               id="email"
               type="email"
-              placeholder="selam@sunnysmile.et"
+              placeholder="selam@lemlemdental.et"
               {...register('email')}
               disabled={isLoading}
             />

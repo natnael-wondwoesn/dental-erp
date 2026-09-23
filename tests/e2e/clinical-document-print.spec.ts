@@ -4,18 +4,19 @@ import { renderMedicalCertificateHtml } from '../../lib/clinical-forms/medical-c
 import { renderPrescriptionPaperHtml } from '../../lib/clinical-forms/prescription-paper'
 
 const clinic = {
-  name: 'Sunny Smile Speciality Cinic',
+  name: 'D/R Lemlem Special Dental Clinic',
   address: 'Bole Road, near Edna Mall',
   city: 'Addis Ababa',
-  phone: '0116672211',
-  email: 'hello@sunnysmile.et',
+  phone: '0911-529475',
+  alternatePhone: '0911-529480',
+  email: 'hello@lemlemdental.et',
 }
 
 function pdfPageCount(pdf: Buffer) {
   return pdf.toString('latin1').match(/\/Type\s*\/Page\b/g)?.length ?? 0
 }
 
-test('medical certificate prints on exactly one A4 page', async ({ page }) => {
+test('medical certificate prints on exactly one A5 page', async ({ page }) => {
   await page.setContent(
     renderMedicalCertificateHtml(
       {
@@ -42,11 +43,11 @@ test('medical certificate prints on exactly one A4 page', async ({ page }) => {
     )
   )
 
-  const pdf = await page.pdf({ format: 'A4', printBackground: true, preferCSSPageSize: true })
+  const pdf = await page.pdf({ format: 'A5', printBackground: true, preferCSSPageSize: true })
   expect(pdfPageCount(pdf)).toBe(1)
 })
 
-test('prescription paper prints on exactly one A4 page', async ({ page }) => {
+test('prescription paper prints on exactly one A5 page', async ({ page }) => {
   await page.setContent(
     renderPrescriptionPaperHtml(
       {
@@ -58,7 +59,11 @@ test('prescription paper prints on exactly one A4 page', async ({ page }) => {
           sex: 'MALE',
           age: '30',
           phone: '0911234567',
-          address: 'Bole Road, Addis Ababa',
+          region: 'Addis Ababa',
+          town: 'Addis Ababa',
+          woreda: '04',
+          kebele: '12',
+          houseNo: 'Bole Road',
         },
         diagnosis: 'Acute apical abscess associated with the lower right first molar.',
         medications: Array.from({ length: 7 }, (_, index) => ({
@@ -80,6 +85,6 @@ test('prescription paper prints on exactly one A4 page', async ({ page }) => {
     )
   )
 
-  const pdf = await page.pdf({ format: 'A4', printBackground: true, preferCSSPageSize: true })
+  const pdf = await page.pdf({ format: 'A5', printBackground: true, preferCSSPageSize: true })
   expect(pdfPageCount(pdf)).toBe(1)
 })

@@ -157,7 +157,7 @@ export function AboutSection() {
           <div className="relative aspect-[4/4.5] overflow-hidden rounded-[34px] bg-[#e7eff8] shadow-[0_34px_80px_-42px_rgba(11,45,83,.55)] sm:rounded-[46px]">
             <Image
               src="/assets/dentix-team-ethiopia.png"
-              alt="The Sunny Smile Speciality Clinic dental care team in Addis Ababa"
+              alt="The D/R Lemlem Special Dental Clinic care team in Addis Ababa"
               fill
               className="object-cover"
               sizes="(min-width: 1024px) 42vw, 100vw"

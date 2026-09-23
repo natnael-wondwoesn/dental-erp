@@ -30,12 +30,20 @@ async function main() {
   // Create default hospital
   const hospital = await prisma.hospital.upsert({
     where: { slug: 'demo-dental-clinic' },
-    update: {},
+    update: {
+      name: 'D/R Lemlem Special Dental Clinic',
+      email: 'hello@lemlemdental.et',
+      phone: '0911-529475',
+      alternatePhone: '0911-529480',
+      website: 'www.lemlemdental.et',
+      upiId: 'lemlemdental@telebirr',
+    },
     create: {
-      name: 'Sunny Smile Speciality Clinic',
+      name: 'D/R Lemlem Special Dental Clinic',
       slug: 'demo-dental-clinic',
-      email: 'hello@sunnysmile.et',
-      phone: '0116672211',
+      email: 'hello@lemlemdental.et',
+      phone: '0911-529475',
+      alternatePhone: '0911-529480',
       plan: Plan.PROFESSIONAL,
       isActive: true,
       onboardingCompleted: true,
@@ -44,7 +52,7 @@ async function main() {
       state: 'Addis Ababa',
       pincode: '1000',
       tagline: 'Strong teeth, bright smile.',
-      website: 'www.sunnysmile.et',
+      website: 'www.lemlemdental.et',
       gstNumber: null,
       registrationNo: 'AA-DEN-2024-0142',
       currency: 'ETB',
@@ -58,7 +66,7 @@ async function main() {
         saturday: { open: '09:00', close: '14:00' },
         sunday: { open: null, close: null },
       }),
-      upiId: 'sunnysmile@telebirr',
+      upiId: 'lemlemdental@telebirr',
       patientLimit: -1, // Unlimited for PROFESSIONAL
       staffLimit: -1,
       storageLimitMb: -1,
@@ -71,10 +79,10 @@ async function main() {
   const hashedPassword = await bcrypt.hash('Admin@123', 10)
 
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@sunnysmile.et' },
+    where: { email: 'admin@lemlemdental.et' },
     update: {},
     create: {
-      email: 'admin@sunnysmile.et',
+      email: 'admin@lemlemdental.et',
       name: 'Mekdes Alemu',
       password: hashedPassword,
       role: Role.ADMIN,
@@ -87,7 +95,7 @@ async function main() {
           firstName: 'Mekdes',
           lastName: 'Alemu',
           phone: '0911234500',
-          email: 'admin@sunnysmile.et',
+          email: 'admin@lemlemdental.et',
           specialization: 'Clinic Operations',
           licenseNumber: 'AA-DEN-ADMIN-001',
           city: 'Addis Ababa',
@@ -103,10 +111,10 @@ async function main() {
   // Create doctor user
   const doctorPassword = await bcrypt.hash('Doctor@123', 10)
   const doctor = await prisma.user.upsert({
-    where: { email: 'doctor@sunnysmile.et' },
+    where: { email: 'doctor@lemlemdental.et' },
     update: {},
     create: {
-      email: 'doctor@sunnysmile.et',
+      email: 'doctor@lemlemdental.et',
       name: 'Dr. Selam Abebe',
       password: doctorPassword,
       role: Role.DOCTOR,
@@ -119,7 +127,7 @@ async function main() {
           firstName: 'Selam',
           lastName: 'Abebe',
           phone: '0911234501',
-          email: 'doctor@sunnysmile.et',
+          email: 'doctor@lemlemdental.et',
           specialization: 'Orthodontics',
           licenseNumber: 'AA-DEN-ORTHO-014',
           city: 'Addis Ababa',
@@ -135,10 +143,10 @@ async function main() {
   // Create receptionist user
   const receptionistPassword = await bcrypt.hash('Reception@123', 10)
   const receptionist = await prisma.user.upsert({
-    where: { email: 'reception@sunnysmile.et' },
+    where: { email: 'reception@lemlemdental.et' },
     update: {},
     create: {
-      email: 'reception@sunnysmile.et',
+      email: 'reception@lemlemdental.et',
       name: 'Hanna Tesfaye',
       password: receptionistPassword,
       role: Role.RECEPTIONIST,
@@ -151,7 +159,7 @@ async function main() {
           firstName: 'Hanna',
           lastName: 'Tesfaye',
           phone: '0911234502',
-          email: 'reception@sunnysmile.et',
+          email: 'reception@lemlemdental.et',
           city: 'Addis Ababa',
           state: 'Addis Ababa',
           hospitalId: hospital.id,
@@ -1417,7 +1425,7 @@ async function main() {
       firstName: 'Selam',
       lastName: 'Abebe',
       phone: '0911234501',
-      email: 'doctor@sunnysmile.et',
+      email: 'doctor@lemlemdental.et',
       qualification: 'DDS, MSc',
       specialization: 'Prosthodontics',
       licenseNumber: 'AA-DEN-PROS-021',

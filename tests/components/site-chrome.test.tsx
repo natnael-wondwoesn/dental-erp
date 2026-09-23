@@ -11,7 +11,7 @@ import type { ProductTier } from '@/lib/product-tier'
 const config = {
   clinic: {
     name: {
-      en: 'Sunny Smile Speciality Clinic',
+      en: 'D/R Lemlem Special Dental Clinic',
       am: 'ሰኒ ስማይል ስፔሻሊቲ የጥርስ ክሊኒክ',
     },
     tagline: { en: 'Strong teeth, bright smile.', am: 'ጠንካራ ጥርሶች፣ ብሩህ ፈገግታ።' },
@@ -23,7 +23,7 @@ const config = {
     woreda: '03',
     mapEmbedUrl: 'https://www.google.com/maps/embed?pb=test',
   },
-  contact: { phones: ['+251911234567'], email: 'hello@sunnysmile.et' },
+  contact: { phones: ['+251911234567'], email: 'hello@lemlemdental.et' },
   hours: [{ day: { en: 'Monday', am: 'ሰኞ' }, open: '08:30', close: '18:00' }],
   services: [{ title: { en: 'Cleaning', am: 'ጽዳት' }, copy: { en: 'Gentle.', am: 'ገር።' } }],
   doctors: [],
@@ -43,7 +43,7 @@ function renderChrome(tier: ProductTier, node: React.ReactNode) {
 describe('SiteHeader', () => {
   it('shows the clinic name from config, not a hardcoded brand', () => {
     renderChrome('landing', <SiteHeader />)
-    expect(screen.getByText('Sunny Smile Speciality Clinic')).toBeInTheDocument()
+    expect(screen.getByText('D/R Lemlem Special Dental Clinic')).toBeInTheDocument()
   })
 
   it('offers the workspace link in full tier', () => {

@@ -270,7 +270,7 @@ export default function OnboardingPage() {
                       <Label htmlFor="website">Website</Label>
                       <Input
                         id="website"
-                        placeholder="www.sunnysmile.et"
+                        placeholder="www.lemlemdental.et"
                         {...register('website')}
                       />
                     </div>

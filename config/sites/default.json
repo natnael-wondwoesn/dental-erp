@@ -1,6 +1,6 @@
 {
   "clinic": {
-    "name": { "en": "Sunny Smile Speciality Clinic", "am": "ሰኒ ስማይል ስፔሻሊቲ የጥርስ ክሊኒክ" },
+    "name": { "en": "D/R Lemlem Special Dental Clinic", "am": "ዶ/ር ለምለም ልዩ የጥርስ ሕክምና ክሊኒክ" },
     "tagline": { "en": "Strong teeth, bright smile.", "am": "ጠንካራ ጥርሶች፣ ብሩህ ፈገግታ።" }
   },
   "location": {
@@ -12,10 +12,10 @@
     "mapEmbedUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3940.5!2d38.7869!3d9.0107"
   },
   "contact": {
-    "phones": ["+251911234567", "+251911234568"],
-    "telegram": "https://t.me/sunnysmiledental",
-    "whatsapp": "+251911234567",
-    "email": "hello@sunnysmile.et"
+    "phones": ["+251911529475", "+251911529480"],
+    "telegram": "https://t.me/lemlemdental",
+    "whatsapp": "+251911529475",
+    "email": "hello@lemlemdental.et"
   },
   "hours": [
     { "day": { "en": "Monday – Friday", "am": "ሰኞ – ዓርብ" }, "open": "08:30", "close": "18:00" },

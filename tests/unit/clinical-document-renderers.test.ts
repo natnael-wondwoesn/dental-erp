@@ -4,7 +4,7 @@ import { renderMedicalCertificateHtml } from '@/lib/clinical-forms/medical-certi
 import { renderPrescriptionPaperHtml } from '@/lib/clinical-forms/prescription-paper'
 
 const clinic = {
-  name: 'Sunny Smile Speciality Clinic',
+  name: 'D/R Lemlem Special Dental Clinic',
   city: 'Addis Ababa',
   phone: '+251911234567',
 }
@@ -26,7 +26,7 @@ describe('clinical document renderers', () => {
     )
 
     expect(html).not.toMatch(/dentix/i)
-    expect(html).toContain('Sunny Smile Speciality Clinic')
+    expect(html).toContain('D/R Lemlem Special Dental Clinic')
   })
 
   it('renders a printable medical certificate with leave dates and doctor details', () => {
@@ -46,12 +46,13 @@ describe('clinical document renderers', () => {
       clinic
     )
 
-    expect(html).toContain('Sunny Smile Speciality Clinic')
+    expect(html).toContain('D/R Lemlem Special Dental Clinic')
     expect(html).toContain('Medical Certificate')
     expect(html).toContain('MC-2026-0001')
-    expect(html).toContain('Medical leave from')
+    expect(html).toContain('Rest Recommendation')
+    expect(html).toContain('Fit for work')
     expect(html).toContain('Dr Selam Abebe')
-    expect(html).toContain('@page { size: A4')
+    expect(html).toContain('@page{size:A5 portrait')
   })
 
   it('renders the supplied prescription-paper structure and medication grid', () => {
@@ -76,10 +77,11 @@ describe('clinical document renderers', () => {
     )
 
     expect(html).toContain('Prescription Paper')
-    expect(html).toContain('Drug name, strength, dosage form and instructions')
+    expect(html).toContain('Treatment given&nbsp; (Drug Name, Strength,')
+    expect(html).toContain('Price of each item')
     expect(html).toContain('Amoxicillin 500 mg capsule')
-    expect(html).toContain("Evaluator's")
-    expect(html).toContain("Counsellor's")
+    expect(html).toContain('Prescriber’s')
+    expect(html).toContain('Dispenser’s')
   })
 
   it('escapes clinical values before inserting them into document HTML', () => {
