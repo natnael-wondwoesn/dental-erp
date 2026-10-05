@@ -204,7 +204,7 @@ export async function POST(request: NextRequest) {
           phone,
           alternatePhone,
           dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
-          gender,
+          gender: gender || null,
           address,
           city,
           state,

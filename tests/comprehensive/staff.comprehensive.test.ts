@@ -237,6 +237,40 @@ describe('Staff API - Comprehensive Tests', () => {
       expect(response.status).toBe(201)
     })
 
+    it('should normalize an unselected optional gender to null', async () => {
+      const staffCreate = vi.fn().mockResolvedValue({
+        id: 'new-staff-id',
+        employeeId: 'EMP250001',
+        user: { id: 'new-user-id', role: 'DOCTOR' },
+      })
+      mockPrisma.$transaction.mockImplementation(async (callback) =>
+        callback({
+          user: { create: vi.fn().mockResolvedValue({ id: 'new-user-id' }) },
+          staff: { create: staffCreate },
+        })
+      )
+
+      const request = new NextRequest('http://localhost/api/staff', {
+        method: 'POST',
+        body: JSON.stringify({
+          firstName: 'Jane',
+          lastName: 'Smith',
+          email: 'jane@example.com',
+          phone: '0911234567',
+          role: 'DOCTOR',
+          password: 'SecurePass123!',
+          gender: '',
+        }),
+      })
+
+      const response = await POST(request)
+
+      expect(response.status).toBe(201)
+      expect(staffCreate).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ gender: null }) })
+      )
+    })
+
     it('should reject staff creation without required fields', async () => {
       const request = new NextRequest('http://localhost/api/staff', {
         method: 'POST',
