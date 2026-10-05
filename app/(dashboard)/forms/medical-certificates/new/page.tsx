@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { ArrowLeft, FileHeart, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -30,6 +30,7 @@ interface PatientOption {
 
 export default function NewMedicalCertificatePage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const today = useMemo(() => new Date().toISOString().slice(0, 10), [])
   const [patients, setPatients] = useState<PatientOption[]>([])
   const [loadingPatients, setLoadingPatients] = useState(true)
@@ -50,10 +51,34 @@ export default function NewMedicalCertificatePage() {
   useEffect(() => {
     fetch('/api/patients?all=true')
       .then((response) => response.json())
-      .then((result) => setPatients(result.patients || []))
+      .then((result) => {
+        const nextPatients = result.patients || []
+        setPatients(nextPatients)
+
+        const patientId = searchParams.get('patientId') || ''
+        const patient = nextPatients.find((item: PatientOption) => item.id === patientId)
+        if (patient) {
+          setForm((current) => ({
+            ...current,
+            patientId,
+            city: current.city || patient.city || '',
+          }))
+        }
+      })
       .catch(() => toast.error('Failed to load patients'))
       .finally(() => setLoadingPatients(false))
-  }, [])
+  }, [searchParams])
+
+  useEffect(() => {
+    const patientId = searchParams.get('patientId') || ''
+    const diagnosis = searchParams.get('diagnosis') || ''
+    if (!patientId && !diagnosis) return
+    setForm((current) => ({
+      ...current,
+      patientId: patientId || current.patientId,
+      dentalDiagnosis: diagnosis || current.dentalDiagnosis,
+    }))
+  }, [searchParams])
 
   const selectedPatient = patients.find((patient) => patient.id === form.patientId)
   const set = (field: keyof typeof form, value: string) =>
@@ -122,7 +147,11 @@ export default function NewMedicalCertificatePage() {
                 <SelectTrigger>
                   <SelectValue
                     placeholder={loadingPatients ? 'Loading patients…' : 'Select patient'}
-                  />
+                  >
+                    {selectedPatient
+                      ? `${selectedPatient.firstName} ${selectedPatient.lastName} · ${selectedPatient.patientId}`
+                      : undefined}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {patients.map((patient) => (

@@ -87,9 +87,9 @@ export default function PatientBills() {
   }, [fetchBills])
 
   const formatCurrency = (val: number | string) =>
-    new Intl.NumberFormat('en-IN', {
+    new Intl.NumberFormat('en-ET', {
       style: 'currency',
-      currency: 'INR',
+      currency: 'ETB',
       minimumFractionDigits: 0,
     }).format(Number(val))
 

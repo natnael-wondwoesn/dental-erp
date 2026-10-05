@@ -534,7 +534,7 @@ export default function EditStaffPage({ params }: { params: Promise<{ id: string
               <Separator />
 
               <div className="space-y-2">
-                <Label htmlFor="salary">Monthly Salary (₹)</Label>
+                <Label htmlFor="salary">Monthly Salary (ETB)</Label>
                 <Input
                   id="salary"
                   type="number"

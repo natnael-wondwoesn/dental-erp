@@ -254,7 +254,7 @@ export default function SegmentsPage() {
                                 : 'Never'}
                             </TableCell>
                             <TableCell className="text-right">
-                              ₹{patient.totalSpend.toLocaleString('en-IN')}
+                              ETB {patient.totalSpend.toLocaleString('en-ET')}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -365,7 +365,9 @@ export default function SegmentsPage() {
                         <TableCell>{p.rfm?.recency || 'N/A'}</TableCell>
                         <TableCell>{p.rfm?.frequency || 0}</TableCell>
                         <TableCell>
-                          {p.rfm?.monetary ? `₹${p.rfm.monetary.toLocaleString('en-IN')}` : '₹0'}
+                          {p.rfm?.monetary
+                            ? `ETB ${p.rfm.monetary.toLocaleString('en-ET')}`
+                            : 'ETB 0'}
                         </TableCell>
                         <TableCell>
                           <Badge

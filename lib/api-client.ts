@@ -4,6 +4,7 @@ const ACCESS_TOKEN_KEY = 'dental_erp_access_token'
 
 export interface AuthenticatedUser {
   id: string
+  staffId?: string
   hospitalId: string
   email: string
   name: string

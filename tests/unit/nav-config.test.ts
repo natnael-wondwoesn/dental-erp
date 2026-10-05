@@ -111,6 +111,14 @@ describe('getNavigationForRole', () => {
     expect(items).toContain('Assessment & Treatment')
   })
 
+  it('DOCTOR dashboard link opens the dedicated doctor workspace', () => {
+    const nav = getNavigationForRole('DOCTOR')
+    const overview = nav.find((section) => section.title === 'Overview')!
+    const dashboard = overview.items.find((item) => item.title === 'Dashboard')!
+
+    expect(dashboard.href).toBe('/doctor/dashboard')
+  })
+
   it('RECEPTIONIST does not see Treatments', () => {
     const nav = getNavigationForRole('RECEPTIONIST')
     const care = nav.find((s) => s.title === 'Patient Care')!

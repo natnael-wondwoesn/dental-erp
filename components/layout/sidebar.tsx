@@ -52,7 +52,13 @@ export function Sidebar({
         >
           {/* Logo */}
           <Link
-            href={isPlatformControlPlane ? '/owner' : '/dashboard'}
+            href={
+              isPlatformControlPlane
+                ? '/owner'
+                : role === 'DOCTOR'
+                  ? '/doctor/dashboard'
+                  : '/dashboard'
+            }
             className={cn(
               'flex items-center gap-3 transition-all duration-300',
               isCollapsed && 'justify-center'

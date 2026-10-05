@@ -59,7 +59,12 @@ function LoginForm() {
       } else {
         const result = await response.json()
         setAccessToken(result.accessToken)
-        router.push(result.user?.isPlatformControlPlane ? '/owner' : callbackUrl)
+        const destination = result.user?.isPlatformControlPlane
+          ? '/owner'
+          : callbackUrl === '/dashboard' && result.user?.roles?.includes('DOCTOR')
+            ? '/doctor/dashboard'
+            : callbackUrl
+        router.push(destination)
       }
     } catch {
       toast({

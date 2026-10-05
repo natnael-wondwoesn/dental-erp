@@ -211,6 +211,7 @@ export function DentalChart({
 
     return (
       <button
+        type="button"
         key={toothNumber}
         onClick={() => handleToothClick(toothNumber)}
         className={`

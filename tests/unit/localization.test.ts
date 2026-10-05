@@ -1,5 +1,7 @@
 // @ts-nocheck
 import { describe, it, expect, vi } from 'vitest'
+import { readFileSync, readdirSync } from 'node:fs'
+import { resolve } from 'node:path'
 
 vi.mock('@prisma/client', () => ({
   InvoiceStatus: {
@@ -58,6 +60,22 @@ import {
 } from '@/lib/billing-utils'
 
 describe('Section 10.1 — Current Locale (Ethiopia)', () => {
+  it('does not expose rupee symbols in active clinic UI and document templates', () => {
+    const sourceRoots = ['app', 'components', 'lib', 'config', 'prisma', 'scripts']
+    const files = sourceRoots.flatMap((root) => {
+      const directory = resolve(process.cwd(), root)
+      return readdirSync(directory, { recursive: true, withFileTypes: true })
+        .filter((entry) => entry.isFile() && /\.(?:ts|tsx|js|jsx)$/.test(entry.name))
+        .map((entry) => resolve(entry.parentPath, entry.name))
+    })
+
+    for (const file of files) {
+      const source = readFileSync(file, 'utf8')
+      expect(source, file).not.toContain('₹')
+      expect(source, file).not.toContain('\\u20B9')
+      expect(source, file).not.toContain('IndianRupee')
+    }
+  })
   // ─── Currency Display ───────────────────────────────────────────────
 
   describe('Currency Display', () => {

@@ -37,7 +37,7 @@ export function DashboardShell({
       <SidebarProvider>
         <div className="flex h-screen overflow-hidden bg-[#eef4fb]">
           {/* Sidebar - the drawer preserves working width on phones and portrait tablets */}
-          <aside className="hidden lg:flex">
+          <aside className="no-print hidden lg:flex">
             <Sidebar
               role={user.role}
               hospitalName={hospital?.name}
@@ -49,20 +49,24 @@ export function DashboardShell({
           </aside>
 
           {/* Mobile sidebar overlay */}
-          <MobileSidebar
-            role={user.role}
-            hospitalName={hospital?.name}
-            hospitalLogo={hospital?.logo}
-            plan={hospital?.plan}
-            isPlatformOwner={user.isPlatformOwner}
-            isPlatformControlPlane={isPlatformControlPlane}
-          />
+          <div className="no-print">
+            <MobileSidebar
+              role={user.role}
+              hospitalName={hospital?.name}
+              hospitalLogo={hospital?.logo}
+              plan={hospital?.plan}
+              isPlatformOwner={user.isPlatformOwner}
+              isPlatformControlPlane={isPlatformControlPlane}
+            />
+          </div>
 
           {/* Main content */}
           <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-            <Header user={user} isPlatformControlPlane={isPlatformControlPlane} />
+            <div className="no-print">
+              <Header user={user} isPlatformControlPlane={isPlatformControlPlane} />
+            </div>
             <main className="min-w-0 flex-1 overflow-auto bg-[#eef4fb] p-3 sm:p-4 lg:p-7">
-              <Breadcrumb className="mb-5" />
+              <Breadcrumb className="no-print mb-5" />
               {children}
             </main>
           </div>

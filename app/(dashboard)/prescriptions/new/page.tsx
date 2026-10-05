@@ -122,12 +122,14 @@ export default function NewPrescriptionPage() {
   // Pre-fill patient from query param
   useEffect(() => {
     const pid = searchParams.get('patientId')
+    const diagnosisParam = searchParams.get('diagnosis')
+    if (diagnosisParam) setDiagnosis(diagnosisParam)
     if (pid) {
       fetch(`/api/patients/${pid}`)
         .then((r) => r.json())
         .then((result) => {
-          if (result.success || result.data || result.id) {
-            const p = result.data || result
+          if (result.success || result.patient || result.data || result.id) {
+            const p = result.patient || result.data || result
             setSelectedPatient(p)
           }
         })

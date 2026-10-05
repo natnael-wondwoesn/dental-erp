@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { DashboardShell } from '@/components/layout/dashboard-shell'
 import { AuthenticatedUser, getCurrentUser } from '@/lib/api-client'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
+  const pathname = usePathname()
   const [identity, setIdentity] = useState<AuthenticatedUser | null>()
 
   useEffect(() => {
@@ -14,10 +15,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       if (!user) router.replace('/login')
       else if (user.isPlatformControlPlane && window.location.pathname !== '/owner') {
         router.replace('/owner')
+      } else if (user.roles.includes('DOCTOR') && pathname === '/dashboard') {
+        router.replace('/doctor/dashboard')
       }
       setIdentity(user)
     })
-  }, [router])
+  }, [pathname, router])
 
   if (!identity) return null
 

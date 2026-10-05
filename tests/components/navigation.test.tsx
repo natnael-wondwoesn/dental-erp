@@ -135,7 +135,7 @@ describe('Navigation Structure', () => {
       // Doctor should see clinical items but maybe not all admin items
       const allItems = doctorNav.flatMap((s) => s.items)
       // Dashboard should be visible
-      expect(allItems.some((i) => i.href === '/dashboard')).toBe(true)
+      expect(allItems.some((i) => i.href === '/doctor/dashboard')).toBe(true)
     })
 
     it('RECEPTIONIST gets filtered navigation', () => {

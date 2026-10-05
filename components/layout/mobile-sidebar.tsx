@@ -61,7 +61,13 @@ export function MobileSidebar({
         {/* Header */}
         <div className="flex h-14 items-center justify-between border-b px-4">
           <Link
-            href={isPlatformControlPlane ? '/owner' : '/dashboard'}
+            href={
+              isPlatformControlPlane
+                ? '/owner'
+                : role === 'DOCTOR'
+                  ? '/doctor/dashboard'
+                  : '/dashboard'
+            }
             className="flex items-center gap-3"
             onClick={() => setMobileOpen(false)}
           >

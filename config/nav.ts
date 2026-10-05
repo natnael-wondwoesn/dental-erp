@@ -461,6 +461,7 @@ export function getNavigationForRole(
         )
         .map((item) => ({
           ...item,
+          href: role === 'DOCTOR' && item.title === 'Dashboard' ? '/doctor/dashboard' : item.href,
           subItems: item.subItems?.filter(
             (subItem) => !subItem.roles || subItem.roles.includes(role)
           ),

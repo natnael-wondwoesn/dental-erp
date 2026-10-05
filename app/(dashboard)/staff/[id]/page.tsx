@@ -145,9 +145,9 @@ export default function StaffDetailPage({ params }: { params: Promise<{ id: stri
 
   const formatCurrency = (amount: number | null) => {
     if (amount === null) return '-'
-    return new Intl.NumberFormat('en-IN', {
+    return new Intl.NumberFormat('en-ET', {
       style: 'currency',
-      currency: 'INR',
+      currency: 'ETB',
       maximumFractionDigits: 0,
     }).format(amount)
   }

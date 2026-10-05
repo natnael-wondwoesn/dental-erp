@@ -220,9 +220,9 @@ export default function InventoryPage() {
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
+    return new Intl.NumberFormat('en-ET', {
       style: 'currency',
-      currency: 'INR',
+      currency: 'ETB',
       minimumFractionDigits: 2,
     }).format(amount)
   }

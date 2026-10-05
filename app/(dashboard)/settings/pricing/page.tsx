@@ -163,8 +163,7 @@ export default function PricingSuggestionsPage() {
                     <p className="text-sm text-muted-foreground">Revenue Opportunity</p>
                   </div>
                   <p className="text-2xl font-bold">
-                    {'\u20B9'}
-                    {data.summary.revenueOpportunity?.toLocaleString()}/mo
+                    ETB {data.summary.revenueOpportunity?.toLocaleString()}/mo
                   </p>
                 </CardContent>
               </Card>

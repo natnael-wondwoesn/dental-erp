@@ -76,6 +76,7 @@ export async function signAccessToken(user: UserWithAuthContext) {
 export function toAuthenticatedUser(user: UserWithAuthContext) {
   return {
     id: user.id,
+    staffId: user.staff?.id,
     hospitalId: user.hospitalId,
     email: user.email,
     name: user.name,

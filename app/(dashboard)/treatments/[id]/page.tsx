@@ -106,7 +106,6 @@ interface Treatment {
     scheduledTime: string
     status: string
   } | null
-  prescriptions: any[]
   invoiceItems: any[]
   clinicalInkNotes: Array<{
     id: string
@@ -253,7 +252,7 @@ export default function TreatmentDetailPage({ params }: { params: Promise<{ id: 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="no-print flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-4">
           <Link href="/treatments">
             <Button variant="ghost" size="icon">
@@ -299,9 +298,9 @@ export default function TreatmentDetailPage({ params }: { params: Promise<{ id: 
               </Button>
             </>
           )}
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => window.print()}>
             <Printer className="h-4 w-4 mr-2" />
-            Print
+            Print Treatment
           </Button>
         </div>
       </div>
@@ -621,25 +620,46 @@ export default function TreatmentDetailPage({ params }: { params: Promise<{ id: 
             </Card>
           )}
 
-          {/* Prescriptions */}
-          {treatment.prescriptions.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Pill className="h-5 w-5" />
-                  Prescriptions
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-sm">
-                  {treatment.prescriptions.length} prescription(s) issued
-                </div>
-                <Button variant="outline" size="sm" className="w-full mt-4">
-                  View Prescriptions
+          <Card className="no-print">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Printer className="h-5 w-5" />
+                Clinical documents
+              </CardTitle>
+              <CardDescription>
+                Create or print documents without leaving this treatment.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Link
+                href={`/prescriptions/new?patientId=${treatment.patient.id}&diagnosis=${encodeURIComponent(treatment.diagnosis || '')}`}
+              >
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <Pill className="mr-2 h-4 w-4" /> Prescription paper
                 </Button>
-              </CardContent>
-            </Card>
-          )}
+              </Link>
+              <Link
+                href={`/forms/medical-certificates/new?patientId=${treatment.patient.id}&diagnosis=${encodeURIComponent(treatment.diagnosis || '')}`}
+              >
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <FileText className="mr-2 h-4 w-4" /> Medical certificate
+                </Button>
+              </Link>
+              <Link href={`/patients/${treatment.patient.id}/chart`}>
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <Stethoscope className="mr-2 h-4 w-4" /> Dental patient chart
+                </Button>
+              </Link>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start"
+                onClick={() => window.print()}
+              >
+                <Printer className="mr-2 h-4 w-4" /> Print treatment summary
+              </Button>
+            </CardContent>
+          </Card>
 
           {/* Invoices */}
           {treatment.invoiceItems.length > 0 && (
