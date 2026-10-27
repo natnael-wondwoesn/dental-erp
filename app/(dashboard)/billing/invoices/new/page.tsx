@@ -98,6 +98,19 @@ export default function NewInvoicePage() {
   // Invoice items
   const [items, setItems] = useState<InvoiceItem[]>([])
 
+  // Existing outstanding balance for the selected patient
+  const [outstanding, setOutstanding] = useState<{
+    invoices: Array<{
+      id: string
+      invoiceNo: string
+      status: string
+      balanceAmount: string | number
+    }>
+    totalOutstanding: number
+  }>({ invoices: [], totalOutstanding: 0 })
+  const [addToExisting, setAddToExisting] = useState(false)
+  const [targetInvoiceId, setTargetInvoiceId] = useState('')
+
   // Invoice settings
   const [discountType, setDiscountType] = useState<'PERCENTAGE' | 'FIXED'>('FIXED')
   const [discountValue, setDiscountValue] = useState(0)
@@ -147,12 +160,10 @@ export default function NewInvoicePage() {
       const fetchPatient = async () => {
         try {
           setLoading(true)
-          const response = await fetch(`/api/patients?search=${preSelectedPatientId}`)
+          const response = await fetch(`/api/patients/${preSelectedPatientId}`)
           if (!response.ok) throw new Error('Failed to fetch patient')
           const data = await response.json()
-          if (data.patients.length > 0) {
-            setSelectedPatient(data.patients[0])
-          }
+          if (data.patient) setSelectedPatient(data.patient)
         } catch (error) {
           console.error('Error fetching patient:', error)
         } finally {
@@ -170,6 +181,21 @@ export default function NewInvoicePage() {
     } else {
       setUnbilledTreatments([])
     }
+  }, [selectedPatient])
+
+  useEffect(() => {
+    setAddToExisting(false)
+    setTargetInvoiceId('')
+    setOutstanding({ invoices: [], totalOutstanding: 0 })
+    if (!selectedPatient) return
+    fetch(`/api/billing/patient-outstanding?patientId=${selectedPatient.id}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!data) return
+        setOutstanding(data)
+        if (data.invoices.length > 0) setTargetInvoiceId(data.invoices[0].id)
+      })
+      .catch((err) => console.error('Error fetching outstanding balance:', err))
   }, [selectedPatient])
 
   const fetchUnbilledTreatments = async (patientId: string) => {
@@ -269,6 +295,28 @@ export default function NewInvoicePage() {
     try {
       setSubmitting(true)
       setError('')
+
+      if (addToExisting && targetInvoiceId) {
+        const addResponse = await fetch(`/api/invoices/${targetInvoiceId}/items`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: items.map((item) => ({
+              treatmentId: item.treatmentId,
+              description: item.description,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              taxable: item.taxable,
+            })),
+          }),
+        })
+        if (!addResponse.ok) {
+          const data = await addResponse.json()
+          throw new Error(data.error || 'Failed to add charges to existing balance')
+        }
+        router.push(`/billing/invoices/${targetInvoiceId}`)
+        return
+      }
 
       const response = await fetch('/api/invoices', {
         method: 'POST',
@@ -397,6 +445,45 @@ export default function NewInvoicePage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Existing outstanding balance */}
+          {selectedPatient && outstanding.invoices.length > 0 && (
+            <Card className="border-orange-300">
+              <CardHeader>
+                <CardTitle>Existing Outstanding Balance</CardTitle>
+                <CardDescription>
+                  This patient already owes {formatCurrency(outstanding.totalOutstanding)} across{' '}
+                  {outstanding.invoices.length} open invoice(s)
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <label className="flex items-center gap-2 text-sm font-medium">
+                  <input
+                    type="checkbox"
+                    checked={addToExisting}
+                    onChange={(e) => setAddToExisting(e.target.checked)}
+                  />
+                  Add these new charges to the existing balance
+                </label>
+                {addToExisting && (
+                  <div className="space-y-1">
+                    <Label>Add to invoice</Label>
+                    <select
+                      className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                      value={targetInvoiceId}
+                      onChange={(e) => setTargetInvoiceId(e.target.value)}
+                    >
+                      {outstanding.invoices.map((inv) => (
+                        <option key={inv.id} value={inv.id}>
+                          {inv.invoiceNo} - balance {formatCurrency(inv.balanceAmount)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Unbilled Treatments */}
           {selectedPatient && (
@@ -652,6 +739,12 @@ export default function NewInvoicePage() {
                   <span>Total</span>
                   <span className="text-primary">{formatCurrency(totals.totalAmount)}</span>
                 </div>
+                {addToExisting && (
+                  <div className="flex justify-between font-bold text-sm text-orange-600">
+                    <span>New total outstanding</span>
+                    <span>{formatCurrency(outstanding.totalOutstanding + totals.totalAmount)}</span>
+                  </div>
+                )}
               </div>
 
               {/* Actions */}
@@ -661,13 +754,17 @@ export default function NewInvoicePage() {
                   onClick={() => handleSubmit('PENDING')}
                   disabled={submitting || !selectedPatient || items.length === 0}
                 >
-                  {submitting ? 'Creating...' : 'Create & Send Invoice'}
+                  {submitting
+                    ? 'Saving...'
+                    : addToExisting
+                      ? 'Add to Existing Balance'
+                      : 'Create & Send Invoice'}
                 </Button>
                 <Button
                   variant="outline"
                   className="w-full"
                   onClick={() => handleSubmit('DRAFT')}
-                  disabled={submitting || !selectedPatient || items.length === 0}
+                  disabled={submitting || !selectedPatient || items.length === 0 || addToExisting}
                 >
                   Save as Draft
                 </Button>
