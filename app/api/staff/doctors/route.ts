@@ -10,26 +10,30 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const doctors = await prisma.staff.findMany({
-      where: {
-        hospitalId,
-        isActive: true,
-        user: {
-          role: 'DOCTOR',
-          isActive: true,
-        },
-      },
-      select: {
-        id: true,
-        employeeId: true,
-        firstName: true,
-        lastName: true,
-        specialization: true,
-        phone: true,
-        email: true,
-      },
+    const select = {
+      id: true,
+      employeeId: true,
+      firstName: true,
+      lastName: true,
+      specialization: true,
+      phone: true,
+      email: true,
+    }
+
+    let doctors = await prisma.staff.findMany({
+      where: { hospitalId, isActive: true, user: { role: 'DOCTOR', isActive: true } },
+      select,
       orderBy: { firstName: 'asc' },
     })
+
+    // Clinics where the treating dentist is the admin/owner account have no DOCTOR users
+    if (doctors.length === 0) {
+      doctors = await prisma.staff.findMany({
+        where: { hospitalId, isActive: true, user: { role: 'ADMIN', isActive: true } },
+        select,
+        orderBy: { firstName: 'asc' },
+      })
+    }
 
     return NextResponse.json({ doctors })
   } catch (error) {
