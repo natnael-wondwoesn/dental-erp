@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import {
   Activity,
   Boxes,
@@ -63,6 +64,18 @@ export default async function OwnerConsolePage() {
           <ShieldCheck className="h-4 w-4" /> Platform owner only
         </div>
         <h1 className="mt-2 text-3xl font-bold tracking-tight">Product operations</h1>
+        <Link
+          href="/owner/clinics"
+          className="mt-3 inline-block font-semibold text-primary underline"
+        >
+          Manage clinic subscriptions and modules →
+        </Link>
+        <Link
+          href="/owner/access"
+          className="mt-3 ml-4 inline-block font-semibold text-primary underline"
+        >
+          Manage clinic accounts and databases →
+        </Link>
         <p className="text-muted-foreground">
           Customers, installations, feature entitlements, licensing, health, backups, and releases.
         </p>

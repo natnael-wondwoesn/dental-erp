@@ -12,6 +12,7 @@ from app.laboratory import router as laboratory_router
 from app.licensing.router import router as licensing_router
 from app.patients.router import router as patients_router
 from app.reports import router as reports_router
+from app.saas.router import router as saas_router
 from app.staff import router as staff_router
 
 settings = get_settings()
@@ -34,6 +35,7 @@ app.include_router(laboratory_router)
 app.include_router(finance_router)
 app.include_router(reports_router)
 app.include_router(licensing_router)
+app.include_router(saas_router)
 
 
 @app.get("/api/health", tags=["operations"])

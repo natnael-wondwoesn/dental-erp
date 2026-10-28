@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { ownerOperationActions } from '@/lib/platform-owner-operations'
 import { prisma } from '@/lib/prisma'
 import { isWorkerRequestAuthorized, normalizedFeatures } from '@/lib/platform-control'
 
@@ -8,7 +9,14 @@ export async function GET(request: NextRequest) {
   }
 
   const job = await prisma.platformOperation.findFirst({
-    where: { status: 'PENDING', installation: { managedByWorker: true } },
+    where: {
+      status: 'PENDING',
+      installationId: { not: null },
+      OR: [
+        { installation: { managedByWorker: true } },
+        { action: { in: [...ownerOperationActions] } },
+      ],
+    },
     include: { installation: { include: { product: true, customer: true } } },
     orderBy: { createdAt: 'asc' },
   })
@@ -31,7 +39,11 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     id: job.id,
     action: job.action,
+    ...(ownerOperationActions.includes(job.action as (typeof ownerOperationActions)[number])
+      ? { request: job.request, requestedById: job.requestedById }
+      : {}),
     installation: {
+      id: job.installation.id,
       slug: job.installation.slug,
       hostname: job.installation.hostname,
       composeProject: job.installation.composeProject,

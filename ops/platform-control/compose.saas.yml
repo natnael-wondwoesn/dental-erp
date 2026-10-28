@@ -1,0 +1,9 @@
+# Add to the vendor control-plane compose project; never give this token to clinics.
+services:
+  control-web:
+    networks:
+      dental_saas_gateway: {}
+
+networks:
+  dental_saas_gateway:
+    external: true

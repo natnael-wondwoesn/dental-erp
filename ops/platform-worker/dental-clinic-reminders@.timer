@@ -1,0 +1,11 @@
+[Unit]
+Description=Hourly Dental ERP reminders for %i
+
+[Timer]
+OnCalendar=hourly
+RandomizedDelaySec=5m
+Persistent=true
+Unit=dental-clinic-reminders@%i.service
+
+[Install]
+WantedBy=timers.target

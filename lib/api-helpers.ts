@@ -6,6 +6,38 @@ import { auth } from './auth'
 import { prisma } from './prisma'
 import { evaluateApiLicenseGate } from './licensing/api-gate'
 
+async function verifiedContext(candidate: any) {
+  if (!process.env.SAAS_ENFORCEMENT || process.env.SAAS_ENFORCEMENT === 'disabled') {
+    return { error: null, user: candidate, hospitalId: candidate.hospitalId }
+  }
+  const current = await prisma.user.findFirst({
+    where: {
+      id: candidate.id,
+      hospitalId: candidate.hospitalId,
+      isActive: true,
+      hospital: { isActive: true },
+    },
+    include: { staff: true },
+  })
+  if (!current)
+    return {
+      error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+      user: null,
+      hospitalId: null,
+    }
+  return {
+    error: null,
+    user: {
+      ...candidate,
+      role: current.role,
+      staffId: current.staff?.id,
+      isHospitalAdmin: current.isHospitalAdmin,
+      isPlatformOwner: current.isPlatformOwner,
+    },
+    hospitalId: current.hospitalId,
+  }
+}
+
 /**
  * Verify a mobile Bearer token (JWT signed with NEXTAUTH_SECRET via jose).
  * Returns the decoded user payload or null.
@@ -45,21 +77,13 @@ export async function getAuthenticatedHospital() {
   const session = await auth()
 
   if (session?.user) {
-    return {
-      error: null,
-      user: session.user,
-      hospitalId: session.user.hospitalId,
-    }
+    return verifiedContext(session.user)
   }
 
   // Fallback: try mobile Bearer token
   const mobileUser = await verifyMobileToken()
   if (mobileUser) {
-    return {
-      error: null,
-      user: mobileUser,
-      hospitalId: mobileUser.hospitalId,
-    }
+    return verifiedContext(mobileUser)
   }
 
   return {

@@ -1,0 +1,74 @@
+name: dental-saas
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: dental_saas
+      POSTGRES_USER: dental_saas
+      POSTGRES_PASSWORD: ${SAAS_DB_PASSWORD:?required}
+    volumes: [saas-data:/var/lib/postgresql/data]
+    networks: [database]
+    mem_limit: 384m
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U dental_saas -d dental_saas']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    image: ${SAAS_BACKEND_IMAGE:?required}
+    command: ['/app/.venv/bin/alembic', 'upgrade', 'head']
+    environment:
+      BACKEND_DATABASE_URL: postgresql+asyncpg://dental_saas:${SAAS_DB_PASSWORD}@postgres:5432/dental_saas
+    networks: [database]
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: 'no'
+
+  api:
+    image: ${SAAS_BACKEND_IMAGE:?required}
+    restart: unless-stopped
+    environment:
+      BACKEND_DATABASE_URL: postgresql+asyncpg://dental_saas:${SAAS_DB_PASSWORD}@postgres:5432/dental_saas
+      BACKEND_ENVIRONMENT: production
+      BACKEND_JWT_SECRET: ${SAAS_BACKEND_JWT_SECRET:?required}
+      BACKEND_SAAS_ADMIN_TOKEN: ${SAAS_ADMIN_TOKEN:?required}
+      BACKEND_SAAS_READER_TOKEN: ${SAAS_READER_TOKEN:?required}
+      BACKEND_SAAS_ISSUER_SEED_PATH: /run/secrets/issuer.seed
+      BACKEND_SAAS_ISSUER_KEY_ID: vendor-2026-10
+    volumes:
+      - type: bind
+        source: ${SAAS_ISSUER_SEED_PATH:?required}
+        target: /run/secrets/issuer.seed
+        read_only: true
+    networks:
+      database: {}
+      gateway:
+        aliases: [dental-saas-api]
+    mem_limit: 512m
+    cpus: 1.0
+    depends_on:
+      postgres: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test:
+        [
+          'CMD',
+          '/app/.venv/bin/python',
+          '-c',
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health',timeout=3)",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+networks:
+  database: { internal: true }
+  gateway:
+    name: dental_saas_gateway
+    internal: true
+
+volumes:
+  saas-data: {}

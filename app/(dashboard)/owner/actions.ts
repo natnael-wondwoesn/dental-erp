@@ -8,6 +8,7 @@ import {
   normalizedFeatures,
   platformOperationSchema,
   requirePlatformOwner,
+  releaseVersionSchema,
 } from '@/lib/platform-control'
 
 async function owner() {
@@ -114,8 +115,7 @@ export async function queueOperation(data: FormData) {
 export async function deployInstallationVersion(data: FormData) {
   const session = await owner()
   const installationId = text(data, 'installationId')
-  const version = text(data, 'version')
-  if (!version || version.length > 100) throw new Error('An exact release version is required')
+  const version = releaseVersionSchema.parse(text(data, 'version'))
   const installation = await prisma.platformInstallation.findUnique({
     where: { id: installationId },
   })
@@ -156,7 +156,12 @@ export async function checkInstallationHealth(data: FormData) {
     data: {
       lastHealthStatus: status,
       lastHealthAt: new Date(),
-      status: status === 'HEALTHY' ? 'RUNNING' : 'DEGRADED',
+      status:
+        installation.status === 'DATABASE_STOPPED'
+          ? 'DATABASE_STOPPED'
+          : status === 'HEALTHY'
+            ? 'RUNNING'
+            : 'DEGRADED',
     },
   })
   revalidatePath('/owner')

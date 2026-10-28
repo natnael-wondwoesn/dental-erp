@@ -5,6 +5,7 @@ from sqlalchemy import engine_from_config, pool
 from alembic import context
 from app.config import get_settings
 from app.models import Base
+from app.saas import models as saas_models  # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:

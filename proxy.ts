@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { getProductTier } from '@/lib/product-tier'
 import { evaluateApiLicenseGate } from '@/lib/licensing/api-gate'
 import { isPlatformControlPlane } from '@/lib/platform-mode'
+import { evaluateSaaSGate } from '@/lib/saas/gate'
 
 /**
  * Tier gate.
@@ -52,7 +53,13 @@ const LICENSE_RECOVERY_EXACT = new Set([
 ])
 
 const CONTROL_PLANE_EXACT = new Set(['/login', '/owner', '/api/health', '/api/ready'])
-const CONTROL_PLANE_PREFIXES = ['/api/auth/', '/api/platform/worker/']
+const CONTROL_PLANE_PREFIXES = [
+  '/api/platform/installations/',
+  '/api/auth/',
+  '/api/platform/worker/',
+  '/owner/',
+  '/api/saas-admin/',
+]
 
 function isAllowedInControlPlane(pathname: string): boolean {
   return (
@@ -120,6 +127,9 @@ function isLicenseRecoveryPath(pathname: string): boolean {
 }
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.delete('x-dental-saas-policy')
+  requestHeaders.set('x-sunny-smile-request-method', request.method)
   if (getProductTier() === 'full') {
     if (isPlatformControlPlane()) {
       if (request.nextUrl.pathname === '/' || request.nextUrl.pathname === '/dashboard') {
@@ -128,8 +138,11 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
       if (!isAllowedInControlPlane(request.nextUrl.pathname)) {
         return new NextResponse(null, { status: 404 })
       }
-      return NextResponse.next()
+      return NextResponse.next({ request: { headers: requestHeaders } })
     }
+    const saas = await evaluateSaaSGate(request)
+    if (saas.response) return saas.response
+    if (saas.access) requestHeaders.set('x-dental-saas-policy', JSON.stringify(saas.access))
     if (
       request.nextUrl.pathname.startsWith('/api/') &&
       !['GET', 'HEAD', 'OPTIONS'].includes(request.method) &&
@@ -150,7 +163,6 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     }
     // Overwrite any client-supplied value. Node route helpers use this trusted
     // marker to distinguish reads from writes before consulting local license state.
-    const requestHeaders = new Headers(request.headers)
     requestHeaders.set('x-sunny-smile-request-method', request.method)
     return NextResponse.next({ request: { headers: requestHeaders } })
   }

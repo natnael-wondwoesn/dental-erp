@@ -1,4 +1,5 @@
 'use client'
+import type { SaaSAccess } from '@/lib/saas/catalog'
 
 const ACCESS_TOKEN_KEY = 'dental_erp_access_token'
 
@@ -16,6 +17,7 @@ export interface AuthenticatedUser {
   timezone: string
   isPlatformOwner: boolean
   isPlatformControlPlane: boolean
+  saas?: SaaSAccess
 }
 
 export function getAccessToken() {

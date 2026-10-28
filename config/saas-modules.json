@@ -1,0 +1,22 @@
+{
+  "core": [],
+  "patients": ["core"],
+  "appointments": ["patients"],
+  "clinical": ["patients"],
+  "billing": ["patients"],
+  "insurance": ["billing"],
+  "lab": ["clinical"],
+  "finance": ["billing"],
+  "inventory": ["core"],
+  "staff": ["core"],
+  "reports": ["core"],
+  "crm": ["patients"],
+  "communications": ["patients"],
+  "forms": ["patients"],
+  "portal": ["patients"],
+  "video": ["appointments", "clinical"],
+  "ai": ["core"],
+  "sterilization": ["core"],
+  "devices": ["core"],
+  "data_import": ["core"]
+}

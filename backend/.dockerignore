@@ -1,6 +1,8 @@
 .venv
-.uv-cache
-tests
+.env
+.env.*
+.license-state
 __pycache__
-*.pyc
-
+.pytest_cache
+.ruff_cache
+tests

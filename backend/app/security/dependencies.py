@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_session
 from app.licensing.runtime import LicenseRuntime, get_license_runtime
 from app.models import Hospital, User
+from app.saas.enforcement import enforce_commercial_access
 from app.security.permissions import PermissionKey
 from app.security.tokens import decode_access_token
 
@@ -90,9 +91,13 @@ def require_permission(
         request: Request,
         principal: Annotated[Principal, Depends(get_current_principal)],
         license_runtime: Annotated[LicenseRuntime, Depends(get_license_runtime)],
+        session: Annotated[AsyncSession, Depends(get_session)],
     ) -> Principal:
         if permission not in principal.permissions:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+        await enforce_commercial_access(
+            session, str(principal.hospital_id), permission, request.method, license_runtime
+        )
         if enforce_license and request.method not in {"GET", "HEAD", "OPTIONS"}:
             decision = await license_runtime.decide()
             if decision.enforcement == "required" and not decision.allows_write:

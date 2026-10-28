@@ -20,7 +20,7 @@ services:
       start_period: 60s
 
   migrate:
-    image: ghcr.io/natnael-wondwoesn/dental-erp:${IMAGE_TAG:?IMAGE_TAG is required}
+    image: ${APP_IMAGE:?vendor-approved APP_IMAGE is required}
     restart: 'no'
     command: ['node', 'node_modules/prisma/build/index.js', 'migrate', 'deploy']
     environment:
@@ -30,12 +30,13 @@ services:
     networks: ['internal']
 
   app:
-    image: ghcr.io/natnael-wondwoesn/dental-erp:${IMAGE_TAG:?IMAGE_TAG is required}
+    image: ${APP_IMAGE:?vendor-approved APP_IMAGE is required}
     restart: unless-stopped
     environment:
       NODE_ENV: production
       PRODUCT_TIER: full
       SITE_ID: ${SITE_ID:-default}
+      PUBLIC_BOOKING_STAFF_EMAIL: ${PUBLIC_BOOKING_STAFF_EMAIL:-}
       SITE_URL: https://${HOSTNAME:?HOSTNAME is required}
       NEXTAUTH_URL: https://${HOSTNAME}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?required}
@@ -48,6 +49,9 @@ services:
       LICENSE_PRODUCT_ID: dental-erp
       LICENSE_STATE_DIR: /app/.license-state
       FEATURE_HANDWRITTEN_DIAGNOSIS: ${FEATURE_HANDWRITTEN_DIAGNOSIS:-false}
+      SAAS_ENFORCEMENT: hosted
+      SAAS_URL: ${SAAS_URL:?required}
+      SAAS_READER_TOKEN: ${SAAS_READER_TOKEN:?required}
     volumes:
       - uploads:/app/uploads
       - license-state:/app/.license-state
@@ -56,16 +60,24 @@ services:
       migrate: { condition: service_completed_successfully }
     networks:
       internal: {}
+      saas: {}
       edge:
         aliases: ['${CLIENT_SLUG:?CLIENT_SLUG is required}-web']
     healthcheck:
-      test: ['CMD-SHELL', 'node -e "require(''http'').get(''http://localhost:3000/api/ready'', r => process.exit(r.statusCode < 400 ? 0 : 1)).on(''error'', () => process.exit(1))"']
+      test:
+        [
+          'CMD-SHELL',
+          'node -e "require(''http'').get(''http://localhost:3000/api/ready'', r => process.exit(r.statusCode < 400 ? 0 : 1)).on(''error'', () => process.exit(1))"',
+        ]
       interval: 15s
       timeout: 5s
       retries: 8
       start_period: 45s
 
 networks:
+  saas:
+    name: dental_saas_gateway
+    external: true
   internal: { internal: true }
   edge:
     name: kora_default

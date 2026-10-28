@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -54,6 +54,7 @@ async def create_dashboard_identity(session_factory, *, slug: str, can_read: boo
             dentist_name="Dr. Hana Tesfaye",
             appointment_type="Dental check-up",
             scheduled_start=now,
+            scheduled_end=now + timedelta(minutes=30),
             status="CHECKED_IN",
             chair_label="Chair 1",
         )

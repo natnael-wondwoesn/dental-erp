@@ -24,6 +24,12 @@ class Settings(BaseSettings):
     license_enforcement: Literal["disabled", "audit", "required"] = "disabled"
     license_product_id: str = "dental-erp"
     license_state_dir: Path = Path(".license-state")
+    saas_admin_token: str = ""
+    saas_reader_token: str = ""
+    saas_enforcement: Literal["disabled", "hosted", "offline"] = "disabled"
+    saas_customer_id: str = ""
+    saas_issuer_seed_path: Path | None = None
+    saas_issuer_key_id: str = "vendor-2026-10"
 
     @property
     def allowed_origins(self) -> list[str]:

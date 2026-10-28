@@ -64,7 +64,7 @@ chmod 0600 /etc/sunny-smile/platform-worker.token
 Add the same token to the Dental ERP production `.env` as `PLATFORM_WORKER_TOKEN`. Then create `/etc/sunny-smile/platform-worker.env`:
 
 ```text
-CONTROL_PLANE_URL=https://control.dental-clinic-cms.duckdns.org
+CONTROL_PLANE_URL=https://control.clinic-cms.cc
 PLATFORM_WORKER_TOKEN=<same token>
 CLIENT_ROOT=/opt/clients
 BACKUP_ROOT=/opt/backups/clients
@@ -114,6 +114,27 @@ Recommended schedule:
 - encrypted off-site copy after each local backup;
 - monthly restore drill into a disposable Compose project;
 - record the restore result in the installation's operational notes.
+
+## Clinic reminder scheduler
+
+Install the tenant-safe reminder runner and systemd templates:
+
+```bash
+install -m 0750 ops/platform-worker/run_clinic_reminders.sh /usr/local/sbin/dental-clinic-reminders
+install -m 0644 ops/platform-worker/dental-clinic-reminders@.service /etc/systemd/system/
+install -m 0644 ops/platform-worker/dental-clinic-reminders@.timer /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now dental-clinic-reminders@<clinic-slug>.timer
+```
+
+The runner reads only that clinic's `CRON_SECRET` and `NEXTAUTH_URL`, calls its
+authenticated reminder endpoint hourly, and never receives database or platform
+credentials. Check the latest execution with:
+
+```bash
+systemctl status dental-clinic-reminders@<clinic-slug>.service
+journalctl -u dental-clinic-reminders@<clinic-slug>.service -n 50
+```
 
 ## Adding another product
 

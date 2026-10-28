@@ -873,6 +873,7 @@ model Treatment {
   toothNumbers   String?
   chiefComplaint String? @db.Text
   diagnosis      String? @db.Text
+  clinicalSheet  String? @db.Text
   findings       String? @db.Text
   procedureNotes String? @db.Text
 

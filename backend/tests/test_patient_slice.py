@@ -53,14 +53,14 @@ async def test_patient_mutations_are_authorized_tenant_scoped_and_audited(client
         json={
             "firstName": "Diane",
             "lastName": "Cooper",
-            "phone": "+1-239-555-0108",
+            "phone": "+251911555108",
             "dateOfBirth": "1997-02-24",
             "gender": "FEMALE",
         },
     )
     assert created.status_code == 201, created.text
     patient = created.json()
-    assert patient["patientId"].startswith("PAT")
+    assert patient["patientId"].startswith("ET-PAT-")
     assert patient["firstName"] == "Diane"
 
     listed = await client.get("/api/patients?search=Diane", headers=headers)

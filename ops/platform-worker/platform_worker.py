@@ -8,6 +8,8 @@ four explicit operations against managed client directories.
 
 from __future__ import annotations
 
+import owner_operations
+
 import gzip
 import hashlib
 import json
@@ -18,6 +20,7 @@ import shutil
 import subprocess
 import sys
 import time
+import tempfile
 import urllib.error
 import urllib.request
 from datetime import UTC, datetime
@@ -30,6 +33,8 @@ HOST = re.compile(r"^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-
 PROJECT = re.compile(r"^client-[a-z0-9]+(?:-[a-z0-9]+)*$")
 PRODUCTS = {"dental-erp", "clinic-cms"}
 ACTIONS = {"PROVISION", "DEPLOY", "RESTART", "BACKUP"}
+VERSION = re.compile(r"^(?:v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?|[a-f0-9]{40})$")
+RELEASE_MANIFEST = Path(os.environ.get("RELEASE_MANIFEST_PATH", "/etc/sunny-smile/approved-releases.json"))
 
 CONTROL_URL = os.environ.get("CONTROL_PLANE_URL", "").rstrip("/")
 WORKER_TOKEN = os.environ.get("PLATFORM_WORKER_TOKEN", "")
@@ -77,6 +82,8 @@ def run(args: list[str], *, cwd: Path | None = None, stdout: Any = None, timeout
 
 def validate_job(job: dict[str, Any]) -> dict[str, Any]:
     action = job.get("action")
+    if action in owner_operations.ACTIONS:
+        return owner_operations.validate(job)
     install = job.get("installation")
     if action not in ACTIONS or not isinstance(install, dict):
         raise JobError("Unsupported operation payload")
@@ -93,8 +100,24 @@ def validate_job(job: dict[str, Any]) -> dict[str, Any]:
         raise JobError("Invalid compose project")
     if product not in PRODUCTS:
         raise JobError("Unsupported product adapter")
-    if not isinstance(version, str) or not version or len(version) > 100:
+    if not isinstance(version, str) or not VERSION.fullmatch(version):
         raise JobError("An exact release version is required")
+    if action in {"PROVISION", "DEPLOY"} and product == "dental-erp":
+        try:
+            releases = json.loads(RELEASE_MANIFEST.read_text())
+            image = releases[version]["frontendImage"]
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            raise JobError("Release has not been approved by the vendor") from exc
+        if not isinstance(image, str) or not re.fullmatch(
+            r"(?:ghcr\.io/[a-z0-9_./-]+@sha256:[a-f0-9]{64}|dental-erp-web:[0-9A-Za-z.-]+)", image
+        ):
+            raise JobError("Invalid approved image reference")
+        install = {**install, "approvedImage": image}
+        if image.startswith("dental-erp-web:"):
+            image_id = releases[version].get("frontendImageId")
+            if not isinstance(image_id, str) or not re.fullmatch(r"sha256:[a-f0-9]{64}", image_id):
+                raise JobError("Local releases require an immutable image ID")
+            install["approvedImageId"] = image_id
     root = (CLIENT_ROOT / slug).resolve()
     if root.parent != CLIENT_ROOT:
         raise JobError("Client path escaped managed root")
@@ -120,6 +143,9 @@ def env_text(install: dict[str, Any]) -> str:
         "LICENSE_ENFORCEMENT": "disabled",
     }
     if install["productKey"] == "dental-erp":
+        reader_token = os.environ.get("SAAS_READER_TOKEN", "")
+        if len(reader_token) < 32:
+            raise JobError("SaaS reader connection must be configured before provisioning")
         values = {
             **common,
             "MYSQL_ROOT_PASSWORD": secret(36),
@@ -127,6 +153,10 @@ def env_text(install: dict[str, Any]) -> str:
             "NEXTAUTH_SECRET": secret(48),
             "ENCRYPTION_KEY": secrets.token_hex(32),
             "CRON_SECRET": secrets.token_hex(24),
+            "APP_IMAGE": install["approvedImage"],
+            "SAAS_ENFORCEMENT": "hosted",
+            "SAAS_URL": "http://dental-saas-api:8000",
+            "SAAS_READER_TOKEN": reader_token,
             "SITE_ID": "default",
             "FEATURE_HANDWRITTEN_DIAGNOSIS": "true" if features.get("handwrittenDiagnosis") is True else "false",
         }
@@ -175,10 +205,10 @@ def provision(install: dict[str, Any]) -> dict[str, Any]:
     if not env_path.exists():
         write_private(env_path, env_text(install))
     compose(install, "config", "--quiet")
-    compose(install, "pull")
-    compose(install, "up", "-d", "--remove-orphans")
+    pull_release(install)
+    compose(install, "up", "-d", "--remove-orphans", "--wait", "--wait-timeout", "180")
     write_caddy_site(install)
-    return {"message": "Installation provisioned", "composeProject": install["composeProject"]}
+    return {"message": "Installation provisioned", "composeProject": install["composeProject"], "version": install["version"]}
 
 
 def update_feature_env(install: dict[str, Any]) -> None:
@@ -187,9 +217,14 @@ def update_feature_env(install: dict[str, Any]) -> None:
     path: Path = install["root"] / ".env"
     lines = path.read_text(encoding="utf-8").splitlines()
     enabled = install.get("features", {}).get("handwrittenDiagnosis") is True
-    key = "FEATURE_HANDWRITTEN_DIAGNOSIS="
-    output = [line for line in lines if not line.startswith(key)]
-    output.append(f"{key}{str(enabled).lower()}")
+    updates = {"FEATURE_HANDWRITTEN_DIAGNOSIS": str(enabled).lower(),
+               "APP_IMAGE": install["approvedImage"], "IMAGE_TAG": install["version"],
+               "SAAS_ENFORCEMENT": "hosted", "SAAS_URL": "http://dental-saas-api:8000",
+               "SAAS_READER_TOKEN": os.environ.get("SAAS_READER_TOKEN", "")}
+    if len(updates["SAAS_READER_TOKEN"]) < 32:
+        raise JobError("SaaS reader connection is not configured")
+    output = [line for line in lines if line.split("=", 1)[0] not in updates]
+    output.extend(f"{key}={value}" for key, value in updates.items())
     write_private(path, "\n".join(output) + "\n")
 
 
@@ -197,10 +232,32 @@ def deploy(install: dict[str, Any]) -> dict[str, Any]:
     root: Path = install["root"]
     if not (root / ".managed-by-product-platform").exists():
         raise JobError("Installation is not managed by this worker")
-    update_feature_env(install)
-    compose(install, "pull")
-    compose(install, "up", "-d", "--remove-orphans")
+    backup(install)
+    env_path = root / ".env"
+    compose_path = root / "compose.yml"
+    old_env = env_path.read_text()
+    old_compose = compose_path.read_text()
+    try:
+        shutil.copy2(TEMPLATE_ROOT / f"{install['productKey']}.compose.yml", compose_path)
+        update_feature_env(install)
+        pull_release(install)
+        compose(install, "up", "-d", "--remove-orphans", "--wait", "--wait-timeout", "180")
+    except Exception:
+        write_private(env_path, old_env)
+        compose_path.write_text(old_compose)
+        compose(install, "up", "-d", "--wait", "--wait-timeout", "180")
+        raise
     return {"message": "Release deployed", "version": install.get("version")}
+
+
+def pull_release(install: dict[str, Any]) -> None:
+    if install.get("approvedImage", "").startswith("dental-erp-web:"):
+        actual = run(["docker", "image", "inspect", "--format", "{{.Id}}", install["approvedImage"]])
+        if actual.stdout.decode().strip() != install["approvedImageId"]:
+            raise JobError("Approved release image ID does not match")
+        compose(install, "pull", "mysql")
+    else:
+        compose(install, "pull")
 
 
 def restart(install: dict[str, Any]) -> dict[str, Any]:
@@ -224,8 +281,13 @@ def backup(install: dict[str, Any]) -> dict[str, Any]:
         command = ["docker", "compose", "--env-file", ".env", "-f", "compose.yml", "exec", "-T", "mysql", "sh", "-c", 'exec mysqldump -u root -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"']
     else:
         command = ["docker", "compose", "--env-file", ".env", "-f", "compose.yml", "exec", "-T", "postgres", "pg_dump", "-U", "postgres", "clinic"]
-    with target.open("wb") as raw, gzip.GzipFile(fileobj=raw, mode="wb", compresslevel=6) as compressed:
-        run(command, cwd=install["root"], stdout=compressed, timeout=1200)
+    # subprocess writes to a file descriptor, bypassing GzipFile.write. Spool the
+    # dump privately, then compress through Python so the result is restorable.
+    with tempfile.TemporaryFile() as plain:
+        run(command, cwd=install["root"], stdout=plain, timeout=1200)
+        plain.seek(0)
+        with gzip.open(target, "wb", compresslevel=6) as compressed:
+            shutil.copyfileobj(plain, compressed)
     digest = file_sha256(target)
     (target.with_suffix(target.suffix + ".sha256")).write_text(f"{digest}  {target.name}\n", encoding="ascii")
     target.chmod(0o600)
@@ -256,6 +318,8 @@ def file_sha256(path: Path) -> str:
 
 
 def execute(job: dict[str, Any]) -> dict[str, Any]:
+    if job.get("action") in owner_operations.ACTIONS:
+        return owner_operations.execute(job)
     install = job["installation"]
     return {
         "PROVISION": provision,
@@ -270,13 +334,15 @@ def report(job_id: str, status: str, *, result: dict[str, Any] | None = None, er
     request(
         f"/api/platform/worker/jobs/{job_id}/result",
         method="POST",
-        payload={
+        # Optional string fields must be omitted, not sent as JSON null.
+        # The control API accepts missing fields but rejects null strings.
+        payload={key: value for key, value in {
             "status": status,
             "result": result,
             "error": error,
             "version": result.get("version"),
             "backupCompleted": result.get("backupCompleted", False),
-        },
+        }.items() if value is not None},
     )
 
 

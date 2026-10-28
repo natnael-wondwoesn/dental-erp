@@ -1,0 +1,15 @@
+[Unit]
+Description=Run Dental ERP reminders for %i
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/dental-clinic-reminders %i
+User=root
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadOnlyPaths=/opt/clients/%i/.env
+

@@ -37,9 +37,11 @@ import {
   Upload,
   BookOpen,
   WalletCards,
+  Printer,
   type LucideIcon,
 } from 'lucide-react'
 import type { ProductTier } from '@/lib/product-tier'
+import { modulesForPath, type ModuleId } from '@/lib/saas/catalog'
 
 export interface NavItem {
   title: string
@@ -132,6 +134,11 @@ export const navigation: NavSection[] = [
             title: 'Forms workspace',
             href: '/forms',
             icon: FileCheck,
+          },
+          {
+            title: 'Clinic printables',
+            href: '/forms',
+            icon: Printer,
           },
           {
             title: 'Medical certificates',
@@ -447,7 +454,8 @@ export const navigation: NavSection[] = [
 export function getNavigationForRole(
   role: string,
   isPlatformOwner = false,
-  isPlatformControlPlane = false
+  isPlatformControlPlane = false,
+  modules?: readonly ModuleId[]
 ): NavSection[] {
   return navigation
     .map((section) => ({
@@ -457,13 +465,18 @@ export function getNavigationForRole(
           (item) =>
             (!item.roles || item.roles.includes(role)) &&
             (!item.platformOwnerOnly || isPlatformOwner) &&
-            (!isPlatformControlPlane || item.platformOwnerOnly)
+            (!isPlatformControlPlane || item.platformOwnerOnly) &&
+            (!modules ||
+              item.platformOwnerOnly ||
+              modulesForPath(item.href)?.every((key) => modules.includes(key)))
         )
         .map((item) => ({
           ...item,
           href: role === 'DOCTOR' && item.title === 'Dashboard' ? '/doctor/dashboard' : item.href,
           subItems: item.subItems?.filter(
-            (subItem) => !subItem.roles || subItem.roles.includes(role)
+            (subItem) =>
+              (!subItem.roles || subItem.roles.includes(role)) &&
+              (!modules || modulesForPath(subItem.href)?.every((key) => modules.includes(key)))
           ),
         })),
     }))

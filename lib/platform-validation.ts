@@ -3,6 +3,10 @@ import { z } from 'zod'
 
 export const platformOperationSchema = z.enum(['PROVISION', 'DEPLOY', 'RESTART', 'BACKUP'])
 export type PlatformOperationAction = z.infer<typeof platformOperationSchema>
+export const releaseVersionSchema = z
+  .string()
+  .trim()
+  .regex(/^(?:v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?|[a-f0-9]{40})$/)
 
 export const customerSchema = z.object({
   name: z.string().trim().min(2).max(120),
@@ -31,7 +35,7 @@ export const installationSchema = z.object({
     .trim()
     .toLowerCase()
     .regex(/^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/),
-  version: z.string().trim().min(1).max(100),
+  version: releaseVersionSchema,
   licenseExpiresAt: z.string().trim().optional(),
 })
 

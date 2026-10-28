@@ -1,0 +1,9 @@
+# Add to compose.vps.yml after starting ops/saas-control/compose.yml.
+services:
+  dental-web:
+    networks:
+      dental_saas_gateway: {}
+
+networks:
+  dental_saas_gateway:
+    external: true

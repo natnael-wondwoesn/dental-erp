@@ -5,4 +5,7 @@
  * trust anchors from environment variables, the database, or clinic-writable
  * files. Issuer private keys must never enter this repository or installation.
  */
-export const ISSUER_PUBLIC_KEYS: Readonly<Record<string, string>> = Object.freeze({})
+export const ISSUER_PUBLIC_KEYS: Readonly<Record<string, string>> = Object.freeze({
+  'vendor-2026-10':
+    '-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAUYfJ/dB+d5j5L0t4oinLDX+tYwIKRIVKPPk+OOnbsL8=\n-----END PUBLIC KEY-----\n',
+})
