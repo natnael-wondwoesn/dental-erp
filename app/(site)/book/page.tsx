@@ -1,10 +1,12 @@
 import { SiteHeader } from '@/components/site/site-header'
 import { PublicBookingForm, PublicBookingIntro } from '@/components/site/public-booking-form'
+import { publicBrand } from '@/lib/saas/public-brand'
 
 export const dynamic = 'force-dynamic'
 
-export default function PublicBookingPage() {
-  const clinicSlug = process.env.PUBLIC_BOOKING_CLINIC_SLUG || 'demo-dental-clinic'
+export default async function PublicBookingPage() {
+  const profile = await publicBrand()
+  const clinicSlug = profile?.slug || process.env.PUBLIC_BOOKING_CLINIC_SLUG || 'demo-dental-clinic'
 
   return (
     <main className="marketing-page min-h-screen bg-[#eef4ff] text-[#10233f]">

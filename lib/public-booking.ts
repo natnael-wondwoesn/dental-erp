@@ -10,6 +10,13 @@ export type BookingHours = {
   lunchEnd?: string
 }
 
+export function publicBookingUserWhere() {
+  const configuredEmail = process.env.PUBLIC_BOOKING_STAFF_EMAIL?.trim().toLowerCase()
+  return configuredEmail
+    ? { OR: [{ role: 'DOCTOR' as const }, { role: 'ADMIN' as const, email: configuredEmail }] }
+    : { role: 'DOCTOR' as const }
+}
+
 export function resolveBookingHours(
   rawWorkingHours: string | null,
   date: Date,

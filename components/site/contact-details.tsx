@@ -66,7 +66,8 @@ export function ContactDetails() {
         <div className="rounded-[28px] bg-white p-7 shadow-sm">
           <h2 className="text-2xl font-semibold tracking-tight">{t('Find us')}</h2>
           <p className="mt-4 text-base leading-7 text-slate-600">
-            {location.subCity}, Woreda {location.woreda}
+            {location.subCity}
+            {location.woreda ? `, Woreda ${location.woreda}` : ''}
             <br />
             {location.city}
             {location.kebele && (
@@ -101,14 +102,17 @@ export function ContactDetails() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-[28px] bg-white p-2 shadow-sm">
-        <iframe
-          title="Clinic location map"
-          src={location.mapEmbedUrl}
-          loading="lazy"
-          className="h-full min-h-[420px] w-full rounded-[22px] border-0"
-        />
-      </div>
+      {location.mapEmbedUrl && (
+        <div className="overflow-hidden rounded-[28px] bg-white p-2 shadow-sm">
+          <iframe
+            title="Clinic location map"
+            src={location.mapEmbedUrl}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            className="h-full min-h-[420px] w-full rounded-[22px] border-0"
+          />
+        </div>
+      )}
     </div>
   )
 }

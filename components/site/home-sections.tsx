@@ -118,8 +118,8 @@ export function HeroSection() {
         />
         <div className="relative aspect-[4/4.35] overflow-hidden rounded-[32px] border-[7px] border-white bg-[#dceafa] shadow-[0_42px_90px_-38px_rgba(11,45,83,.62)] sm:rounded-[42px]">
           <Image
-            src="/assets/dentix-hero-ethiopia.png"
-            alt="An Ethiopian patient receiving gentle dental care in a modern Addis Ababa clinic"
+            src={config.clinic.heroImage || '/assets/dentix-hero-ethiopia.png'}
+            alt={`${localize(config.clinic.name)} dental care team`}
             fill
             priority
             className="marketing-hero-image object-cover object-center"
@@ -156,8 +156,8 @@ export function AboutSection() {
         <Reveal className="relative">
           <div className="relative aspect-[4/4.5] overflow-hidden rounded-[34px] bg-[#e7eff8] shadow-[0_34px_80px_-42px_rgba(11,45,83,.55)] sm:rounded-[46px]">
             <Image
-              src="/assets/dentix-team-ethiopia.png"
-              alt="The D/R Lemlem Special Dental Clinic care team in Addis Ababa"
+              src={config.clinic.teamImage || '/assets/dentix-team-ethiopia.png'}
+              alt={`${localize(config.clinic.name)} care team in Addis Ababa`}
               fill
               className="object-cover"
               sizes="(min-width: 1024px) 42vw, 100vw"

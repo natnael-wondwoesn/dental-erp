@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { bookingDateTime, parseBookingDate, resolveBookingHours } from '@/lib/public-booking'
+import {
+  bookingDateTime,
+  parseBookingDate,
+  publicBookingUserWhere,
+  resolveBookingHours,
+} from '@/lib/public-booking'
 
 /**
  * GET: Public slot availability by hospital slug.
@@ -54,7 +59,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
 
     // Verify doctor
     const doctor = await prisma.staff.findFirst({
-      where: { id: doctorId, hospitalId, isActive: true, user: { role: 'DOCTOR' } },
+      where: { id: doctorId, hospitalId, isActive: true, user: publicBookingUserWhere() },
     })
     if (!doctor) {
       return NextResponse.json({ error: 'Doctor not found' }, { status: 404 })

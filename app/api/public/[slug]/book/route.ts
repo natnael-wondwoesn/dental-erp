@@ -9,6 +9,7 @@ import {
   normalizeEthiopianPhone,
   overlaps,
   parseBookingDate,
+  publicBookingUserWhere,
   resolveBookingHours,
 } from '@/lib/public-booking'
 
@@ -67,7 +68,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
 
     // Verify doctor
     const doctor = await prisma.staff.findFirst({
-      where: { id: doctorId, hospitalId: hospital.id, isActive: true, user: { role: 'DOCTOR' } },
+      where: {
+        id: doctorId,
+        hospitalId: hospital.id,
+        isActive: true,
+        user: publicBookingUserWhere(),
+      },
       select: { id: true, firstName: true, lastName: true },
     })
 

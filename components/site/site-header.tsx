@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { Menu, Stethoscope, X } from 'lucide-react'
 
@@ -17,6 +17,24 @@ const LINKS = [
 ]
 
 export function SiteHeader() {
+  const [hasLogo, setHasLogo] = useState(false)
+  useEffect(() => {
+    let active = true
+    async function loadBrand() {
+      try {
+        const response = await fetch('/api/tenant-branding')
+        if (!response?.ok) return
+        const profile = await response.json()
+        if (active) setHasLogo(Boolean(profile.branding?.logo))
+      } catch {
+        /* Public branding can fall back to the text identity. */
+      }
+    }
+    void loadBrand()
+    return () => {
+      active = false
+    }
+  }, [])
   const [menuOpen, setMenuOpen] = useState(false)
   const { t } = useLanguage()
   const { config, tier } = useSite()
@@ -28,7 +46,15 @@ export function SiteHeader() {
       <header className="absolute left-1/2 top-5 z-20 flex w-[calc(100%-2rem)] max-w-[1260px] -translate-x-1/2 items-center justify-between rounded-full bg-white px-5 py-3 shadow-xl sm:top-8 sm:px-7">
         <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0877ea] text-white">
-            <Stethoscope className="h-4 w-4" />
+            {hasLogo ? (
+              <img
+                src="/api/tenant-branding/logo"
+                alt=""
+                className="h-8 w-8 rounded-full object-contain"
+              />
+            ) : (
+              <Stethoscope className="h-4 w-4" />
+            )}
           </span>
           <span className="text-lg">{localize(config.clinic.name)}</span>
         </Link>

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -52,16 +53,40 @@ interface DashboardData {
 }
 
 export default function PatientDashboard() {
+  const router = useRouter()
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+
+  const loadDashboard = useCallback(async () => {
+    setLoading(true)
+    setError(false)
+    try {
+      const response = await fetch('/api/patient-portal/dashboard')
+      if (response.status === 401) {
+        router.replace('/portal/login')
+        return
+      }
+      if (!response.ok) throw new Error('Portal unavailable')
+      const result = await response.json()
+      if (
+        !result.stats ||
+        !Array.isArray(result.upcomingAppointments) ||
+        !Array.isArray(result.recentTreatments) ||
+        !Array.isArray(result.outstandingInvoices)
+      )
+        throw new Error('Invalid portal response')
+      setData(result)
+    } catch {
+      setError(true)
+    } finally {
+      setLoading(false)
+    }
+  }, [router])
 
   useEffect(() => {
-    fetch('/api/patient-portal/dashboard')
-      .then((r) => r.json())
-      .then(setData)
-      .catch(console.error)
-      .finally(() => setLoading(false))
-  }, [])
+    void loadDashboard()
+  }, [loadDashboard])
 
   const formatCurrency = (val: number | string) =>
     new Intl.NumberFormat('en-ET', {
@@ -71,7 +96,7 @@ export default function PatientDashboard() {
     }).format(Number(val))
 
   const formatDate = (d: string) =>
-    new Date(d).toLocaleDateString('en-IN', {
+    new Date(d).toLocaleDateString('en-ET', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
@@ -91,6 +116,14 @@ export default function PatientDashboard() {
     )
   }
 
+  if (error)
+    return (
+      <section role="alert" className="rounded-xl border bg-background p-6 space-y-3">
+        <h1 className="text-xl font-semibold">Unable to load your portal</h1>
+        <p>Please try again. Your records have not changed.</p>
+        <Button onClick={() => void loadDashboard()}>Try again</Button>
+      </section>
+    )
   if (!data) return null
 
   return (

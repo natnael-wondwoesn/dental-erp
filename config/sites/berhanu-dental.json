@@ -1,0 +1,83 @@
+{
+  "clinic": {
+    "name": {
+      "en": "Dr Berhanu Belta Specialty Dental Clinic",
+      "am": "ዶ/ር ብርሃኑ በልጣ ስፔሻሊቲ የጥርስ ሕክምና ክሊኒክ"
+    },
+    "tagline": {
+      "en": "The art and science of a perfect smile.",
+      "am": "ፍጹም ፈገግታ፣ በጥበብና በሳይንስ።"
+    },
+    "heroImage": "/assets/berhanu-hero-v1.png",
+    "teamImage": "/assets/berhanu-hero-v1.png"
+  },
+  "location": {
+    "region": "Addis Ababa",
+    "city": "Addis Ababa",
+    "subCity": "Lideta",
+    "landmark": "Blen Plaza, 1st Floor",
+    "mapEmbedUrl": "https://www.google.com/maps?q=Blen%20Plaza%2C%20Lideta%2C%20Addis%20Ababa&output=embed"
+  },
+  "contact": {
+    "phones": ["+251969421087", "+251910101334", "+251911196496"],
+    "whatsapp": "+251969421087",
+    "email": "drberhanubelta@gmail.com"
+  },
+  "hours": [
+    {
+      "day": { "en": "Monday – Saturday", "am": "ሰኞ – ቅዳሜ" },
+      "open": "08:00",
+      "close": "20:00"
+    },
+    {
+      "day": { "en": "Sunday", "am": "እሁድ" },
+      "open": "08:30",
+      "close": "17:30"
+    }
+  ],
+  "services": [
+    {
+      "title": { "en": "Teeth Cleaning & Whitening", "am": "ጥርስ ማጽዳትና ማንጣት" },
+      "copy": {
+        "en": "Professional cleaning, polishing, and whitening for a brighter, healthier smile.",
+        "am": "ለብሩህና ጤናማ ፈገግታ ሙያዊ የጥርስ ጽዳት፣ ፖሊሺንግ እና ማንጣት።"
+      }
+    },
+    {
+      "title": { "en": "Restorative Dentistry", "am": "የጥርስ ጥገና" },
+      "copy": {
+        "en": "Cavity filling, root canal treatment, crowns, and durable tooth restoration.",
+        "am": "የጥርስ መሙላት፣ የሥር ሕክምና፣ ክራውን እና ዘላቂ የጥርስ ጥገና።"
+      }
+    },
+    {
+      "title": { "en": "Braces & Dental Implants", "am": "ብሬስ እና የጥርስ ተከላ" },
+      "copy": {
+        "en": "Modern alignment, prosthodontic care, and implant options tailored to your smile.",
+        "am": "ለፈገግታዎ የተስማሙ ዘመናዊ ብሬስ፣ ሰው ሠራሽ ጥርስ እና የጥርስ ተከላ።"
+      }
+    }
+  ],
+  "doctors": [
+    {
+      "name": "Dr Berhanu Belta",
+      "credentials": { "en": "Senior Dental Surgeon", "am": "ከፍተኛ የጥርስ ሐኪም" },
+      "bio": {
+        "en": "Experienced specialty dental care combining clinical precision with compassionate, patient-centred service.",
+        "am": "ክሊኒካዊ ትክክለኛነትን ከርኅራኄ እና ታካሚ-ተኮር አገልግሎት ጋር የሚያጣምር ልምድ ያለው ስፔሻሊቲ የጥርስ ሕክምና።"
+      }
+    }
+  ],
+  "about": {
+    "story": {
+      "en": "Humanity, care, and excellence—modern specialty dentistry designed around your comfort and long-term oral health.",
+      "am": "ሰብዓዊነት፣ እንክብካቤ እና ልቀት—ምቾትዎንና የረጅም ጊዜ የአፍ ጤናዎን ያማከለ ዘመናዊ ስፔሻሊቲ የጥርስ ሕክምና።"
+    },
+    "metrics": [
+      {
+        "value": "12+",
+        "label": { "en": "Years of excellence", "am": "ዓመታት የላቀ አገልግሎት" }
+      }
+    ]
+  }
+}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { publicBookingUserWhere } from '@/lib/public-booking'
 
 /**
  * GET: Public endpoint — list active doctors for a hospital by slug.
@@ -25,7 +26,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
       where: {
         hospitalId: hospital.id,
         isActive: true,
-        user: { role: 'DOCTOR' },
+        user: publicBookingUserWhere(),
       },
       select: {
         id: true,

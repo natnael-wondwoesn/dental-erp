@@ -15,12 +15,14 @@ export const siteConfigSchema = z.object({
     name: localizedSchema,
     tagline: localizedSchema,
     logo: z.string().optional(),
+    heroImage: z.string().optional(),
+    teamImage: z.string().optional(),
   }),
   location: z.object({
     region: z.string().min(1),
     city: z.string().min(1),
     subCity: z.string().min(1),
-    woreda: z.string().min(1),
+    woreda: z.string().min(1).optional(),
     kebele: z.string().optional(),
     landmark: z.string().optional(),
     // zod 4 top-level format validators. The older z.string().url() /
