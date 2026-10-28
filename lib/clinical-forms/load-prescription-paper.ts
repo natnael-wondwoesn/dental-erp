@@ -1,3 +1,4 @@
+import { brandClinic } from '@/lib/saas/branding'
 import { prisma } from '@/lib/prisma'
 import type { PrescriptionPaperData } from './prescription-paper'
 
@@ -62,5 +63,9 @@ export async function loadPrescriptionPaper(id: string, hospitalId: string) {
       registration: prescription.doctor.licenseNumber || '',
     },
   }
-  return { prescription, clinic: clinic || { name: 'D/R Lemlem Special Dental Clinic' }, data }
+  return {
+    prescription,
+    clinic: await brandClinic(hospitalId, clinic || { name: 'Dental Clinic' }),
+    data,
+  }
 }

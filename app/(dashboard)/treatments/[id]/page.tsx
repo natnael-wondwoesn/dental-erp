@@ -41,6 +41,7 @@ import {
 import { VoiceInput } from '@/components/clinical/voice-input'
 import { HandwritingPad } from '@/components/clinical/handwriting-pad'
 import type { ClinicalInkDocument } from '@/lib/clinical-ink'
+import { parseTreatmentClinicalSheet } from '@/lib/treatment-clinical-sheet'
 import {
   treatmentStatusConfig,
   procedureCategoryConfig,
@@ -57,6 +58,7 @@ interface Treatment {
   treatmentNo: string
   chiefComplaint: string | null
   diagnosis: string | null
+  clinicalSheet: string | null
   findings: string | null
   procedureNotes: string | null
   materialsUsed: string | null
@@ -248,6 +250,7 @@ export default function TreatmentDetailPage({ params }: { params: Promise<{ id: 
   }
 
   const teeth = treatment.toothNumbers ? parseToothNumbers(treatment.toothNumbers) : []
+  const clinicalSheet = parseTreatmentClinicalSheet(treatment.clinicalSheet)
 
   return (
     <div className="space-y-6">
@@ -395,7 +398,7 @@ export default function TreatmentDetailPage({ params }: { params: Promise<{ id: 
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {treatment.chiefComplaint && (
+              {treatment.chiefComplaint && !clinicalSheet && (
                 <div>
                   <div className="text-sm font-medium text-muted-foreground">Chief Complaint</div>
                   <p className="mt-1">{treatment.chiefComplaint}</p>
@@ -406,6 +409,51 @@ export default function TreatmentDetailPage({ params }: { params: Promise<{ id: 
                 <div>
                   <div className="text-sm font-medium text-muted-foreground">Diagnosis</div>
                   <p className="mt-1">{treatment.diagnosis}</p>
+                </div>
+              )}
+
+              {clinicalSheet && (
+                <div className="space-y-4 rounded-xl border bg-muted/20 p-4">
+                  <div className="font-semibold">Clinical Assessment Sheet</div>
+                  <div className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                    {[
+                      ['Date', clinicalSheet.treatmentDate],
+                      ['Treatment', treatment.procedure.name],
+                      ['T°C', clinicalSheet.temperatureC],
+                      ['BP', clinicalSheet.bloodPressure],
+                      ['SpO₂', clinicalSheet.spo2],
+                      ['PR', clinicalSheet.pulseRate],
+                      ['Dr.', `Dr. ${treatment.doctor.firstName} ${treatment.doctor.lastName}`],
+                      ['Sign', clinicalSheet.doctorSignature],
+                    ].map(([label, value]) =>
+                      value ? (
+                        <div key={label}>
+                          <div className="font-medium text-muted-foreground">{label}</div>
+                          <div className="mt-1 whitespace-pre-wrap">{value}</div>
+                        </div>
+                      ) : null
+                    )}
+                  </div>
+                  <div className="space-y-3">
+                    {[
+                      ['C/C — Chief Complaint', treatment.chiefComplaint],
+                      ['HPI — History of Present Illness', clinicalSheet.historyPresentIllness],
+                      ['PMX — Past Medical History', clinicalSheet.pastMedicalHistory],
+                      ['PDX — Provisional Diagnosis', clinicalSheet.provisionalDiagnosis],
+                      ['EOE — Extraoral Examination', clinicalSheet.extraoralExamination],
+                      ['IOE — Intraoral Examination', clinicalSheet.intraoralExamination],
+                      ['ASS — Assessment', clinicalSheet.assessment],
+                      ['RXP — Prescription / Treatment Plan', clinicalSheet.prescriptionPlan],
+                      ['APPT — Next Appointment', clinicalSheet.nextAppointment],
+                    ].map(([label, value]) =>
+                      value ? (
+                        <div key={label}>
+                          <div className="text-sm font-medium text-muted-foreground">{label}</div>
+                          <p className="mt-1 whitespace-pre-wrap">{value}</p>
+                        </div>
+                      ) : null
+                    )}
+                  </div>
                 </div>
               )}
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAuthAndRole } from '@/lib/api-helpers'
+import { serializeTreatmentClinicalSheet } from '@/lib/treatment-clinical-sheet'
 
 // GET - Get single treatment with all details
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -136,6 +137,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (body.toothNumbers !== undefined) updateData.toothNumbers = body.toothNumbers
     if (body.chiefComplaint !== undefined) updateData.chiefComplaint = body.chiefComplaint
     if (body.diagnosis !== undefined) updateData.diagnosis = body.diagnosis
+    if (body.clinicalSheet !== undefined)
+      updateData.clinicalSheet = serializeTreatmentClinicalSheet(body.clinicalSheet)
     if (body.findings !== undefined) updateData.findings = body.findings
     if (body.procedureNotes !== undefined) updateData.procedureNotes = body.procedureNotes
     if (body.materialsUsed !== undefined) updateData.materialsUsed = body.materialsUsed

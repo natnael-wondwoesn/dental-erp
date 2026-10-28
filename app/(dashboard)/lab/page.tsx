@@ -29,8 +29,6 @@ import {
   ChevronLeft,
   ChevronRight,
   MoreHorizontal,
-  Eye,
-  Edit,
   FlaskConical,
   Clock,
   AlertCircle,
@@ -51,6 +49,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ErpModuleOverview } from '@/components/dashboard/erp-overview'
 import { ExportMenu } from '@/components/ui/export-menu'
 import { useLanguage } from '@/lib/i18n'
+import { labStatusLabel } from '@/lib/lab-deadlines'
 
 interface LabOrder {
   id: string
@@ -79,6 +78,7 @@ interface LabOrder {
   notes: string
   createdByName: string
   createdAt: string
+  dueState: 'NONE' | 'ON_TRACK' | 'DUE_SOON' | 'OVERDUE'
 }
 
 interface LabVendor {
@@ -102,6 +102,8 @@ interface Stats {
   ready: number
   delivered: number
   cancelled: number
+  dueSoon: number
+  overdue: number
 }
 
 export default function LabWorkPage() {
@@ -118,6 +120,8 @@ export default function LabWorkPage() {
     ready: 0,
     delivered: 0,
     cancelled: 0,
+    dueSoon: 0,
+    overdue: 0,
   })
   const [pagination, setPagination] = useState<PaginationInfo>({
     page: 1,
@@ -132,6 +136,7 @@ export default function LabWorkPage() {
   const [vendorFilter, setVendorFilter] = useState('all')
   const [workTypeFilter, setWorkTypeFilter] = useState('all')
   const [priorityFilter, setPriorityFilter] = useState('all')
+  const [deadlineFilter, setDeadlineFilter] = useState('all')
 
   const fetchVendors = async () => {
     try {
@@ -154,9 +159,10 @@ export default function LabWorkPage() {
 
       if (search) params.append('search', search)
       if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter)
-      if (vendorFilter && vendorFilter !== 'all') params.append('vendorId', vendorFilter)
-      if (workTypeFilter && workTypeFilter !== 'all') params.append('workType', workTypeFilter)
+      if (vendorFilter && vendorFilter !== 'all') params.append('vendor_id', vendorFilter)
+      if (workTypeFilter && workTypeFilter !== 'all') params.append('work_type', workTypeFilter)
       if (priorityFilter && priorityFilter !== 'all') params.append('priority', priorityFilter)
+      if (deadlineFilter && deadlineFilter !== 'all') params.append('due_state', deadlineFilter)
 
       const response = await fetch(`/api/lab-orders?${params}`)
       if (!response.ok) throw new Error('Failed to fetch lab orders')
@@ -183,6 +189,8 @@ export default function LabWorkPage() {
       ready: orders.filter((o) => o.status === 'READY').length,
       delivered: orders.filter((o) => o.status === 'DELIVERED').length,
       cancelled: orders.filter((o) => o.status === 'CANCELLED').length,
+      dueSoon: orders.filter((o) => o.dueState === 'DUE_SOON').length,
+      overdue: orders.filter((o) => o.dueState === 'OVERDUE').length,
     }
     setStats(newStats)
   }
@@ -193,7 +201,15 @@ export default function LabWorkPage() {
 
   useEffect(() => {
     fetchOrders()
-  }, [pagination.page, search, statusFilter, vendorFilter, workTypeFilter, priorityFilter])
+  }, [
+    pagination.page,
+    search,
+    statusFilter,
+    vendorFilter,
+    workTypeFilter,
+    priorityFilter,
+    deadlineFilter,
+  ])
 
   const getStatusBadge = (status: string) => {
     const configs: Record<string, { label: string; className: string; icon: any }> = {
@@ -203,7 +219,7 @@ export default function LabWorkPage() {
         icon: Package,
       },
       SENT_TO_LAB: {
-        label: 'Sent to Lab',
+        label: labStatusLabel('SENT_TO_LAB'),
         className: 'bg-blue-100 text-blue-800',
         icon: Truck,
       },
@@ -223,12 +239,12 @@ export default function LabWorkPage() {
         icon: CheckCircle,
       },
       DELIVERED: {
-        label: 'Delivered',
+        label: labStatusLabel('DELIVERED'),
         className: 'bg-emerald-100 text-emerald-800',
         icon: CheckCircle,
       },
       FITTED: {
-        label: 'Fitted',
+        label: labStatusLabel('FITTED'),
         className: 'bg-teal-100 text-teal-800',
         icon: CheckCircle,
       },
@@ -293,6 +309,20 @@ export default function LabWorkPage() {
     }).format(amount)
   }
 
+  const updateOrderStatus = async (orderId: string, status: string) => {
+    const response = await fetch(`/api/lab-orders/${orderId}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    })
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}))
+      window.alert(data.error || 'Unable to update lab order status')
+      return
+    }
+    await fetchOrders()
+  }
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <ErpModuleOverview
@@ -351,7 +381,25 @@ export default function LabWorkPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-7">
+      <div className="grid gap-4 md:grid-cols-4 xl:grid-cols-9">
+        <Card className="border-red-200 bg-red-50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-red-700">{t('Overdue')}</CardTitle>
+            <AlertCircle className="h-4 w-4 text-red-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-700">{stats.overdue}</div>
+          </CardContent>
+        </Card>
+        <Card className="border-amber-200 bg-amber-50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-amber-700">{t('Due soon')}</CardTitle>
+            <Clock className="h-4 w-4 text-amber-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-amber-700">{stats.dueSoon}</div>
+          </CardContent>
+        </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('Total Orders')}</CardTitle>
@@ -420,7 +468,7 @@ export default function LabWorkPage() {
       {/* Filters */}
       <Card>
         <CardContent className="pt-6">
-          <div className="grid gap-4 md:grid-cols-5">
+          <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -437,12 +485,12 @@ export default function LabWorkPage() {
               <SelectContent>
                 <SelectItem value="all">{t('All Statuses')}</SelectItem>
                 <SelectItem value="CREATED">{t('Created')}</SelectItem>
-                <SelectItem value="SENT_TO_LAB">{t('Sent to Lab')}</SelectItem>
+                <SelectItem value="SENT_TO_LAB">{t('Sent')}</SelectItem>
                 <SelectItem value="IN_PROGRESS">{t('In Progress')}</SelectItem>
                 <SelectItem value="QUALITY_CHECK">{t('Quality Check')}</SelectItem>
                 <SelectItem value="READY">{t('Ready')}</SelectItem>
-                <SelectItem value="DELIVERED">{t('Delivered')}</SelectItem>
-                <SelectItem value="FITTED">{t('Fitted')}</SelectItem>
+                <SelectItem value="DELIVERED">{t('Received')}</SelectItem>
+                <SelectItem value="FITTED">{t('Delivered to Patient')}</SelectItem>
                 <SelectItem value="REMAKE_REQUIRED">{t('Remake Required')}</SelectItem>
                 <SelectItem value="CANCELLED">{t('Cancelled')}</SelectItem>
               </SelectContent>
@@ -489,6 +537,16 @@ export default function LabWorkPage() {
                 <SelectItem value="normal">{t('Normal')}</SelectItem>
                 <SelectItem value="urgent">{t('Urgent')}</SelectItem>
                 <SelectItem value="rush">{t('Rush')}</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={deadlineFilter} onValueChange={setDeadlineFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder={t('All deadlines')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('All deadlines')}</SelectItem>
+                <SelectItem value="DUE_SOON">{t('Due within 3 days')}</SelectItem>
+                <SelectItem value="OVERDUE">{t('Overdue')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -551,7 +609,17 @@ export default function LabWorkPage() {
                         </div>
                       </TableCell>
                       <TableCell>{formatDate(order.orderDate)}</TableCell>
-                      <TableCell>{formatDate(order.expectedDate)}</TableCell>
+                      <TableCell>
+                        <div>{formatDate(order.expectedDate)}</div>
+                        {order.dueState === 'OVERDUE' && (
+                          <span className="text-xs font-semibold text-red-600">{t('Overdue')}</span>
+                        )}
+                        {order.dueState === 'DUE_SOON' && (
+                          <span className="text-xs font-semibold text-amber-600">
+                            {t('Due soon')}
+                          </span>
+                        )}
+                      </TableCell>
                       <TableCell>{getStatusBadge(order.status)}</TableCell>
                       <TableCell>{getPriorityBadge(order.priority)}</TableCell>
                       <TableCell>{formatCurrency(order.estimatedCost)}</TableCell>
@@ -564,16 +632,31 @@ export default function LabWorkPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
-                              onClick={() => router.push(`/lab/orders/${order.id}`)}
+                              onClick={() => updateOrderStatus(order.id, 'SENT_TO_LAB')}
                             >
-                              <Eye className="mr-2 h-4 w-4" />
-                              View Details
+                              <Truck className="mr-2 h-4 w-4" />
+                              {t('Mark Sent')}
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => router.push(`/lab/orders/${order.id}/edit`)}
+                              onClick={() => updateOrderStatus(order.id, 'IN_PROGRESS')}
                             >
-                              <Edit className="mr-2 h-4 w-4" />
-                              Edit Order
+                              <Clock className="mr-2 h-4 w-4" />
+                              {t('Mark In Progress')}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'READY')}>
+                              <CheckCircle className="mr-2 h-4 w-4" />
+                              {t('Mark Ready')}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => updateOrderStatus(order.id, 'DELIVERED')}
+                            >
+                              <Package className="mr-2 h-4 w-4" />
+                              {t('Mark Received')}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => updateOrderStatus(order.id, 'FITTED')}>
+                              <CheckCircle className="mr-2 h-4 w-4" />
+                              {t('Mark Delivered to Patient')}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

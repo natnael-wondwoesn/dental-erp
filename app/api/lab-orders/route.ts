@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuthAndRole } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
+import { classifyLabDeadline, LAB_DUE_SOON_DAYS } from '@/lib/lab-deadlines'
+import { endOfLocalDay, startOfLocalDay } from '@/lib/payment-deadlines'
 
 // GET - Fetch all lab orders with filters
 export async function GET(request: NextRequest) {
@@ -16,8 +18,10 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status') || ''
     const labVendorId = searchParams.get('vendor_id') || ''
     const workType = searchParams.get('work_type') || ''
+    const priority = searchParams.get('priority') || ''
     const dateFrom = searchParams.get('date_from') || ''
     const dateTo = searchParams.get('date_to') || ''
+    const dueState = searchParams.get('due_state') || ''
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
     const skip = (page - 1) * limit
@@ -61,6 +65,10 @@ export async function GET(request: NextRequest) {
       where.workType = workType
     }
 
+    if (priority) {
+      where.priority = priority.toUpperCase()
+    }
+
     // Add date range filters
     if (dateFrom) {
       where.orderDate = {
@@ -74,6 +82,19 @@ export async function GET(request: NextRequest) {
         ...where.orderDate,
         lte: new Date(dateTo),
       }
+    }
+
+    if (dueState === 'OVERDUE') {
+      where.expectedDate = { lt: startOfLocalDay(new Date()) }
+      where.status = { notIn: ['FITTED', 'CANCELLED'] }
+    } else if (dueState === 'DUE_SOON') {
+      const end = new Date()
+      end.setDate(end.getDate() + LAB_DUE_SOON_DAYS)
+      where.expectedDate = {
+        gte: startOfLocalDay(new Date()),
+        lte: endOfLocalDay(end),
+      }
+      where.status = { notIn: ['FITTED', 'CANCELLED'] }
     }
 
     // Get total count
@@ -114,6 +135,7 @@ export async function GET(request: NextRequest) {
       avgTurnaroundDays: order.labVendor.avgTurnaround,
       patientName: `${order.patient.firstName} ${order.patient.lastName}`,
       patientPhone: order.patient.phone,
+      dueState: classifyLabDeadline(order.expectedDate, order.status),
     }))
 
     return NextResponse.json({

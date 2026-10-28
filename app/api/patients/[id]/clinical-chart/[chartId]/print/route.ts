@@ -1,3 +1,4 @@
+import { brandClinic } from '@/lib/saas/branding'
 import { NextResponse } from 'next/server'
 
 import { requireAuthAndRole } from '@/lib/api-helpers'
@@ -42,7 +43,7 @@ export async function GET(
   return new Response(
     renderPatientChartHtml(
       data,
-      clinic || { name: 'D/R Lemlem Special Dental Clinic' },
+      await brandClinic(hospitalId, clinic || { name: 'Dental Clinic' }),
       submission.signature
     ),
     {

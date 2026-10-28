@@ -1,3 +1,4 @@
+import { brandClinic } from '@/lib/saas/branding'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const data = submission.data as unknown as MedicalCertificateData
     const html = renderMedicalCertificateHtml(
       data,
-      clinic || { name: 'D/R Lemlem Special Dental Clinic' }
+      await brandClinic(hospitalId, clinic || { name: 'Dental Clinic' })
     )
 
     await emailService.sendEmail({

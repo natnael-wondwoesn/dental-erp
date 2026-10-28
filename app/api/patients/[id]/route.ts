@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuthAndRole } from '@/lib/api-helpers'
 import prisma from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
+import { requestSaaSAccess, saasEnforcement } from '@/lib/saas/server'
 
 // GET /api/patients/[id] - Get a specific patient with all details
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { error, hospitalId } = await requireAuthAndRole()
+  const { error, hospitalId, user } = await requireAuthAndRole()
 
   if (error || !hospitalId) {
     return error || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -13,62 +14,78 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   try {
     const { id } = await params
+    const access = await requestSaaSAccess(hospitalId)
+    const can = (module: string) => access.modules.includes(module as never)
+    const clinical =
+      can('clinical') &&
+      (saasEnforcement() === 'disabled' || ['ADMIN', 'DOCTOR'].includes(user?.role))
 
     const patient = await prisma.patient.findFirst({
       where: { id, hospitalId },
       include: {
-        medicalHistory: true,
-        appointments: {
-          take: 10,
-          orderBy: { scheduledDate: 'desc' },
-          include: {
-            doctor: {
-              select: {
-                firstName: true,
-                lastName: true,
+        medicalHistory: clinical,
+        appointments: can('appointments')
+          ? {
+              take: 10,
+              orderBy: { scheduledDate: 'desc' },
+              include: {
+                doctor: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                  },
+                },
               },
-            },
-          },
-        },
-        treatments: {
-          take: 10,
-          orderBy: { createdAt: 'desc' },
-          include: {
-            procedure: {
-              select: {
-                name: true,
-                category: true,
+            }
+          : false,
+        treatments: clinical
+          ? {
+              take: 10,
+              orderBy: { createdAt: 'desc' },
+              include: {
+                procedure: {
+                  select: {
+                    name: true,
+                    category: true,
+                  },
+                },
+                doctor: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                  },
+                },
               },
-            },
-            doctor: {
-              select: {
-                firstName: true,
-                lastName: true,
+            }
+          : false,
+        invoices: can('billing')
+          ? {
+              take: 10,
+              orderBy: { createdAt: 'desc' },
+              include: {
+                payments: true,
               },
-            },
-          },
-        },
-        invoices: {
-          take: 10,
-          orderBy: { createdAt: 'desc' },
-          include: {
-            payments: true,
-          },
-        },
-        documents: {
-          where: { isArchived: false },
-          orderBy: { createdAt: 'desc' },
-          take: 20,
-        },
-        dentalChart: true,
-        _count: {
-          select: {
-            appointments: true,
-            treatments: true,
-            invoices: true,
-            documents: true,
-          },
-        },
+            }
+          : false,
+        documents: clinical
+          ? {
+              where: { isArchived: false },
+              orderBy: { createdAt: 'desc' },
+              take: 20,
+            }
+          : false,
+        dentalChart: clinical,
+        _count:
+          can('appointments') || clinical || can('billing')
+            ? {
+                select: {
+                  appointments: can('appointments'),
+                  treatments: clinical,
+                  invoices: can('billing'),
+                  documents: clinical,
+                },
+              }
+            : false,
       },
     })
 
@@ -76,9 +93,38 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Patient not found' }, { status: 404 })
     }
 
+    const financialSummary = can('billing')
+      ? await prisma.invoice.aggregate({
+          where: {
+            patientId: id,
+            hospitalId,
+            status: { notIn: ['CANCELLED', 'REFUNDED'] },
+          },
+          _sum: { totalAmount: true, paidAmount: true, balanceAmount: true },
+          _count: true,
+        })
+      : null
+
+    const visiblePatient = clinical
+      ? patient
+      : Object.fromEntries(
+          Object.entries(patient).filter(([key]) => !['aiSummary', 'aiSummaryAt'].includes(key))
+        )
     return NextResponse.json({
       success: true,
-      patient,
+      patient: {
+        ...visiblePatient,
+        ...(financialSummary
+          ? {
+              financialSummary: {
+                totalBilled: Number(financialSummary._sum.totalAmount || 0),
+                totalPaid: Number(financialSummary._sum.paidAmount || 0),
+                outstandingBalance: Number(financialSummary._sum.balanceAmount || 0),
+                invoiceCount: financialSummary._count,
+              },
+            }
+          : {}),
+      },
     })
   } catch (error: any) {
     console.error('Error fetching patient:', error)

@@ -56,7 +56,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     // Stamp the milestone dates the first time each status is reached.
     const data: Prisma.LabOrderUpdateInput = { status }
     if (status === LabOrderStatus.SENT_TO_LAB && !order.sentDate) data.sentDate = now
-    if (status === LabOrderStatus.READY && !order.receivedDate) data.receivedDate = now
+    if (status === LabOrderStatus.DELIVERED && !order.receivedDate) data.receivedDate = now
     if (status === LabOrderStatus.FITTED && !order.deliveredDate) data.deliveredDate = now
 
     await prisma.$transaction([

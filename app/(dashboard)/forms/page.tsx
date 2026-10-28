@@ -1,12 +1,59 @@
 'use client'
 
 import Link from 'next/link'
-import { ClipboardList, FileHeart, FileText, Mail, Printer } from 'lucide-react'
+import {
+  ClipboardList,
+  FileHeart,
+  FileText,
+  FlaskConical,
+  Mail,
+  Printer,
+  ReceiptText,
+  ScrollText,
+} from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 const formTypes = [
+  {
+    title: 'Patient treatment consent',
+    description: 'Print the clinic-branded bilingual patient and guardian treatment consent form.',
+    icon: ScrollText,
+    href: '/api/clinical-forms/printables/consent',
+    action: 'Open and print consent',
+    tone: 'bg-violet-50 text-violet-700 dark:bg-violet-950/35 dark:text-violet-300',
+    printable: true,
+  },
+  {
+    title: 'Dental laboratory order',
+    description:
+      'Print the laboratory work order with case, material, shade and teeth-position fields.',
+    icon: FlaskConical,
+    href: '/api/clinical-forms/printables/laboratory-order',
+    action: 'Open and print lab order',
+    tone: 'bg-amber-50 text-amber-700 dark:bg-amber-950/35 dark:text-amber-300',
+    printable: true,
+  },
+  {
+    title: 'Cash sales attachment',
+    description: 'Print the itemized attachment sheet used with the corresponding fiscal receipt.',
+    icon: ReceiptText,
+    href: '/api/clinical-forms/printables/cash-sales-attachment',
+    action: 'Open and print attachment',
+    tone: 'bg-cyan-50 text-cyan-700 dark:bg-cyan-950/35 dark:text-cyan-300',
+    printable: true,
+  },
+  {
+    title: 'Patient treatment sheet',
+    description:
+      'Print the clinic clinical sheet for vitals, history, examination, assessment and plan.',
+    icon: FileText,
+    href: '/api/clinical-forms/printables/treatment-sheet',
+    action: 'Open and print treatment sheet',
+    tone: 'bg-rose-50 text-rose-700 dark:bg-rose-950/35 dark:text-rose-300',
+    printable: true,
+  },
   {
     title: 'Medical certificates',
     description:
@@ -60,7 +107,9 @@ export default function ClinicalFormsPage() {
               </CardHeader>
               <CardContent>
                 <Button asChild variant="outline" className="w-full">
-                  <Link href={item.href}>{item.action}</Link>
+                  <Link href={item.href} target={item.printable ? '_blank' : undefined}>
+                    {item.action}
+                  </Link>
                 </Button>
               </CardContent>
             </Card>

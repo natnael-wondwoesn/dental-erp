@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { requireAuthAndRole } from '@/lib/api-helpers'
 import { parseClinicalInkDocument } from '@/lib/clinical-ink'
 import { isFeatureEnabled } from '@/lib/features'
+import { serializeTreatmentClinicalSheet } from '@/lib/treatment-clinical-sheet'
 
 // Generate unique treatment number
 async function generateTreatmentNo(hospitalId: string): Promise<string> {
@@ -183,6 +184,7 @@ export async function POST(request: NextRequest) {
       toothNumbers,
       chiefComplaint,
       diagnosis,
+      clinicalSheet,
       findings,
       procedureNotes,
       materialsUsed,
@@ -262,6 +264,7 @@ export async function POST(request: NextRequest) {
         toothNumbers: toothNumbers || null,
         chiefComplaint,
         diagnosis,
+        clinicalSheet: serializeTreatmentClinicalSheet(clinicalSheet),
         findings,
         procedureNotes,
         materialsUsed,

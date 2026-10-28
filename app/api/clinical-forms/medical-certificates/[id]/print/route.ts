@@ -1,3 +1,4 @@
+import { brandClinic } from '@/lib/saas/branding'
 import { NextResponse } from 'next/server'
 
 import { requireAuthAndRole } from '@/lib/api-helpers'
@@ -36,7 +37,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const data = submission.data as unknown as MedicalCertificateData
   const html = renderMedicalCertificateHtml(
     data,
-    clinic || { name: 'D/R Lemlem Special Dental Clinic' }
+    await brandClinic(hospitalId, clinic || { name: 'Dental Clinic' })
   )
 
   return new Response(html, {

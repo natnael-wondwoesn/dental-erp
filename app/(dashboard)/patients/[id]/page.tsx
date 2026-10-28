@@ -48,6 +48,21 @@ type Patient = {
     doctor?: { firstName: string; lastName: string } | null
   }>
   documents?: Array<{ id: string; originalName?: string; fileName?: string; fileSize?: number }>
+  invoices?: Array<{
+    id: string
+    invoiceNo: string
+    totalAmount: number | string
+    paidAmount: number | string
+    balanceAmount: number | string
+    status: string
+    dueDate?: string | null
+  }>
+  financialSummary?: {
+    totalBilled: number
+    totalPaid: number
+    outstandingBalance: number
+    invoiceCount: number
+  }
   _count?: { appointments?: number; treatments?: number; documents?: number }
 }
 
@@ -158,6 +173,12 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
       })
       .slice(0, 3)
   })()
+  const money = (value: number | string) =>
+    new Intl.NumberFormat('en-ET', {
+      style: 'currency',
+      currency: 'ETB',
+      maximumFractionDigits: 2,
+    }).format(Number(value))
 
   return (
     <div className="patient-360 -m-4 min-h-full bg-[#f3f7fc] p-4 text-[#111827] md:-m-6 md:p-7">
@@ -333,6 +354,74 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
           </div>
 
           <aside className="space-y-5">
+            {patient.financialSummary && (
+              <section className="rounded-[22px] border border-slate-100 bg-white p-6 shadow-[0_8px_30px_rgba(28,55,90,.06)]">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h2 className="font-semibold">{t('Patient balance')}</h2>
+                    <p className="mt-1 text-xs text-slate-400">
+                      {patient.financialSummary.invoiceCount} {t('invoices under this profile')}
+                    </p>
+                  </div>
+                  {['ADMIN', 'ACCOUNTANT', 'RECEPTIONIST'].includes(currentRole || '') && (
+                    <Link
+                      href={`/billing/invoices/new?patientId=${patient.id}`}
+                      className="rounded-xl bg-[#086be6] px-3 py-2 text-xs font-semibold text-white"
+                    >
+                      {t('Add charge')}
+                    </Link>
+                  )}
+                </div>
+                <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                  <div className="rounded-xl bg-slate-50 p-3">
+                    <p className="text-[10px] uppercase tracking-wide text-slate-400">
+                      {t('Billed')}
+                    </p>
+                    <p className="mt-1 text-sm font-semibold">
+                      {money(patient.financialSummary.totalBilled)}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-emerald-50 p-3">
+                    <p className="text-[10px] uppercase tracking-wide text-emerald-600">
+                      {t('Paid')}
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-emerald-700">
+                      {money(patient.financialSummary.totalPaid)}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-red-50 p-3">
+                    <p className="text-[10px] uppercase tracking-wide text-red-500">
+                      {t('Outstanding')}
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-red-700">
+                      {money(patient.financialSummary.outstandingBalance)}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 space-y-2">
+                  {(patient.invoices || []).slice(0, 5).map((invoice) => (
+                    <Link
+                      key={invoice.id}
+                      href={`/billing/invoices/${invoice.id}`}
+                      className="flex items-center justify-between rounded-xl border border-slate-100 p-3 text-sm hover:border-[#086be6]"
+                    >
+                      <span>
+                        <span className="font-semibold">{invoice.invoiceNo}</span>
+                        <span className="ml-2 text-xs text-slate-400">
+                          {invoice.dueDate
+                            ? `${t('Due')} ${format(new Date(invoice.dueDate), 'MMM d, yyyy')}`
+                            : t('No deadline')}
+                        </span>
+                      </span>
+                      <span className="font-semibold text-red-600">
+                        {money(invoice.balanceAmount)}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+
             <section className="rounded-[22px] border border-slate-100 bg-white p-6 shadow-[0_8px_30px_rgba(28,55,90,.06)]">
               <div className="flex items-center justify-between gap-3">
                 <div>

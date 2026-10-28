@@ -23,6 +23,10 @@ import { TreatmentAssist } from '@/components/ai/treatment-assist'
 import { VoiceInput } from '@/components/clinical/voice-input'
 import { HandwritingPad } from '@/components/clinical/handwriting-pad'
 import type { ClinicalInkDocument } from '@/lib/clinical-ink'
+import {
+  EMPTY_TREATMENT_CLINICAL_SHEET,
+  type TreatmentClinicalSheet,
+} from '@/lib/treatment-clinical-sheet'
 
 interface Patient {
   id: string
@@ -64,6 +68,12 @@ export default function NewTreatmentPage() {
   const [patientSearch, setPatientSearch] = useState('')
   const [handwritingEnabled, setHandwritingEnabled] = useState(false)
   const [diagnosisInk, setDiagnosisInk] = useState<ClinicalInkDocument | null>(null)
+  const [clinicalSheet, setClinicalSheet] = useState<TreatmentClinicalSheet>(() => ({
+    ...EMPTY_TREATMENT_CLINICAL_SHEET,
+    treatmentDate: new Date().toLocaleDateString('en-CA', {
+      timeZone: 'Africa/Addis_Ababa',
+    }),
+  }))
 
   // Form state
   const [formData, setFormData] = useState({
@@ -197,6 +207,7 @@ export default function NewTreatmentPage() {
           cost: formData.cost ? parseFloat(formData.cost) : null,
           diagnosisInk: diagnosisInk?.strokes.length ? diagnosisInk : null,
           diagnosisInkDevice: navigator.userAgent,
+          clinicalSheet,
         }),
       })
 
@@ -419,17 +430,6 @@ export default function NewTreatmentPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="chiefComplaint">Chief Complaint</Label>
-              <Textarea
-                id="chiefComplaint"
-                value={formData.chiefComplaint}
-                onChange={(e) => setFormData({ ...formData, chiefComplaint: e.target.value })}
-                placeholder="Patient's main concern or reason for visit..."
-                rows={2}
-              />
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="diagnosis">Diagnosis</Label>
               <Textarea
                 id="diagnosis"
@@ -438,6 +438,185 @@ export default function NewTreatmentPage() {
                 placeholder="Clinical diagnosis..."
                 rows={2}
               />
+            </div>
+
+            <div className="space-y-5 rounded-xl border bg-muted/20 p-4">
+              <div>
+                <h3 className="font-semibold">Clinical Assessment Sheet</h3>
+                <p className="text-sm text-muted-foreground">
+                  Complete the fields from the clinic treatment sheet.
+                </p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="treatmentDate">Date</Label>
+                  <Input
+                    id="treatmentDate"
+                    type="date"
+                    value={clinicalSheet.treatmentDate}
+                    onChange={(e) =>
+                      setClinicalSheet({ ...clinicalSheet, treatmentDate: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="clinicalTreatment">Treatment</Label>
+                  <Input
+                    id="clinicalTreatment"
+                    value={selectedProcedure?.name || ''}
+                    placeholder="Select a procedure above"
+                    readOnly
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="space-y-2">
+                  <Label htmlFor="temperatureC">T°C</Label>
+                  <Input
+                    id="temperatureC"
+                    inputMode="decimal"
+                    value={clinicalSheet.temperatureC}
+                    onChange={(e) =>
+                      setClinicalSheet({ ...clinicalSheet, temperatureC: e.target.value })
+                    }
+                    placeholder="36.8"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bloodPressure">BP</Label>
+                  <Input
+                    id="bloodPressure"
+                    value={clinicalSheet.bloodPressure}
+                    onChange={(e) =>
+                      setClinicalSheet({ ...clinicalSheet, bloodPressure: e.target.value })
+                    }
+                    placeholder="120/80"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="spo2">SpO₂ (%)</Label>
+                  <Input
+                    id="spo2"
+                    inputMode="numeric"
+                    value={clinicalSheet.spo2}
+                    onChange={(e) => setClinicalSheet({ ...clinicalSheet, spo2: e.target.value })}
+                    placeholder="98"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pulseRate">PR (bpm)</Label>
+                  <Input
+                    id="pulseRate"
+                    inputMode="numeric"
+                    value={clinicalSheet.pulseRate}
+                    onChange={(e) =>
+                      setClinicalSheet({ ...clinicalSheet, pulseRate: e.target.value })
+                    }
+                    placeholder="72"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="chiefComplaint">C/C — Chief Complaint</Label>
+                <Textarea
+                  id="chiefComplaint"
+                  value={formData.chiefComplaint}
+                  onChange={(e) => setFormData({ ...formData, chiefComplaint: e.target.value })}
+                  placeholder="Patient's main concern or reason for visit..."
+                  rows={2}
+                />
+              </div>
+
+              {(
+                [
+                  [
+                    'historyPresentIllness',
+                    'HPI — History of Present Illness',
+                    'History and progression of the current complaint...',
+                  ],
+                  [
+                    'pastMedicalHistory',
+                    'PMX — Past Medical History',
+                    'Relevant medical history...',
+                  ],
+                  [
+                    'provisionalDiagnosis',
+                    'PDX — Provisional Diagnosis',
+                    'Provisional clinical diagnosis...',
+                  ],
+                  [
+                    'extraoralExamination',
+                    'EOE — Extraoral Examination',
+                    'Extraoral examination findings...',
+                  ],
+                  [
+                    'intraoralExamination',
+                    'IOE — Intraoral Examination',
+                    'Intraoral examination findings...',
+                  ],
+                  ['assessment', 'ASS — Assessment', 'Clinical assessment...'],
+                  [
+                    'prescriptionPlan',
+                    'RXP — Prescription / Treatment Plan',
+                    'Prescription and treatment plan...',
+                  ],
+                ] as const
+              ).map(([field, label, placeholder]) => (
+                <div key={field} className="space-y-2">
+                  <Label htmlFor={field}>{label}</Label>
+                  <Textarea
+                    id={field}
+                    value={clinicalSheet[field]}
+                    onChange={(e) =>
+                      setClinicalSheet({ ...clinicalSheet, [field]: e.target.value })
+                    }
+                    placeholder={placeholder}
+                    rows={2}
+                  />
+                </div>
+              ))}
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="nextAppointment">APPT — Next Appointment</Label>
+                  <Input
+                    id="nextAppointment"
+                    type="date"
+                    value={clinicalSheet.nextAppointment}
+                    onChange={(e) =>
+                      setClinicalSheet({ ...clinicalSheet, nextAppointment: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="clinicalDoctor">Dr.</Label>
+                  <Input
+                    id="clinicalDoctor"
+                    value={
+                      formData.doctorId
+                        ? `Dr. ${doctors.find((doctor) => doctor.id === formData.doctorId)?.firstName || ''} ${doctors.find((doctor) => doctor.id === formData.doctorId)?.lastName || ''}`.trim()
+                        : ''
+                    }
+                    placeholder="Select a doctor above"
+                    readOnly
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="doctorSignature">Sign — Doctor Signature / Initials</Label>
+                <Input
+                  id="doctorSignature"
+                  value={clinicalSheet.doctorSignature}
+                  onChange={(e) =>
+                    setClinicalSheet({ ...clinicalSheet, doctorSignature: e.target.value })
+                  }
+                  placeholder="Doctor signature or initials"
+                />
+              </div>
             </div>
 
             {handwritingEnabled && selectedPatient && (
