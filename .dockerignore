@@ -27,3 +27,15 @@ backups
 vitest.config.*
 playwright.config.*
 tsconfig.tsbuildinfo
+backend/.venv
+backend/.pytest_cache
+backend/.license-state
+.uv-cache
+.pytest_cache
+.clinic-cms-worktree
+output
+test-results
+playwright-report
+artifacts
+uploads
+tmp

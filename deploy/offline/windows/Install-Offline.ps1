@@ -7,7 +7,9 @@ param(
     [ValidateRange(1, 65535)][int]$AppPort = 80,
     [string]$InstallRoot = "$env:ProgramData\SunnySmile\DentalERP",
     [string]$LicenseFile,
-    [string]$RequestOutput
+    [string]$RequestOutput,
+    [ValidatePattern('^[A-Za-z0-9_-]*$')][string]$ClinicId = '',
+    [ValidatePattern('^[A-Za-z0-9._:-]*$')][string]$CustomerId = ''
 )
 
 Set-StrictMode -Version Latest
@@ -82,6 +84,8 @@ Write-SunnySmileEnvironment `
     -Manifest $manifest `
     -LicenseStateDirectory $licenseState `
     -BindAddress $bindAddress `
+    -ClinicId $ClinicId `
+    -CustomerId $CustomerId `
     -Port $AppPort
 
 foreach ($image in $manifest.container_archives) {

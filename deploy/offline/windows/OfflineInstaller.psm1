@@ -194,6 +194,8 @@ function Write-SunnySmileEnvironment {
         [Parameter(Mandatory)]$Manifest,
         [Parameter(Mandatory)][string]$LicenseStateDirectory,
         [Parameter(Mandatory)][string]$BindAddress,
+        [string]$ClinicId = '',
+        [string]$CustomerId = '',
         [ValidateRange(1, 65535)][int]$Port = 80
     )
 
@@ -209,6 +211,9 @@ function Write-SunnySmileEnvironment {
         "MYSQL_ROOT_PASSWORD=$(New-SunnySmileSecret)",
         "NEXTAUTH_SECRET=$(New-SunnySmileSecret)",
         'LICENSE_ENFORCEMENT=required',
+        'SAAS_ENFORCEMENT=offline',
+        "SAAS_TENANT_ID=$ClinicId",
+        "SAAS_CUSTOMER_ID=$CustomerId",
         'LICENSE_PRODUCT_ID=dental-erp',
         "LICENSE_STATE_HOST_DIR=$LicenseStateDirectory",
         "APP_BIND=$BindAddress",

@@ -1,4 +1,4 @@
-FROM node:20-bullseye-slim AS base
+FROM node:22-bookworm-slim AS base
 
 # Stage 1: Install dependencies
 FROM base AS deps
@@ -12,9 +12,8 @@ RUN npm ci
 RUN npx prisma generate
 
 # Stage 2: Build the application
-FROM base AS builder
+FROM deps AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
