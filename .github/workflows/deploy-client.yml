@@ -1,0 +1,69 @@
+name: Deploy client
+
+# Deploys an already-released image (published by the Release workflow) to one
+# client stack on the VPS using ops/deploy/deploy.sh. Rolls back on failure.
+
+on:
+  workflow_dispatch:
+    inputs:
+      client:
+        description: Client slug under /opt/clients (e.g. berhanu-dental)
+        required: true
+        type: string
+      version:
+        description: Released version tag (e.g. 0.1.20)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: deploy-${{ inputs.client }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate inputs
+        run: |
+          [[ "$CLIENT" =~ ^[a-z0-9][a-z0-9-]*$ ]]
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]
+        env:
+          CLIENT: ${{ inputs.client }}
+          VERSION: ${{ inputs.version }}
+
+      - name: Configure SSH
+        run: |
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$PRIVATE_KEY" > "$HOME/.ssh/deploy_key"
+          printf '%s\n' "$HOST_KEY" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/deploy_key" "$HOME/.ssh/known_hosts"
+        env:
+          PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          HOST_KEY: ${{ secrets.VPS_SSH_HOST_KEY }}
+
+      - name: Deploy
+        run: |
+          SSH="ssh -i $HOME/.ssh/deploy_key -p ${VPS_PORT:-22} -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes $VPS_USER@$VPS_HOST"
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}:${VERSION}"
+          $SSH 'mkdir -p /opt/deploy' 
+          cat ops/deploy/deploy.sh | $SSH 'cat > /opt/deploy/deploy.sh && chmod 700 /opt/deploy/deploy.sh'
+          # Short-lived token, piped over stdin: nothing is stored on the VPS.
+          printf '%s' "$GITHUB_TOKEN" | $SSH "docker login ghcr.io -u '$GITHUB_ACTOR' --password-stdin >/dev/null"
+          $SSH "/opt/deploy/deploy.sh '$CLIENT' '$IMAGE'" || status=$?
+          $SSH 'docker logout ghcr.io >/dev/null' || true
+          exit ${status:-0}
+        env:
+          CLIENT: ${{ inputs.client }}
+          VERSION: ${{ inputs.version }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
