@@ -1,3 +1,4 @@
+import { eligibleTenantIds } from '@/lib/saas/server'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { complete } from '@/lib/ai/openrouter'
@@ -14,9 +15,21 @@ export async function GET(req: Request) {
   if (!secret || secret !== process.env.CRON_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+  const eligible = await eligibleTenantIds([
+    'ai',
+    'patients',
+    'appointments',
+    'clinical',
+    'billing',
+    'inventory',
+  ])
 
   const hospitals = await prisma.hospital.findMany({
-    where: { isActive: true, onboardingCompleted: true },
+    where: {
+      ...(eligible ? { id: { in: eligible } } : {}),
+      isActive: true,
+      onboardingCompleted: true,
+    },
     select: { id: true, name: true },
   })
 

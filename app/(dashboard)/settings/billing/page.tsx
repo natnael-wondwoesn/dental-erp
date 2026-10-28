@@ -109,7 +109,7 @@ export default function BillingSettingsPage() {
 
       <div className="space-y-6">
         {/* Payment Gateway */}
-        <GatewaySettings />
+        <GatewaySettings currency={settings.currencyCode} />
 
         {/* Tax Configuration */}
         <Card>

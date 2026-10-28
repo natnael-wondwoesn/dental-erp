@@ -23,6 +23,7 @@ import {
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
+import { useLanguage } from '@/lib/i18n'
 
 interface Notification {
   id: string
@@ -47,19 +48,23 @@ const TYPE_CONFIG: Record<string, { icon: typeof Info; color: string }> = {
   SYSTEM: { icon: Settings, color: 'text-muted-foreground' },
 }
 
-function timeAgo(dateStr: string) {
+function timeAgo(dateStr: string, locale: string) {
   const now = Date.now()
   const then = new Date(dateStr).getTime()
   const diff = Math.floor((now - then) / 1000)
 
-  if (diff < 60) return 'just now'
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
-  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`
-  return new Date(dateStr).toLocaleDateString()
+  const relative = new Intl.RelativeTimeFormat(locale === 'am' ? 'am-ET' : 'en-ET', {
+    numeric: 'auto',
+  })
+  if (diff < 60) return relative.format(0, 'second')
+  if (diff < 3600) return relative.format(-Math.floor(diff / 60), 'minute')
+  if (diff < 86400) return relative.format(-Math.floor(diff / 3600), 'hour')
+  if (diff < 604800) return relative.format(-Math.floor(diff / 86400), 'day')
+  return new Date(dateStr).toLocaleDateString(locale === 'am' ? 'am-ET' : 'en-ET')
 }
 
 export function NotificationTray() {
+  const { t, locale } = useLanguage()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -140,12 +145,12 @@ export function NotificationTray() {
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
-          <span className="sr-only">Notifications</span>
+          <span className="sr-only">{t('Notifications')}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[min(320px,calc(100vw-2rem))] p-0">
         <div className="flex items-center justify-between px-4 py-3">
-          <DropdownMenuLabel className="p-0 text-base">Notifications</DropdownMenuLabel>
+          <DropdownMenuLabel className="p-0 text-base">{t('Notifications')}</DropdownMenuLabel>
           {unreadCount > 0 && (
             <Button
               variant="ghost"
@@ -154,7 +159,7 @@ export function NotificationTray() {
               onClick={markAllRead}
             >
               <CheckCheck className="mr-1 h-3 w-3" />
-              Mark all read
+              {t('Mark all read')}
             </Button>
           )}
         </div>
@@ -162,12 +167,12 @@ export function NotificationTray() {
         <ScrollArea className="h-[340px]">
           {loading && notifications.length === 0 ? (
             <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-              Loading...
+              {t('Loading...')}
             </div>
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-sm text-muted-foreground">
               <Bell className="mb-2 h-8 w-8 opacity-30" />
-              No notifications yet
+              {t('No notifications yet')}
             </div>
           ) : (
             <div>
@@ -201,7 +206,7 @@ export function NotificationTray() {
                         {n.message}
                       </p>
                       <p className="mt-1 text-[11px] text-muted-foreground/70">
-                        {timeAgo(n.createdAt)}
+                        {timeAgo(n.createdAt, locale)}
                       </p>
                     </div>
                   </button>

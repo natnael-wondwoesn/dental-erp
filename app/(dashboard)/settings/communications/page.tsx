@@ -28,6 +28,8 @@ export default function CommunicationSettingsPage() {
   const [smsApiKey, setSmsApiKey] = useState('')
   const [smsSenderId, setSmsSenderId] = useState('')
   const [smsRoute, setSmsRoute] = useState('4')
+  const [smsAuthKey, setSmsAuthKey] = useState('')
+  const [smsWebhookUrl, setSmsWebhookUrl] = useState('')
   const [smsEnabled, setSmsEnabled] = useState(true)
 
   // Email Settings
@@ -72,6 +74,8 @@ export default function CommunicationSettingsPage() {
         setSmsApiKey(data.sms.apiKey || '')
         setSmsSenderId(data.sms.senderId || '')
         setSmsRoute(data.sms.route || '4')
+        setSmsAuthKey(data.sms.authKey || '')
+        setSmsWebhookUrl(data.sms.webhookUrl || '')
         setSmsEnabled(data.sms.enabled !== 'false' && data.sms.enabled !== false)
       }
 
@@ -116,6 +120,9 @@ export default function CommunicationSettingsPage() {
         apiKey: smsApiKey,
         senderId: smsSenderId,
         route: smsRoute,
+        authKey: smsAuthKey,
+        webhookUrl: smsWebhookUrl,
+        timezone: 'Africa/Addis_Ababa',
         enabled: smsEnabled,
       }
 
@@ -371,6 +378,7 @@ export default function CommunicationSettingsPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="TWILIO">Twilio</SelectItem>
+                      <SelectItem value="WEBHOOK">HTTPS SMS relay (temporary)</SelectItem>
                       <SelectItem value="MSG91">MSG91 (legacy)</SelectItem>
                       <SelectItem value="TEXTLOCAL">TextLocal (legacy)</SelectItem>
                       <SelectItem value="FAST2SMS">Fast2SMS (legacy)</SelectItem>
@@ -379,7 +387,9 @@ export default function CommunicationSettingsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="sms-sender-id">Sender ID</Label>
+                  <Label htmlFor="sms-sender-id">
+                    {smsGateway === 'TWILIO' ? 'Twilio From number' : 'Sender ID'}
+                  </Label>
                   <Input
                     id="sms-sender-id"
                     placeholder="DENTAL"
@@ -390,7 +400,13 @@ export default function CommunicationSettingsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="sms-api-key">API Key / Auth Key</Label>
+                  <Label htmlFor="sms-api-key">
+                    {smsGateway === 'TWILIO'
+                      ? 'Twilio Auth Token'
+                      : smsGateway === 'WEBHOOK'
+                        ? 'Relay Bearer Token (optional)'
+                        : 'API Key / Auth Key'}
+                  </Label>
                   <Input
                     id="sms-api-key"
                     type="password"
@@ -400,18 +416,50 @@ export default function CommunicationSettingsPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="sms-route">Route (for MSG91/TextLocal)</Label>
-                  <Input
-                    id="sms-route"
-                    placeholder="4"
-                    value={smsRoute}
-                    onChange={(e) => setSmsRoute(e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Route 4 = Transactional, Route 1 = Promotional
-                  </p>
-                </div>
+                {smsGateway === 'TWILIO' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="sms-auth-key">Twilio Account SID</Label>
+                    <Input
+                      id="sms-auth-key"
+                      type="password"
+                      placeholder="AC..."
+                      value={smsAuthKey}
+                      onChange={(e) => setSmsAuthKey(e.target.value)}
+                    />
+                  </div>
+                )}
+
+                {smsGateway === 'WEBHOOK' && (
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="sms-webhook-url">HTTPS relay endpoint</Label>
+                    <Input
+                      id="sms-webhook-url"
+                      type="url"
+                      placeholder="https://your-relay.example/send"
+                      value={smsWebhookUrl}
+                      onChange={(e) => setSmsWebhookUrl(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Sends JSON with to, message, senderId, hospitalId and patientId. Works with an
+                      Android phone + SIM relay during provider onboarding.
+                    </p>
+                  </div>
+                )}
+
+                {smsGateway !== 'TWILIO' && smsGateway !== 'WEBHOOK' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="sms-route">Route (for MSG91/TextLocal)</Label>
+                    <Input
+                      id="sms-route"
+                      placeholder="4"
+                      value={smsRoute}
+                      onChange={(e) => setSmsRoute(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Route 4 = Transactional, Route 1 = Promotional
+                    </p>
+                  </div>
+                )}
               </div>
 
               <Separator />

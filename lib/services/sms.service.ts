@@ -1,14 +1,16 @@
+import { assertModuleWrite, saasEnforcement } from '@/lib/saas/server'
 // SMS service for Ethiopian clinics, with legacy Indian gateway compatibility.
 // Twilio supports Ethiopian E.164 numbers; MSG91 behavior depends on the account.
 
 import prisma from '@/lib/prisma'
 
 export interface SMSConfig {
-  gateway: 'MSG91' | 'TEXTLOCAL' | 'FAST2SMS' | 'TWILIO'
+  gateway: 'MSG91' | 'TEXTLOCAL' | 'FAST2SMS' | 'TWILIO' | 'WEBHOOK'
   apiKey: string
   senderId: string
   route?: string
   authKey?: string
+  webhookUrl?: string
   timezone?: string
 }
 
@@ -20,12 +22,16 @@ export interface SMSPayload {
   templateId?: string
   scheduledFor?: Date
   timezone?: string
+  metadata?: Record<string, unknown>
 }
 
 class SMSService {
+  constructor(private readonly isolated = false) {}
   private config: SMSConfig | null = null
 
   async initialize(hospitalId?: string) {
+    if (saasEnforcement() !== 'disabled' && !hospitalId)
+      throw new Error('Tenant context is required')
     // Load SMS configuration from settings
     const settings = await prisma.setting.findMany({
       where: {
@@ -44,15 +50,34 @@ class SMSService {
       senderId: settings.find((s) => s.key === 'sms.senderId')?.value || '',
       route: settings.find((s) => s.key === 'sms.route')?.value,
       authKey: settings.find((s) => s.key === 'sms.authKey')?.value,
+      webhookUrl: settings.find((s) => s.key === 'sms.webhookUrl')?.value,
       timezone: settings.find((s) => s.key === 'sms.timezone')?.value || 'Africa/Addis_Ababa',
     }
 
-    if (!this.config.apiKey) {
+    const enabled = settings.find((s) => s.key === 'sms.enabled')?.value
+    if (enabled === 'false') throw new Error('SMS communication is disabled')
+
+    if (!this.config.apiKey && this.config.gateway !== 'WEBHOOK') {
       throw new Error('SMS API key not configured')
     }
+    if (this.config.gateway === 'TWILIO' && !this.config.authKey)
+      throw new Error('Twilio Account SID not configured')
+    if (this.config.gateway === 'WEBHOOK' && !this.config.webhookUrl)
+      throw new Error('SMS relay URL not configured')
   }
 
   async sendSMS(payload: SMSPayload): Promise<string> {
+    if (!this.isolated && saasEnforcement() !== 'disabled')
+      return new SMSService(true).sendSMS(payload)
+    await assertModuleWrite(payload.hospitalId || '', ['communications'])
+    if (
+      saasEnforcement() !== 'disabled' &&
+      payload.patientId &&
+      !(await prisma.patient.findFirst({
+        where: { id: payload.patientId, hospitalId: payload.hospitalId },
+      }))
+    )
+      throw new Error('Patient not found')
     if (!this.isValidPhoneNumber(payload.phone)) {
       throw new Error('Invalid phone number format')
     }
@@ -88,6 +113,7 @@ class SMSService {
         scheduledFor: payload.scheduledFor,
         status: payload.scheduledFor ? 'PENDING' : 'QUEUED',
         gateway: this.config?.gateway,
+        metadata: payload.metadata ? JSON.stringify(payload.metadata) : null,
       },
     })
 
@@ -148,6 +174,8 @@ class SMSService {
         return this.sendViaFast2SMS(payload)
       case 'TWILIO':
         return this.sendViaTwilio(payload)
+      case 'WEBHOOK':
+        return this.sendViaWebhook(payload)
       default:
         throw new Error('Unsupported SMS gateway')
     }
@@ -289,6 +317,59 @@ class SMSService {
     return {
       messageId: data.sid || '',
     }
+  }
+
+  /**
+   * Provider-neutral HTTPS relay. This supports a temporary Android phone + SIM
+   * gateway as well as local Ethiopian aggregators without another application release.
+   */
+  private async sendViaWebhook(payload: SMSPayload): Promise<{ messageId: string; cost?: number }> {
+    const relayUrl = this.config?.webhookUrl || ''
+    const url = new URL(relayUrl)
+    if (url.protocol !== 'https:') throw new Error('SMS relay URL must use HTTPS')
+    if (this.isPrivateRelayHost(url.hostname))
+      throw new Error('SMS relay URL must use a public host')
+
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (this.config?.apiKey) headers.Authorization = `Bearer ${this.config.apiKey}`
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        to: this.normalizePhoneNumber(payload.phone),
+        message: payload.message,
+        senderId: this.config?.senderId || undefined,
+        hospitalId: payload.hospitalId,
+        patientId: payload.patientId,
+      }),
+    })
+
+    const data = await response.json().catch(() => ({}))
+    if (!response.ok || data.success === false) {
+      throw new Error(data.error || data.message || `SMS relay failed (${response.status})`)
+    }
+
+    return {
+      messageId: String(data.messageId || data.id || data.sid || `relay-${Date.now()}`),
+      cost: typeof data.cost === 'number' ? data.cost : undefined,
+    }
+  }
+
+  private isPrivateRelayHost(hostname: string): boolean {
+    const host = hostname.toLowerCase().replace(/^\[|\]$/g, '')
+    if (host === 'localhost' || host.endsWith('.local') || host === '::1') return true
+    const match = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/)
+    if (!match) return false
+    const [a, b] = match.slice(1).map(Number)
+    return (
+      a === 10 ||
+      a === 127 ||
+      a === 0 ||
+      (a === 169 && b === 254) ||
+      (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168)
+    )
   }
 
   private isValidPhoneNumber(phone: string): boolean {

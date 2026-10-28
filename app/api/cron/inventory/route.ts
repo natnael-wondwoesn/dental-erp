@@ -1,3 +1,4 @@
+import { eligibleTenantIds } from '@/lib/saas/server'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
@@ -12,13 +13,18 @@ export async function GET(req: Request) {
   if (!secret || secret !== process.env.CRON_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+  const eligible = await eligibleTenantIds(['inventory'])
 
   const now = new Date()
   const in14Days = new Date(now)
   in14Days.setDate(now.getDate() + 14)
 
   const hospitals = await prisma.hospital.findMany({
-    where: { isActive: true, onboardingCompleted: true },
+    where: {
+      ...(eligible ? { id: { in: eligible } } : {}),
+      isActive: true,
+      onboardingCompleted: true,
+    },
     select: { id: true },
   })
 

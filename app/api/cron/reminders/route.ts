@@ -1,5 +1,8 @@
+import { eligibleTenantIds } from '@/lib/saas/server'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { classifyLabDeadline, labReminderRange } from '@/lib/lab-deadlines'
+import { communicationTriggersService } from '@/lib/services/communication-triggers.service'
 
 /**
  * GET /api/cron/reminders
@@ -13,6 +16,8 @@ export async function GET(req: Request) {
   if (!secret || secret !== process.env.CRON_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+  const eligible = await eligibleTenantIds(['appointments', 'communications'])
+  const eligibleLab = await eligibleTenantIds(['lab'])
 
   const now = new Date()
   const in24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000)
@@ -20,6 +25,7 @@ export async function GET(req: Request) {
   // Find appointments in next 24 hours across all active hospitals
   const appointments = await prisma.appointment.findMany({
     where: {
+      ...(eligible ? { hospitalId: { in: eligible } } : {}),
       status: { in: ['SCHEDULED', 'CONFIRMED'] },
       scheduledDate: { gte: now, lte: in24Hours },
     },
@@ -91,10 +97,79 @@ export async function GET(req: Request) {
     }
   }
 
+  const labRange = labReminderRange(now)
+  const labOrders =
+    (await prisma.labOrder.findMany({
+      where: {
+        ...(eligibleLab ? { hospitalId: { in: eligibleLab } } : {}),
+        expectedDate: { lte: labRange.end },
+        status: { notIn: ['FITTED', 'CANCELLED'] },
+        deletedAt: null,
+      },
+      include: {
+        patient: { select: { firstName: true, lastName: true } },
+        labVendor: { select: { name: true } },
+      },
+    })) || []
+
+  let labDueSoon = 0
+  let labOverdue = 0
+  let labNotifications = 0
+  for (const order of labOrders) {
+    const deadlineState = classifyLabDeadline(order.expectedDate, order.status, now)
+    if (!['DUE_SOON', 'OVERDUE'].includes(deadlineState)) continue
+    if (deadlineState === 'DUE_SOON') labDueSoon++
+    else labOverdue++
+
+    const entityType = deadlineState === 'OVERDUE' ? 'LabOrder:Overdue' : 'LabOrder:DueSoon'
+    const existing = await prisma.notification.findFirst({
+      where: { hospitalId: order.hospitalId, entityType, entityId: order.id },
+      select: { id: true },
+    })
+    if (existing) continue
+
+    const users =
+      (await prisma.user.findMany({
+        where: {
+          hospitalId: order.hospitalId,
+          role: { in: ['ADMIN', 'RECEPTIONIST'] },
+          isActive: true,
+        },
+        select: { id: true },
+      })) || []
+    const patientName = `${order.patient.firstName} ${order.patient.lastName}`.trim()
+    const expected = order.expectedDate
+      ? new Date(order.expectedDate).toLocaleDateString('en-ET')
+      : 'not set'
+    for (const user of users) {
+      await prisma.notification.create({
+        data: {
+          hospitalId: order.hospitalId,
+          userId: user.id,
+          title: deadlineState === 'OVERDUE' ? 'Lab order overdue' : 'Lab order due soon',
+          message: `${order.orderNumber} for ${patientName} at ${order.labVendor.name} is ${deadlineState === 'OVERDUE' ? 'overdue' : 'due soon'} (expected ${expected}).`,
+          type: deadlineState === 'OVERDUE' ? 'ERROR' : 'WARNING',
+          entityType,
+          entityId: order.id,
+        },
+      })
+      labNotifications++
+    }
+  }
+
+  const paymentReminders = await communicationTriggersService.sendPaymentReminders()
+
   return NextResponse.json({
     checked: appointments.length,
     created,
     extraReminders,
+    lab: {
+      checked: labOrders.length,
+      dueSoon: labDueSoon,
+      overdue: labOverdue,
+      notificationsCreated: labNotifications,
+    },
+    paymentReminders,
     processedAt: now.toISOString(),
   })
 }

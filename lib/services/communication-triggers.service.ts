@@ -6,6 +6,11 @@ import { smsService } from './sms.service'
 import { emailService } from './email.service'
 import { templateService } from './template.service'
 import { addDays, startOfDay, endOfDay, format, subDays } from 'date-fns'
+import {
+  paymentReminderMarker,
+  paymentReminderMetadata,
+  reminderTargetRange,
+} from '@/lib/payment-deadlines'
 
 class CommunicationTriggersService {
   // Send appointment reminders (24 hours before)
@@ -79,6 +84,7 @@ class CommunicationTriggersService {
             const message = templateService.replaceVariables(smsTemplate.content, variables)
 
             await smsService.sendSMS({
+              hospitalId: appointment.hospitalId,
               phone: appointment.patient.phone,
               message,
               patientId: appointment.patientId,
@@ -195,6 +201,7 @@ class CommunicationTriggersService {
             const message = templateService.replaceVariables(smsTemplate.content, variables)
 
             await smsService.sendSMS({
+              hospitalId: patient.hospitalId,
               phone: patient.phone,
               message,
               patientId: patient.id,
@@ -208,37 +215,42 @@ class CommunicationTriggersService {
     }
   }
 
-  // Send payment reminders for overdue invoices
+  // Send one SMS seven days before each six-month payment deadline.
   async sendPaymentReminders() {
-    const today = new Date()
+    const target = reminderTargetRange()
+    let sent = 0
+    let skipped = 0
+    let failed = 0
 
-    // Get invoices that are overdue or due soon
-    const overdueInvoices = await prisma.invoice.findMany({
-      where: {
-        status: {
-          in: ['PENDING', 'PARTIALLY_PAID', 'OVERDUE'],
+    const invoices =
+      (await prisma.invoice.findMany({
+        where: {
+          status: {
+            in: ['PENDING', 'PARTIALLY_PAID', 'OVERDUE'],
+          },
+          balanceAmount: {
+            gt: 0,
+          },
+          dueDate: {
+            gte: target.start,
+            lte: target.end,
+          },
         },
-        balanceAmount: {
-          gt: 0,
+        include: {
+          patient: true,
         },
-        dueDate: {
-          lte: today,
-        },
-      },
-      include: {
-        patient: true,
-      },
-    })
+      })) || []
 
-    console.log(`Found ${overdueInvoices.length} overdue invoices`)
+    console.log(`Found ${invoices.length} balances due in seven days`)
 
-    for (const invoice of overdueInvoices) {
+    for (const invoice of invoices) {
       try {
         const preferences = await prisma.patientCommunicationPreference.findUnique({
           where: { patientId: invoice.patientId },
         })
 
         if (preferences && !preferences.paymentReminders) {
+          skipped++
           continue
         }
 
@@ -247,40 +259,48 @@ class CommunicationTriggersService {
           select: { name: true, phone: true },
         })
 
-        const variables = {
-          patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
-          firstName: invoice.patient.firstName,
-          invoiceNo: invoice.invoiceNo,
-          invoiceAmount: `ETB ${invoice.totalAmount.toFixed(2)}`,
-          balanceAmount: `ETB ${invoice.balanceAmount.toFixed(2)}`,
-          dueDate: invoice.dueDate ? format(invoice.dueDate, 'dd-MMM-yyyy') : 'ASAP',
-          clinicName: clinicInfo?.name || 'Your Dental Clinic',
-          clinicPhone: clinicInfo?.phone || '',
+        if (!invoice.dueDate) {
+          skipped++
+          continue
+        }
+        const existing = await prisma.sMSLog.findFirst({
+          where: {
+            hospitalId: invoice.hospitalId,
+            metadata: { contains: paymentReminderMarker(invoice.id) },
+            status: { in: ['PENDING', 'QUEUED', 'SENT', 'DELIVERED'] },
+          },
+          select: { id: true },
+        })
+        if (existing) {
+          skipped++
+          continue
         }
 
-        // Send SMS
+        const patientName = `${invoice.patient.firstName} ${invoice.patient.lastName}`.trim()
+        const balanceAmount = Number(invoice.balanceAmount).toFixed(2)
+        const deadline = format(invoice.dueDate, 'dd-MMM-yyyy')
+        const clinicName = clinicInfo?.name || 'Your Dental Clinic'
+        const clinicPhone = clinicInfo?.phone ? ` Contact ${clinicInfo.phone}.` : ''
+        const message = `Dear ${patientName}, your outstanding balance is ETB ${balanceAmount}. Payment deadline: ${deadline}.${clinicPhone} ${clinicName}.`
+
         if (preferences?.smsEnabled !== false && invoice.patient.phone) {
-          const smsTemplate = await templateService.getDefaultTemplate(
-            invoice.hospitalId,
-            'PAYMENT',
-            'SMS'
-          )
-
-          if (smsTemplate) {
-            const message = templateService.replaceVariables(smsTemplate.content, variables)
-
-            await smsService.sendSMS({
-              phone: invoice.patient.phone,
-              message,
-              patientId: invoice.patientId,
-              templateId: smsTemplate.id,
-            })
-          }
+          await smsService.sendSMS({
+            hospitalId: invoice.hospitalId,
+            phone: invoice.patient.phone,
+            message,
+            patientId: invoice.patientId,
+            metadata: JSON.parse(paymentReminderMetadata(invoice.id, invoice.dueDate)),
+          })
+          sent++
+        } else {
+          skipped++
         }
       } catch (error) {
+        failed++
         console.error(`Error sending payment reminder for invoice ${invoice.invoiceNo}:`, error)
       }
     }
+    return { checked: invoices.length, sent, skipped, failed }
   }
 
   // Send lab work ready notifications
@@ -325,6 +345,7 @@ class CommunicationTriggersService {
             const message = templateService.replaceVariables(smsTemplate.content, variables)
 
             await smsService.sendSMS({
+              hospitalId: order.hospitalId,
               phone: order.patient.phone,
               message,
               patientId: order.patientId,
@@ -434,6 +455,7 @@ class CommunicationTriggersService {
               const message = `Hi ${appt.patient.firstName}, thank you for visiting ${clinicName}! We'd love to hear about your experience. Please leave us a review: ${reviewUrl}`
 
               await smsService.sendSMS({
+                hospitalId: appt.hospitalId,
                 phone: appt.patient.phone,
                 message,
                 patientId: appt.patientId,

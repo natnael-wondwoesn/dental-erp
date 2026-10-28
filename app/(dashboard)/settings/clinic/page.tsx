@@ -270,9 +270,9 @@ export default function ClinicSettingsPage() {
               {/* Preview */}
               {logo ? (
                 <img
-                  src={logo}
+                  src="/api/tenant-branding/logo"
                   alt="Clinic logo"
-                  className="h-20 w-20 rounded-lg object-cover border"
+                  className="h-20 w-20 rounded-lg border bg-white object-contain p-1"
                 />
               ) : (
                 <div className="flex h-20 w-20 items-center justify-center rounded-lg bg-primary text-primary-foreground text-2xl font-bold border">
@@ -421,7 +421,7 @@ export default function ClinicSettingsPage() {
                 id="address"
                 value={formData.address}
                 onChange={(e) => handleChange('address', e.target.value)}
-                placeholder="123, Main Street, Ayanavaram"
+                placeholder="Street, building and sub-city"
                 rows={2}
                 required
               />
@@ -493,12 +493,12 @@ export default function ClinicSettingsPage() {
               </div>
 
               <div>
-                <Label htmlFor="panNumber">PAN Number</Label>
+                <Label htmlFor="panNumber">Additional tax reference (optional)</Label>
                 <Input
                   id="panNumber"
                   value={formData.panNumber}
                   onChange={(e) => handleChange('panNumber', e.target.value)}
-                  placeholder="ABCDE1234F"
+                  placeholder="Additional registration reference"
                 />
               </div>
             </div>
@@ -594,7 +594,7 @@ export default function ClinicSettingsPage() {
               </div>
 
               <div>
-                <Label htmlFor="bankIfsc">IFSC Code</Label>
+                <Label htmlFor="bankIfsc">Bank branch / SWIFT code</Label>
                 <Input
                   id="bankIfsc"
                   value={formData.bankIfsc}
@@ -609,7 +609,7 @@ export default function ClinicSettingsPage() {
                   id="upiId"
                   value={formData.upiId}
                   onChange={(e) => handleChange('upiId', e.target.value)}
-                  placeholder="lemlemdental@telebirr"
+                  placeholder="Mobile-money account or phone"
                 />
               </div>
             </div>

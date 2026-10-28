@@ -51,6 +51,7 @@ function wrapHTML(content: string): string {
  * Non-blocking — logs errors but does not throw.
  */
 export async function sendInviteEmail(params: {
+  hospitalId?: string
   to: string
   inviteeName: string
   hospitalName: string
@@ -77,11 +78,15 @@ export async function sendInviteEmail(params: {
   `)
 
   try {
-    await emailService.sendEmail({
-      to,
-      subject: `You're invited to join ${hospitalName} on ${APP_NAME}`,
-      body: html,
-    })
+    await emailService.sendEmail(
+      {
+        hospitalId: params.hospitalId,
+        to,
+        subject: `You're invited to join ${hospitalName} on ${APP_NAME}`,
+        body: html,
+      },
+      true
+    )
     return true
   } catch (err) {
     console.error(`[email-helpers] Failed to send invite email to ${to}:`, err)
@@ -94,6 +99,7 @@ export async function sendInviteEmail(params: {
  * Non-blocking — logs errors but does not throw.
  */
 export async function sendVerificationEmail(params: {
+  hospitalId?: string
   to: string
   userName: string
   hospitalName: string
@@ -116,11 +122,15 @@ export async function sendVerificationEmail(params: {
   `)
 
   try {
-    await emailService.sendEmail({
-      to,
-      subject: `Verify your email — ${APP_NAME}`,
-      body: html,
-    })
+    await emailService.sendEmail(
+      {
+        hospitalId: params.hospitalId,
+        to,
+        subject: `Verify your email — ${APP_NAME}`,
+        body: html,
+      },
+      true
+    )
     return true
   } catch (err) {
     console.error(`[email-helpers] Failed to send verification email to ${to}:`, err)

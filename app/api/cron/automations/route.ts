@@ -1,3 +1,4 @@
+import { eligibleTenantIds } from '@/lib/saas/server'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
@@ -20,9 +21,17 @@ export async function POST(req: Request) {
   if (!secret || secret !== process.env.CRON_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+  const eligible = await eligibleTenantIds([
+    'communications',
+    'patients',
+    'appointments',
+    'clinical',
+    'billing',
+    'crm',
+  ])
 
   const automations = await prisma.marketingAutomation.findMany({
-    where: { isActive: true },
+    where: { isActive: true, ...(eligible ? { hospitalId: { in: eligible } } : {}) },
   })
 
   const now = new Date()

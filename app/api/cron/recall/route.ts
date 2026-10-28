@@ -1,3 +1,4 @@
+import { eligibleTenantIds } from '@/lib/saas/server'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { smsService } from '@/lib/services/sms.service'
@@ -16,6 +17,12 @@ export async function GET(req: Request) {
   if (!secret || secret !== process.env.CRON_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+  const eligible = await eligibleTenantIds([
+    'patients',
+    'appointments',
+    'clinical',
+    'communications',
+  ])
 
   const now = new Date()
   const staleProcessingCutoff = new Date(now.getTime() - 15 * 60 * 1000)
@@ -24,6 +31,7 @@ export async function GET(req: Request) {
   // are still protected by the SENDING compare-and-set below.
   await prisma.patientRecall.updateMany({
     where: {
+      ...(eligible ? { hospitalId: { in: eligible } } : {}),
       smsStatus: 'SENDING',
       processingAt: { lt: staleProcessingCutoff },
       status: 'SCHEDULED',
@@ -34,6 +42,7 @@ export async function GET(req: Request) {
   const dueRecalls =
     (await prisma.patientRecall.findMany({
       where: {
+        ...(eligible ? { hospitalId: { in: eligible } } : {}),
         status: 'SCHEDULED',
         reminderDate: { lte: now },
         followUpDate: { gte: now },
@@ -113,7 +122,11 @@ export async function GET(req: Request) {
   sixMonthsAgo.setMonth(now.getMonth() - 6)
 
   const hospitals = await prisma.hospital.findMany({
-    where: { isActive: true, onboardingCompleted: true },
+    where: {
+      ...(eligible ? { id: { in: eligible } } : {}),
+      isActive: true,
+      onboardingCompleted: true,
+    },
     select: { id: true },
   })
 

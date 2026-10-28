@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
 
       try {
         // Initialize SMS service with current settings
-        await smsService.initialize()
+        await smsService.initialize(hospitalId)
 
         // Send test SMS
         const testMessage =
@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
           'This is a test message from DentalERP. Your SMS gateway is configured correctly.'
 
         await smsService.sendSMS({
+          hospitalId,
           phone: testData.phone,
           message: testMessage,
         })

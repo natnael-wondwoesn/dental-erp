@@ -1,3 +1,4 @@
+import { assertModuleWrite, loadSaaSAccess, saasEnforcement } from '@/lib/saas/server'
 // Email Service with SMTP Support
 // Supports: Hostinger, Gmail SMTP, Custom SMTP
 
@@ -39,14 +40,18 @@ export interface EmailAttachment {
 }
 
 class EmailService {
+  constructor(private readonly isolated = false) {}
   private transporter: Transporter | null = null
   private config: EmailConfig | null = null
 
-  async initialize() {
+  async initialize(hospitalId?: string) {
+    if (saasEnforcement() !== 'disabled' && !hospitalId)
+      throw new Error('Tenant context is required')
     // Load email configuration from settings
     const settings = await prisma.setting.findMany({
       where: {
         category: 'email',
+        ...(hospitalId ? { hospitalId } : {}),
       },
     })
 
@@ -67,6 +72,11 @@ class EmailService {
         email: settings.find((s) => s.key === 'email.from.email')?.value || '',
       },
       replyTo: settings.find((s) => s.key === 'email.replyTo')?.value,
+    }
+
+    if (hospitalId && saasEnforcement() !== 'disabled') {
+      const policy = await loadSaaSAccess(hospitalId)
+      this.config.from.name = policy.branding.displayName || policy.name || this.config.from.name
     }
 
     if (!this.config.host || !this.config.auth.user || !this.config.auth.pass) {
@@ -92,7 +102,22 @@ class EmailService {
     }
   }
 
-  async sendEmail(payload: EmailPayload): Promise<string> {
+  async sendEmail(payload: EmailPayload, recovery = false): Promise<string> {
+    if (!this.isolated && saasEnforcement() !== 'disabled')
+      return new EmailService(true).sendEmail(payload, recovery)
+    if (!recovery) await assertModuleWrite(payload.hospitalId || '', ['communications'])
+    if (saasEnforcement() !== 'disabled') {
+      if (!payload.hospitalId) throw new Error('Tenant context is required')
+      if (payload.attachments?.some((attachment) => attachment.path))
+        throw new Error('Attachments must use uploaded content')
+      if (
+        payload.patientId &&
+        !(await prisma.patient.findFirst({
+          where: { id: payload.patientId, hospitalId: payload.hospitalId },
+        }))
+      )
+        throw new Error('Patient not found')
+    }
     // Validate email address
     if (!this.isValidEmail(payload.to)) {
       throw new Error('Invalid email address')
@@ -139,7 +164,7 @@ class EmailService {
     // Send email immediately
     try {
       if (!this.transporter || !this.config) {
-        await this.initialize()
+        await this.initialize(payload.hospitalId)
       }
 
       const result = await this.transporter!.sendMail({
@@ -188,7 +213,8 @@ class EmailService {
     templateId: string,
     variables: Record<string, string>,
     attachments?: EmailAttachment[],
-    patientId?: string
+    patientId?: string,
+    hospitalId?: string
   ): Promise<string> {
     const template = await prisma.communicationTemplate.findUnique({
       where: { id: templateId },
@@ -197,6 +223,8 @@ class EmailService {
     if (!template || !template.isActive) {
       throw new Error('Template not found or inactive')
     }
+    if (saasEnforcement() !== 'disabled' && (!hospitalId || template.hospitalId !== hospitalId))
+      throw new Error('Template not found')
 
     if (template.channel !== 'EMAIL') {
       throw new Error('Template is not for email channel')
@@ -213,6 +241,7 @@ class EmailService {
     }
 
     return this.sendEmail({
+      hospitalId,
       to,
       subject,
       body,

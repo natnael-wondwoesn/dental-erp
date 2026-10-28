@@ -15,6 +15,8 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
+import { useTenantAccess } from '@/components/saas/tenant-access'
+import { SaaSSubscription } from '@/components/saas/subscription'
 
 type Plan = 'FREE' | 'PROFESSIONAL' | 'ENTERPRISE' | 'SELF_HOSTED'
 
@@ -115,6 +117,11 @@ const plans = [
 ]
 
 export default function SubscriptionPage() {
+  const access = useTenantAccess()
+  return access ? <SaaSSubscription /> : <LegacySubscriptionPage />
+}
+
+function LegacySubscriptionPage() {
   const { toast } = useToast()
   const [hospitalData, setHospitalData] = useState<HospitalData | null>(null)
   const [isLoading, setIsLoading] = useState(true)

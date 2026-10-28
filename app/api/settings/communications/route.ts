@@ -110,6 +110,13 @@ export async function POST(request: NextRequest) {
         { key: 'sms.apiKey', value: settings.apiKey || '', category: 'sms' },
         { key: 'sms.senderId', value: settings.senderId || '', category: 'sms' },
         { key: 'sms.route', value: settings.route || '4', category: 'sms' },
+        { key: 'sms.authKey', value: settings.authKey || '', category: 'sms' },
+        { key: 'sms.webhookUrl', value: settings.webhookUrl || '', category: 'sms' },
+        {
+          key: 'sms.timezone',
+          value: settings.timezone || 'Africa/Addis_Ababa',
+          category: 'sms',
+        },
         { key: 'sms.enabled', value: String(settings.enabled ?? true), category: 'sms' }
       )
     } else if (type === 'reviews') {
