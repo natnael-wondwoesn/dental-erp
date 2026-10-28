@@ -547,7 +547,7 @@ export const paymentMethodIcons = {
 
 // Common payment terms
 export const paymentTermsOptions = [
-  { value: 0, label: 'Due on Receipt' },
+  { value: 0, label: 'Six months (clinic default)' },
   { value: 7, label: 'Net 7 Days' },
   { value: 15, label: 'Net 15 Days' },
   { value: 30, label: 'Net 30 Days' },

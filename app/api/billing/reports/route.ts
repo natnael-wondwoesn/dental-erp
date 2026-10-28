@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAuthAndRole } from '@/lib/api-helpers'
 import { getDateRangeFromPreset } from '@/lib/billing-utils'
+import { classifyPaymentDeadline } from '@/lib/payment-deadlines'
 
 // GET - Generate billing reports
 export async function GET(request: NextRequest) {
@@ -305,25 +306,50 @@ async function getPaymentsReport(startDate: Date, endDate: Date, hospitalId: str
 
 // Outstanding Report
 async function getOutstandingReport(hospitalId: string) {
-  const outstandingInvoices = await prisma.invoice.findMany({
-    where: {
-      hospitalId,
-      status: { in: ['PENDING', 'PARTIALLY_PAID', 'OVERDUE'] },
-      balanceAmount: { gt: 0 },
-    },
-    include: {
-      patient: {
-        select: {
-          id: true,
-          patientId: true,
-          firstName: true,
-          lastName: true,
-          phone: true,
+  const [outstandingInvoices, reminderLogs] = await Promise.all([
+    prisma.invoice.findMany({
+      where: {
+        hospitalId,
+        status: { in: ['PENDING', 'PARTIALLY_PAID', 'OVERDUE'] },
+        balanceAmount: { gt: 0 },
+      },
+      include: {
+        patient: {
+          select: {
+            id: true,
+            patientId: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+          },
         },
       },
-    },
-    orderBy: [{ dueDate: 'asc' }, { balanceAmount: 'desc' }],
-  })
+      orderBy: [{ dueDate: 'asc' }, { balanceAmount: 'desc' }],
+    }),
+    Promise.resolve(
+      prisma.sMSLog.findMany({
+        where: { hospitalId, metadata: { contains: 'six_month_balance_reminder' } },
+        select: {
+          status: true,
+          deliveryStatus: true,
+          sentAt: true,
+          failedAt: true,
+          metadata: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      })
+    ).then((logs) => logs || []),
+  ])
+
+  const reminderByInvoice = new Map<string, (typeof reminderLogs)[number]>()
+  for (const log of reminderLogs) {
+    try {
+      const invoiceId = JSON.parse(log.metadata || '{}').invoiceId
+      if (invoiceId && !reminderByInvoice.has(invoiceId)) reminderByInvoice.set(invoiceId, log)
+    } catch {
+      // Ignore old/free-form metadata.
+    }
+  }
 
   // Calculate aging buckets
   const today = new Date()
@@ -368,7 +394,17 @@ async function getOutstandingReport(hospitalId: string) {
   )
 
   return NextResponse.json({
-    invoices: outstandingInvoices,
+    invoices: outstandingInvoices.map((invoice) => {
+      const reminder = reminderByInvoice.get(invoice.id)
+      return {
+        ...invoice,
+        invoiceDate: invoice.createdAt,
+        deadlineState: invoice.dueDate ? classifyPaymentDeadline(invoice.dueDate) : 'NO_DEADLINE',
+        smsReminderStatus:
+          reminder?.deliveryStatus || reminder?.status || (invoice.dueDate ? 'NOT_SENT' : 'N/A'),
+        smsReminderAt: reminder?.sentAt || reminder?.failedAt || null,
+      }
+    }),
     aging,
     totals: {
       totalOutstanding,

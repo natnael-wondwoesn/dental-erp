@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { requireAuthAndRole } from '@/lib/api-helpers'
 import { generateInvoiceNo, calculateInvoiceTotals, gstConfig } from '@/lib/billing-utils'
 import { DiscountType, InvoiceStatus } from '@prisma/client'
+import { defaultPaymentDeadline } from '@/lib/payment-deadlines'
 
 // GET - List invoices with filters
 export async function GET(request: NextRequest) {
@@ -241,6 +242,8 @@ export async function POST(request: NextRequest) {
     } else if (paymentTermDays > 0) {
       calculatedDueDate = new Date(invoiceDate)
       calculatedDueDate.setDate(calculatedDueDate.getDate() + paymentTermDays)
+    } else {
+      calculatedDueDate = defaultPaymentDeadline(invoiceDate)
     }
 
     // Create invoice with items

@@ -45,6 +45,9 @@ interface OutstandingInvoice {
   totalAmount: string | number
   balanceAmount: string | number
   status: string
+  deadlineState: 'UPCOMING' | 'DUE_SOON' | 'OVERDUE' | 'NO_DEADLINE'
+  smsReminderStatus: string
+  smsReminderAt: string | null
   patient: {
     id: string
     patientId: string
@@ -356,6 +359,8 @@ export default function FinancialReportsPage() {
                     <TableHead>Patient</TableHead>
                     <TableHead>Invoice Date</TableHead>
                     <TableHead>Due Date</TableHead>
+                    <TableHead>Deadline</TableHead>
+                    <TableHead>SMS reminder</TableHead>
                     <TableHead className="text-right">Total</TableHead>
                     <TableHead className="text-right">Balance</TableHead>
                   </TableRow>
@@ -386,7 +391,7 @@ export default function FinancialReportsPage() {
                     ))
                   ) : outstandingData?.invoices.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                      <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
                         No outstanding invoices
                       </TableCell>
                     </TableRow>
@@ -399,6 +404,27 @@ export default function FinancialReportsPage() {
                         </TableCell>
                         <TableCell>{formatDate(invoice.invoiceDate)}</TableCell>
                         <TableCell>{invoice.dueDate ? formatDate(invoice.dueDate) : '-'}</TableCell>
+                        <TableCell>
+                          <span
+                            className={
+                              invoice.deadlineState === 'OVERDUE'
+                                ? 'font-semibold text-red-600'
+                                : invoice.deadlineState === 'DUE_SOON'
+                                  ? 'font-semibold text-amber-600'
+                                  : 'text-muted-foreground'
+                            }
+                          >
+                            {invoice.deadlineState.replaceAll('_', ' ')}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">{invoice.smsReminderStatus}</div>
+                          {invoice.smsReminderAt && (
+                            <div className="text-xs text-muted-foreground">
+                              {formatDate(invoice.smsReminderAt)}
+                            </div>
+                          )}
+                        </TableCell>
                         <TableCell className="text-right">
                           {formatCurrency(invoice.totalAmount)}
                         </TableCell>

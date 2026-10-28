@@ -32,7 +32,24 @@ interface GatewayConfig {
   webhookUrl: string | null
 }
 
-export function GatewaySettings() {
+export function GatewaySettings({ currency = 'ETB' }: { currency?: string }) {
+  if (currency === 'ETB')
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Payment collection</CardTitle>
+          <CardDescription>Online payment collection is not configured for ETB.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          Record verified cash, bank transfer and mobile-money payments in Billing. Automatic
+          payment collection requires a supported provider integration.
+        </CardContent>
+      </Card>
+    )
+  return <LegacyGatewaySettings />
+}
+
+function LegacyGatewaySettings() {
   const { toast } = useToast()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
