@@ -1,8 +1,12 @@
 import nextConfig from 'eslint-config-next'
+import reactHooks from 'eslint-plugin-react-hooks'
 
 const eslintConfig = [
   ...nextConfig,
   {
+    // Registered here as well so the rules below resolve regardless of which
+    // file scope eslint-config-next attaches the plugin to.
+    plugins: { 'react-hooks': reactHooks },
     rules: {
       // Downgrade strict React compiler rules to warnings
       // These are new in eslint-plugin-react-hooks v5+ and too strict for existing code
