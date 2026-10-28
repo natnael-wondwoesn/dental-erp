@@ -58,6 +58,23 @@ describe('HeroSection', () => {
     expect(screen.getByText('Care you can feel.')).toBeInTheDocument()
   })
 
+  it('uses a clinic-specific hero image when configured', () => {
+    render(
+      <LanguageProvider>
+        <SiteProvider
+          config={{ ...config, clinic: { ...config.clinic, heroImage: '/assets/clinic-hero.png' } }}
+          tier="full"
+        >
+          <HeroSection />
+        </SiteProvider>
+      </LanguageProvider>
+    )
+    expect(screen.getByRole('img', { name: /bright smile dental care team/i })).toHaveAttribute(
+      'src',
+      expect.stringContaining('clinic-hero.png')
+    )
+  })
+
   it('links patients to the separate public booking page', () => {
     renderSection(<HeroSection />, 'full')
     expect(screen.getByRole('link', { name: /book appointment/i })).toHaveAttribute('href', '/book')

@@ -76,12 +76,12 @@ describe('Lab Order Status API', () => {
       expect(updateData().sentDate).toBeInstanceOf(Date)
     })
 
-    it('auto-sets receivedDate for ready status', async () => {
+    it('auto-sets receivedDate when work is received from the lab', async () => {
       prisma.labOrder.findFirst.mockResolvedValue(
         existingOrder({ status: LabOrderStatus.IN_PROGRESS, sentDate: new Date('2026-01-01') })
       )
 
-      const res = await statusModule.PATCH(makeRequest({ status: 'ready' }), ctx)
+      const res = await statusModule.PATCH(makeRequest({ status: 'delivered' }), ctx)
       expect(res.status).toBe(200)
       expect(updateData().receivedDate).toBeInstanceOf(Date)
     })

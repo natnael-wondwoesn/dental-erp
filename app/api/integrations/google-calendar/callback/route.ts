@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { exchangeCodeForTokens, listCalendars } from '@/lib/services/google-calendar'
+import { requireAuthAndRole } from '@/lib/api-helpers'
+import { saasEnforcement } from '@/lib/saas/server'
 
 // GET /api/integrations/google-calendar/callback — OAuth callback
 export async function GET(req: NextRequest) {
@@ -26,6 +28,17 @@ export async function GET(req: NextRequest) {
       hospitalId = decoded.hospitalId
     } catch {
       return NextResponse.redirect(new URL('/settings/integrations?error=invalid_state', req.url))
+    }
+
+    if (saasEnforcement() !== 'disabled') {
+      const context = await requireAuthAndRole()
+      if (
+        context.error ||
+        !context.user ||
+        context.user.id !== userId ||
+        context.hospitalId !== hospitalId
+      )
+        return NextResponse.json({ error: 'Invalid integration identity' }, { status: 403 })
     }
 
     // Exchange code for tokens

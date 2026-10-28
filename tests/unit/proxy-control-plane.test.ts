@@ -27,6 +27,8 @@ describe('isolated platform control plane', () => {
     '/api/auth/login',
     '/api/auth/me',
     '/api/platform/worker/jobs/next',
+    '/api/platform/installations/install-a/operations',
+    '/owner/access',
     '/api/health',
     '/api/ready',
   ])('allows only the vendor surface %s', async (path) => {

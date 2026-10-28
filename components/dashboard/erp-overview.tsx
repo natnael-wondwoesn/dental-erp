@@ -21,6 +21,7 @@ import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useLanguage } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
+import { useTenantAccess } from '@/components/saas/tenant-access'
 
 type MetricKind = 'number' | 'currency' | 'percentage'
 type ModuleKey =
@@ -244,11 +245,16 @@ function getDefaultModuleSnapshot(moduleId: ModuleKey): ModuleSnapshot {
 }
 
 function useErpSummary() {
+  const access = useTenantAccess()
   const [data, setData] = useState<ErpSummaryResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (access) {
+      setLoading(false)
+      return
+    }
     let cancelled = false
 
     async function loadSummary() {
@@ -272,7 +278,7 @@ function useErpSummary() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [access])
 
   return { data, loading, error }
 }
@@ -502,8 +508,10 @@ export function ErpModuleOverview({
 }) {
   const { t } = useLanguage()
   const { data, loading, error } = useErpSummary()
+  const access = useTenantAccess()
   const moduleConfig = moduleBlueprints[moduleId]
   const Icon = moduleConfig.icon
+  if (access) return null
 
   if (loading) {
     return (

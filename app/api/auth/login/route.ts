@@ -1,11 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticateCredentials, signAccessToken, toAuthenticatedUser } from '@/lib/auth-compat'
+import { loadSaaSAccess, saasEnforcement } from '@/lib/saas/server'
 
 export async function POST(req: NextRequest) {
   try {
     const result = await authenticateCredentials(await req.json())
     if ('error' in result) {
       return NextResponse.json({ error: result.error }, { status: result.status })
+    }
+    if (saasEnforcement() === 'hosted') {
+      try {
+        const access = await loadSaaSAccess(result.user.hospitalId)
+        const hostname =
+          req.headers.get('host')?.split(':')[0]?.toLowerCase() || req.nextUrl.hostname
+        if (access.hostname && access.hostname !== hostname) {
+          return NextResponse.json({ error: 'Sign in through your clinic domain' }, { status: 403 })
+        }
+      } catch {
+        // Authentication stays usable for recovery; operational requests fail closed.
+      }
     }
 
     const accessToken = await signAccessToken(result.user)

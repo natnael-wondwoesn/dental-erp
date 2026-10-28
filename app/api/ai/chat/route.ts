@@ -236,7 +236,12 @@ ${contextStr}`
           messageComplexity = 'complex'
         }
         // For all other actions, keep the complexity from intent detection (defaults to "simple")
-        const result = await executeIntent(parsed.action, parsed.params || {}, hospitalId)
+        const result = await executeIntent(
+          parsed.action,
+          parsed.params || {},
+          hospitalId,
+          user.role
+        )
         if (result) {
           actionContext = `\n\n--- ACTION RESULT ---
 Action: ${parsed.action}

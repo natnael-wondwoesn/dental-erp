@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAuthAndRole } from '@/lib/api-helpers'
+import { requestSaaSAccess } from '@/lib/saas/server'
 
 /**
  * GET /api/devices/status — Get all devices and their statuses
@@ -41,10 +42,11 @@ export async function GET(request: NextRequest) {
       (d) => d.status === 'ONLINE' && d.lastPingAt && d.lastPingAt < fiveMinutesAgo
     )
     if (staleDevices.length > 0) {
-      await prisma.device.updateMany({
-        where: { id: { in: staleDevices.map((d) => d.id) } },
-        data: { status: 'OFFLINE' },
-      })
+      if ((await requestSaaSAccess(hospitalId!)).allowsWrite)
+        await prisma.device.updateMany({
+          where: { id: { in: staleDevices.map((d) => d.id) } },
+          data: { status: 'OFFLINE' },
+        })
       // Update local results
       staleDevices.forEach((d) => {
         ;(d as Record<string, unknown>).status = 'OFFLINE'

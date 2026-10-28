@@ -33,7 +33,10 @@ function makeParams(slug: string) {
 // ═════════════════════════════════════════════════════════════════════════════
 
 describe('GET /api/public/[slug]/doctors', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => {
+    vi.clearAllMocks()
+    delete process.env.PUBLIC_BOOKING_STAFF_EMAIL
+  })
 
   it('returns 404 when clinic not found', async () => {
     vi.mocked(prisma.hospital.findUnique).mockResolvedValue(null)
@@ -79,6 +82,29 @@ describe('GET /api/public/[slug]/doctors', () => {
     expect(res.status).toBe(200)
     expect(body.doctors).toHaveLength(2)
     expect(body.hospitalName).toBe('Smile Dental')
+  })
+
+  it('can expose one explicitly configured clinic administrator as a booking provider', async () => {
+    process.env.PUBLIC_BOOKING_STAFF_EMAIL = 'doctor@example.et'
+    vi.mocked(prisma.hospital.findUnique).mockResolvedValue({
+      id: 'h1',
+      name: 'Clinic',
+      patientPortalEnabled: true,
+    } as any)
+    vi.mocked(prisma.staff.findMany).mockResolvedValue([])
+
+    const res = await publicDoctorsGET(makeReq('/api/public/clinic/doctors'), makeParams('clinic'))
+
+    expect(res.status).toBe(200)
+    expect(prisma.staff.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          user: {
+            OR: [{ role: 'DOCTOR' }, { role: 'ADMIN', email: 'doctor@example.et' }],
+          },
+        }),
+      })
+    )
   })
 })
 

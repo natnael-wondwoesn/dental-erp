@@ -195,6 +195,70 @@ describe('SMSService - Time Restrictions', () => {
 // ---------------------------------------------------------------------------
 
 describe('SMSService - SMS Logging', () => {
+  it('sends Ethiopian SMS through the provider-neutral HTTPS relay and records success', async () => {
+    const { smsService } = smsServiceModule
+
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-02-19T09:00:00Z'))
+    vi.mocked(prisma.setting.findMany).mockResolvedValue([
+      { key: 'sms.gateway', value: 'WEBHOOK' },
+      { key: 'sms.webhookUrl', value: 'https://sms-relay.example/send' },
+      { key: 'sms.apiKey', value: 'relay-token' },
+      { key: 'sms.senderId', value: 'BERHANU' },
+      { key: 'sms.enabled', value: 'true' },
+    ] as any)
+    vi.mocked(prisma.sMSLog.create).mockResolvedValue({ id: 'sms-relay-1' } as any)
+    vi.mocked(prisma.sMSLog.update).mockResolvedValue({} as any)
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true, messageId: 'provider-123' }),
+    } as any)
+
+    await expect(
+      smsService.sendSMS({ hospitalId: 'hosp-1', phone: '0911000000', message: 'Pay ETB 500' })
+    ).resolves.toBe('sms-relay-1')
+
+    expect(fetch).toHaveBeenCalledWith(
+      new URL('https://sms-relay.example/send'),
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({ Authorization: 'Bearer relay-token' }),
+        body: expect.stringContaining('"to":"+251911000000"'),
+      })
+    )
+    expect(prisma.sMSLog.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'sms-relay-1' },
+        data: expect.objectContaining({ status: 'SENT', messageId: 'provider-123' }),
+      })
+    )
+    vi.useRealTimers()
+  })
+
+  it('blocks private relay URLs', async () => {
+    const { smsService } = smsServiceModule
+
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-02-19T09:00:00Z'))
+    vi.mocked(prisma.setting.findMany).mockResolvedValue([
+      { key: 'sms.gateway', value: 'WEBHOOK' },
+      { key: 'sms.webhookUrl', value: 'https://127.0.0.1/send' },
+      { key: 'sms.enabled', value: 'true' },
+    ] as any)
+    vi.mocked(prisma.sMSLog.create).mockResolvedValue({ id: 'sms-relay-2' } as any)
+    vi.mocked(prisma.sMSLog.update).mockResolvedValue({} as any)
+
+    await expect(
+      smsService.sendSMS({ hospitalId: 'hosp-1', phone: '0911000000', message: 'test' })
+    ).rejects.toThrow('public host')
+    expect(fetch).not.toHaveBeenCalled()
+    expect(prisma.sMSLog.update).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ status: 'FAILED' }) })
+    )
+    vi.useRealTimers()
+  })
+
   it('creates SMS log entry before sending (no patientId)', async () => {
     const { smsService } = smsServiceModule
 

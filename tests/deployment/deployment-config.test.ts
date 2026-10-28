@@ -408,21 +408,20 @@ describe('9.3 Configuration Testing', () => {
   })
 })
 
-describe('VPS continuous deployment workflow', () => {
-  it('runs migration containers without consuming the remote SSH script stdin', () => {
+describe('VPS release promotion workflow', () => {
+  it('requires manual promotion of an exact staged release instead of deploying pushes', () => {
     const workflow = fs.readFileSync(
       path.resolve(__dirname, '../../.github/workflows/deploy-vps.yml'),
       'utf8'
     )
-
-    expect(workflow).toContain('"${clinic[@]}" run -T --rm dental-frontend-migrate </dev/null')
-    expect(workflow).toContain('"${control[@]}" run -T --rm control-migrate </dev/null')
-    expect(workflow).toContain('"${clinic[@]}" up -d --no-deps --force-recreate dental-web')
-    expect(workflow).toContain('"${control[@]}" up -d --no-deps --force-recreate control-web')
-    expect(workflow).toContain('docker image inspect dental-erp-web:local')
-    expect(workflow).toContain('docker inspect "$container"')
-    expect(workflow).toContain('started_epoch="$(date -d "$started_at" +%s)"')
-    expect(workflow).toContain('"$started_epoch" -lt "$deployment_started_epoch"')
+    expect(workflow).toContain('workflow_dispatch:')
+    expect(workflow).not.toMatch(/^\s+push:/m)
+    expect(workflow).toContain('required: true')
+    expect(workflow).toContain(
+      '/opt/dental-saas/releases/$VERSION/ops/saas-control/deploy.py --version $VERSION'
+    )
+    expect(workflow).not.toContain('git checkout --force')
+    expect(workflow).not.toContain('build dental-web')
   })
 })
 
@@ -521,5 +520,12 @@ describe('landing tier delivery artifacts', () => {
     const env = readRepoFile('.env.example')
     expect(env).toMatch(/PRODUCT_TIER/)
     expect(env).toMatch(/SITE_ID/)
+    expect(env).toMatch(/PUBLIC_BOOKING_STAFF_EMAIL/)
+  })
+
+  it('passes the optional public booking provider into managed clinic containers', () => {
+    expect(readRepoFile('ops/platform-worker/templates/dental-erp.compose.yml')).toMatch(
+      /PUBLIC_BOOKING_STAFF_EMAIL/
+    )
   })
 })

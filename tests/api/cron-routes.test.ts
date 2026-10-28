@@ -319,6 +319,51 @@ describe('GET /api/cron/reminders', () => {
     expect(body.created).toBe(0)
     expect(prisma.appointmentReminder.create).not.toHaveBeenCalled()
   })
+
+  it('creates staff reminders for lab work due soon and overdue', async () => {
+    vi.mocked(prisma.appointment.findMany).mockResolvedValue([])
+    vi.mocked(prisma.appointment.groupBy).mockResolvedValue([] as any)
+    vi.mocked(prisma.invoice.findMany).mockResolvedValue([])
+    vi.mocked(prisma.labOrder.findMany).mockResolvedValue([
+      {
+        id: 'lab-due',
+        hospitalId: 'h1',
+        orderNumber: 'LAB-001',
+        status: 'IN_PROGRESS',
+        expectedDate: new Date(now.getTime() + 2 * DAY_MS),
+        patient: { firstName: 'Abel', lastName: 'Tesfaye' },
+        labVendor: { name: 'Addis Lab' },
+      },
+      {
+        id: 'lab-overdue',
+        hospitalId: 'h1',
+        orderNumber: 'LAB-002',
+        status: 'READY',
+        expectedDate: new Date(now.getTime() - 2 * DAY_MS),
+        patient: { firstName: 'Sara', lastName: 'Bekele' },
+        labVendor: { name: 'Addis Lab' },
+      },
+    ] as any)
+    vi.mocked(prisma.notification.findFirst).mockResolvedValue(null)
+    vi.mocked(prisma.user.findMany).mockResolvedValue([{ id: 'admin-1' }] as any)
+
+    const res = await remindersGET(authedReq('reminders'))
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.lab).toMatchObject({
+      checked: 2,
+      dueSoon: 1,
+      overdue: 1,
+      notificationsCreated: 2,
+    })
+    expect(prisma.notification.create).toHaveBeenCalledTimes(2)
+    expect(prisma.notification.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ entityType: 'LabOrder:Overdue', entityId: 'lab-overdue' }),
+      })
+    )
+  })
 })
 
 // ═════════════════════════════════════════════════════════════════════════════

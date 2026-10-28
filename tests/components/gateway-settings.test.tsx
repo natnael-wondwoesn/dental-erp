@@ -115,7 +115,7 @@ import { GatewaySettings } from '@/components/billing/gateway-settings'
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('GatewaySettings', () => {
+describe('GatewaySettings for non-ETB clinics', () => {
   let fetchMock: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
@@ -135,27 +135,27 @@ describe('GatewaySettings', () => {
 
   it('shows loading state initially', () => {
     fetchMock.mockImplementation(() => new Promise(() => {}))
-    render(<GatewaySettings />)
+    render(<GatewaySettings currency="INR" />)
     // Loader2 spinner renders during loading
     expect(screen.getByTestId('card')).toBeInTheDocument()
   })
 
   it('renders card title after loading', async () => {
-    render(<GatewaySettings />)
+    render(<GatewaySettings currency="INR" />)
     await waitFor(() => {
       expect(screen.getByText('Payment Gateway')).toBeInTheDocument()
     })
   })
 
   it('renders description text', async () => {
-    render(<GatewaySettings />)
+    render(<GatewaySettings currency="INR" />)
     await waitFor(() => {
       expect(screen.getByText(/Connect your own Razorpay, PhonePe, or Paytm/)).toBeInTheDocument()
     })
   })
 
   it('renders provider select with three options', async () => {
-    render(<GatewaySettings />)
+    render(<GatewaySettings currency="INR" />)
     await waitFor(() => {
       expect(screen.getByText('Razorpay')).toBeInTheDocument()
       expect(screen.getByText('PhonePe')).toBeInTheDocument()
@@ -164,7 +164,7 @@ describe('GatewaySettings', () => {
   })
 
   it('renders Enable Online Payments switch', async () => {
-    render(<GatewaySettings />)
+    render(<GatewaySettings currency="INR" />)
     await waitFor(() => {
       expect(screen.getByText('Enable Online Payments')).toBeInTheDocument()
       expect(screen.getByTestId('switch-gateway-enabled')).toBeInTheDocument()
@@ -172,7 +172,7 @@ describe('GatewaySettings', () => {
   })
 
   it('renders Live Mode switch', async () => {
-    render(<GatewaySettings />)
+    render(<GatewaySettings currency="INR" />)
     await waitFor(() => {
       expect(screen.getByText('Live Mode')).toBeInTheDocument()
       expect(screen.getByTestId('switch-gateway-live')).toBeInTheDocument()
@@ -180,7 +180,7 @@ describe('GatewaySettings', () => {
   })
 
   it('renders save button (disabled when no provider)', async () => {
-    render(<GatewaySettings />)
+    render(<GatewaySettings currency="INR" />)
     await waitFor(() => {
       const saveBtn = screen.getByText('Save Gateway Settings')
       expect(saveBtn.closest('button')).toBeDisabled()
@@ -194,7 +194,7 @@ describe('GatewaySettings', () => {
         config: { provider: 'RAZORPAY', isEnabled: true, isLiveMode: false },
       }),
     })
-    render(<GatewaySettings />)
+    render(<GatewaySettings currency="INR" />)
     await waitFor(() => {
       expect(screen.getByText('Razorpay Credentials')).toBeInTheDocument()
       expect(screen.getByPlaceholderText('rzp_test_...')).toBeInTheDocument()
@@ -209,7 +209,7 @@ describe('GatewaySettings', () => {
         config: { provider: 'PHONEPE', isEnabled: false, isLiveMode: false },
       }),
     })
-    render(<GatewaySettings />)
+    render(<GatewaySettings currency="INR" />)
     await waitFor(() => {
       expect(screen.getByText('PhonePe PG Credentials')).toBeInTheDocument()
       expect(screen.getByPlaceholderText('MERCHANTUAT')).toBeInTheDocument()
@@ -224,7 +224,7 @@ describe('GatewaySettings', () => {
         config: { provider: 'PAYTM', isEnabled: false, isLiveMode: false },
       }),
     })
-    render(<GatewaySettings />)
+    render(<GatewaySettings currency="INR" />)
     await waitFor(() => {
       expect(screen.getByText('Paytm PG Credentials')).toBeInTheDocument()
       expect(screen.getByPlaceholderText('YOUR_MID')).toBeInTheDocument()
@@ -239,7 +239,7 @@ describe('GatewaySettings', () => {
         config: { provider: 'RAZORPAY', isEnabled: true, isLiveMode: false },
       }),
     })
-    render(<GatewaySettings />)
+    render(<GatewaySettings currency="INR" />)
     await waitFor(() => {
       expect(screen.getByText('Active')).toBeInTheDocument()
     })
@@ -252,7 +252,7 @@ describe('GatewaySettings', () => {
         config: { provider: 'RAZORPAY', isEnabled: false, isLiveMode: false },
       }),
     })
-    render(<GatewaySettings />)
+    render(<GatewaySettings currency="INR" />)
     await waitFor(() => {
       expect(screen.getByText('Test Mode')).toBeInTheDocument()
     })
@@ -265,7 +265,7 @@ describe('GatewaySettings', () => {
         config: { provider: 'RAZORPAY', isEnabled: true, isLiveMode: true },
       }),
     })
-    render(<GatewaySettings />)
+    render(<GatewaySettings currency="INR" />)
     await waitFor(() => {
       expect(screen.getByText('Live')).toBeInTheDocument()
     })
@@ -283,7 +283,7 @@ describe('GatewaySettings', () => {
         },
       }),
     })
-    render(<GatewaySettings />)
+    render(<GatewaySettings currency="INR" />)
     await waitFor(() => {
       expect(screen.getByText('Webhook URL')).toBeInTheDocument()
       expect(
@@ -293,7 +293,7 @@ describe('GatewaySettings', () => {
   })
 
   it('shows toast error when saving without provider', async () => {
-    render(<GatewaySettings />)
+    render(<GatewaySettings currency="INR" />)
     await waitFor(() => {
       expect(screen.getByText('Save Gateway Settings')).toBeInTheDocument()
     })
@@ -323,7 +323,7 @@ describe('GatewaySettings', () => {
         }),
       })
 
-    render(<GatewaySettings />)
+    render(<GatewaySettings currency="INR" />)
     await waitFor(() => {
       expect(screen.getByText('Save Gateway Settings')).toBeInTheDocument()
     })
@@ -348,7 +348,7 @@ describe('GatewaySettings', () => {
         json: async () => ({ error: 'Invalid API key' }),
       })
 
-    render(<GatewaySettings />)
+    render(<GatewaySettings currency="INR" />)
     await waitFor(() => {
       expect(screen.getByText('Save Gateway Settings')).toBeInTheDocument()
     })
@@ -369,7 +369,7 @@ describe('GatewaySettings', () => {
         config: { provider: 'RAZORPAY', isEnabled: false, isLiveMode: false },
       }),
     })
-    render(<GatewaySettings />)
+    render(<GatewaySettings currency="INR" />)
     await waitFor(() => {
       expect(
         screen.getByText('Stored encrypted. Leave unchanged to keep existing.')
@@ -384,7 +384,7 @@ describe('GatewaySettings', () => {
         config: { provider: 'RAZORPAY', isEnabled: false, isLiveMode: false },
       }),
     })
-    render(<GatewaySettings />)
+    render(<GatewaySettings currency="INR" />)
     await waitFor(() => {
       expect(screen.getByText('Razorpay Dashboard')).toBeInTheDocument()
     })

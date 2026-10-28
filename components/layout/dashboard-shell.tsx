@@ -9,6 +9,7 @@ import { CommandBar } from '@/components/ai/command-bar'
 import { ChatWidget } from '@/components/ai/chat-widget'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { KeyboardShortcutHelp } from '@/components/layout/keyboard-shortcut-help'
+import { useTenantAccess } from '@/components/saas/tenant-access'
 
 interface DashboardShellProps {
   children: React.ReactNode
@@ -32,6 +33,7 @@ export function DashboardShell({
   hospital,
   isPlatformControlPlane = false,
 }: DashboardShellProps) {
+  const access = useTenantAccess()
   return (
     <AIProvider>
       <SidebarProvider>
@@ -72,7 +74,7 @@ export function DashboardShell({
           </div>
         </div>
       </SidebarProvider>
-      {!isPlatformControlPlane && (
+      {!isPlatformControlPlane && (!access || access.modules.includes('ai')) && (
         <>
           <CommandBar />
           <ChatWidget />

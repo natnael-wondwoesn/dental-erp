@@ -3,6 +3,7 @@
  */
 
 import { prisma } from '@/lib/prisma'
+import { saasEnforcement } from '@/lib/saas/server'
 
 export interface AIContext {
   hospital: { id: string; name: string; plan: string }
@@ -39,7 +40,10 @@ export async function buildContext(params: {
     currentPage: params.currentPage,
   }
 
-  if (params.patientId) {
+  if (
+    params.patientId &&
+    (saasEnforcement() === 'disabled' || ['ADMIN', 'DOCTOR'].includes(params.userRole))
+  ) {
     const patient = await prisma.patient.findUnique({
       where: { id: params.patientId, hospitalId: params.hospitalId },
       include: {

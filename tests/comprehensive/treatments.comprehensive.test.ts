@@ -259,6 +259,46 @@ describe('Treatments API - Comprehensive Tests', () => {
       expect(data.status).toBe('PLANNED')
     })
 
+    it('persists the Berhanu clinical assessment sheet', async () => {
+      mockPrisma.treatment.findFirst.mockResolvedValue(null)
+      mockPrisma.treatment.create.mockResolvedValue({ id: 'trt-1', status: 'PLANNED' })
+
+      const request = new NextRequest('http://localhost/api/treatments', {
+        method: 'POST',
+        body: JSON.stringify({
+          patientId: mockPatientId,
+          procedureId: mockProcedureId,
+          doctorId: mockDoctorId,
+          clinicalSheet: {
+            treatmentDate: '2026-10-28',
+            temperatureC: '36.8',
+            bloodPressure: '120/80',
+            spo2: '98',
+            pulseRate: '72',
+            historyPresentIllness: 'Pain for two days',
+            pastMedicalHistory: 'No known chronic illness',
+            provisionalDiagnosis: 'Dental caries',
+            extraoralExamination: 'Normal',
+            intraoralExamination: 'Caries on 36',
+            assessment: 'Restorable tooth',
+            prescriptionPlan: 'Composite filling',
+            nextAppointment: '2026-11-04',
+            doctorSignature: 'BB',
+          },
+        }),
+      })
+
+      const response = await POST(request)
+      expect(response.status).toBe(201)
+      expect(mockPrisma.treatment.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            clinicalSheet: expect.stringContaining('"bloodPressure":"120/80"'),
+          }),
+        })
+      )
+    })
+
     it('should reject treatment creation without required fields', async () => {
       const request = new NextRequest('http://localhost/api/treatments', {
         method: 'POST',

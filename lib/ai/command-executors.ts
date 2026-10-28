@@ -5,6 +5,43 @@
  */
 
 import { prisma } from '@/lib/prisma'
+import { assertModuleWrite, saasEnforcement } from '@/lib/saas/server'
+
+// Commands are another entry point to clinical operations. Model output cannot
+// grant a role capabilities that the normal application does not grant it.
+const commandRoles: Record<string, string[]> = {
+  create_patient: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'],
+  update_patient: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'],
+  search_patients: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'],
+  check_patient: ['ADMIN', 'DOCTOR'],
+  book_appointment: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'],
+  cancel_appointment: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'],
+  reschedule_appointment: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'],
+  complete_appointment: ['ADMIN', 'DOCTOR'],
+  show_appointments: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'],
+  create_treatment: ['ADMIN', 'DOCTOR'],
+  complete_treatment: ['ADMIN', 'DOCTOR'],
+  show_treatments: ['ADMIN', 'DOCTOR'],
+  create_invoice: ['ADMIN', 'ACCOUNTANT', 'RECEPTIONIST'],
+  generate_invoice: ['ADMIN', 'ACCOUNTANT', 'RECEPTIONIST'],
+  record_payment: ['ADMIN', 'ACCOUNTANT', 'RECEPTIONIST'],
+  show_invoices: ['ADMIN', 'ACCOUNTANT', 'RECEPTIONIST'],
+  check_overdue: ['ADMIN', 'ACCOUNTANT'],
+  show_revenue: ['ADMIN', 'ACCOUNTANT'],
+  check_stock: ['ADMIN', 'DOCTOR'],
+  low_stock: ['ADMIN', 'DOCTOR'],
+  add_inventory_item: ['ADMIN'],
+  update_stock: ['ADMIN'],
+  create_lab_order: ['ADMIN', 'DOCTOR'],
+  update_lab_order: ['ADMIN', 'DOCTOR', 'LAB_TECH'],
+  show_lab_orders: ['ADMIN', 'DOCTOR', 'LAB_TECH'],
+  create_prescription: ['ADMIN', 'DOCTOR'],
+  show_prescriptions: ['ADMIN', 'DOCTOR'],
+  add_medication: ['ADMIN', 'DOCTOR'],
+  search_medications: ['ADMIN', 'DOCTOR'],
+  show_staff: ['ADMIN'],
+  daily_summary: ['ADMIN'],
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -1326,8 +1363,17 @@ export async function execCheckPatient(params: Record<string, string>, hospitalI
 export async function executeIntent(
   intent: string,
   params: Record<string, string>,
-  hospitalId: string
+  hospitalId: string,
+  userRole?: string
 ): Promise<any> {
+  if (saasEnforcement() !== 'disabled') {
+    if (!userRole || !commandRoles[intent]?.includes(userRole)) {
+      return { success: false, message: 'Your role cannot perform this command.' }
+    }
+    // Every command invokes a paid AI operation, including commands that read
+    // records. Recheck the current subscription immediately before execution.
+    await assertModuleWrite(hospitalId, ['ai'])
+  }
   switch (intent) {
     // Patient
     case 'create_patient':

@@ -58,7 +58,8 @@ export async function POST(req: NextRequest) {
         data.templateId,
         data.variables,
         data.attachments,
-        data.patientId
+        data.patientId,
+        hospitalId
       )
 
       return NextResponse.json({

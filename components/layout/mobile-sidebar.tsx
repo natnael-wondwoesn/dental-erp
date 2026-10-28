@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useSidebar } from './sidebar-context'
 import { useLanguage } from '@/lib/i18n'
+import { useTenantAccess } from '@/components/saas/tenant-access'
 
 interface MobileSidebarProps {
   role: string
@@ -28,7 +29,13 @@ export function MobileSidebar({
   isPlatformControlPlane,
 }: MobileSidebarProps) {
   const pathname = usePathname()
-  const navigation = getNavigationForRole(role, isPlatformOwner, isPlatformControlPlane)
+  const access = useTenantAccess()
+  const navigation = getNavigationForRole(
+    role,
+    isPlatformOwner,
+    isPlatformControlPlane,
+    access?.modules
+  )
   const { mobileOpen, setMobileOpen } = useSidebar()
   const { t } = useLanguage()
 
@@ -73,9 +80,9 @@ export function MobileSidebar({
           >
             {hospitalLogo ? (
               <img
-                src={hospitalLogo}
+                src="/api/tenant-branding/logo"
                 alt={hospitalName || 'Logo'}
-                className="h-8 w-8 rounded-lg object-cover"
+                className="h-10 w-10 rounded-xl bg-white object-contain p-0.5"
               />
             ) : (
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm">

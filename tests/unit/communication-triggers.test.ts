@@ -215,7 +215,7 @@ describe('CommunicationTriggersService', () => {
   })
 
   describe('sendPaymentReminders', () => {
-    it('sends reminders for overdue invoices', async () => {
+    it('sends a complete reminder seven days before the payment deadline', async () => {
       ;(prisma.invoice.findMany as any).mockResolvedValue([
         {
           id: 'inv-1',
@@ -244,7 +244,46 @@ describe('CommunicationTriggersService', () => {
       await communicationTriggersService.sendPaymentReminders()
 
       expect(mockSmsService.sendSMS).toHaveBeenCalledWith(
-        expect.objectContaining({ phone: '9876543210', patientId: 'pat-1' })
+        expect.objectContaining({
+          hospitalId: 'h1',
+          phone: '9876543210',
+          patientId: 'pat-1',
+          message: expect.stringMatching(/John Doe.*ETB 3000\.00.*15-Feb-2026/),
+          metadata: expect.objectContaining({
+            kind: 'six_month_balance_reminder',
+            invoiceId: 'inv-1',
+          }),
+        })
+      )
+    })
+
+    it('does not send the same invoice deadline reminder twice', async () => {
+      ;(prisma.invoice.findMany as any).mockResolvedValue([
+        {
+          id: 'inv-1',
+          hospitalId: 'h1',
+          patientId: 'pat-1',
+          invoiceNo: 'INV-001',
+          totalAmount: 5000,
+          balanceAmount: 3000,
+          dueDate: new Date('2026-02-15'),
+          patient: { firstName: 'John', lastName: 'Doe', phone: '0911000000' },
+        },
+      ])
+      ;(prisma.patientCommunicationPreference.findUnique as any).mockResolvedValue(null)
+      ;(prisma.hospital.findUnique as any).mockResolvedValue({ name: 'Test Clinic', phone: '123' })
+      ;(prisma.sMSLog.findFirst as any).mockResolvedValue({ id: 'already-sent' })
+
+      const result = await communicationTriggersService.sendPaymentReminders()
+
+      expect(mockSmsService.sendSMS).not.toHaveBeenCalled()
+      expect(result).toEqual({ checked: 1, sent: 0, skipped: 1, failed: 0 })
+      expect(prisma.sMSLog.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            status: { in: ['PENDING', 'QUEUED', 'SENT', 'DELIVERED'] },
+          }),
+        })
       )
     })
 

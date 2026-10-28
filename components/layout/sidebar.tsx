@@ -11,6 +11,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useSidebar } from './sidebar-context'
 import { useLanguage } from '@/lib/i18n'
 import { resolveClinicName } from '@/lib/branding'
+import { useTenantAccess } from '@/components/saas/tenant-access'
 
 interface SidebarProps {
   role: string
@@ -30,7 +31,13 @@ export function Sidebar({
   isPlatformControlPlane,
 }: SidebarProps) {
   const pathname = usePathname()
-  const navigation = getNavigationForRole(role, isPlatformOwner, isPlatformControlPlane)
+  const access = useTenantAccess()
+  const navigation = getNavigationForRole(
+    role,
+    isPlatformOwner,
+    isPlatformControlPlane,
+    access?.modules
+  )
   const { isCollapsed, toggleSidebar } = useSidebar()
   const { t } = useLanguage()
   const displayHospitalName = resolveClinicName(hospitalName)
@@ -66,12 +73,12 @@ export function Sidebar({
           >
             {hospitalLogo ? (
               <img
-                src={hospitalLogo}
+                src="/api/tenant-branding/logo"
                 alt={displayHospitalName}
-                className="h-8 w-8 shrink-0 rounded-lg object-cover"
+                className="h-11 w-11 shrink-0 rounded-xl bg-white object-contain p-0.5"
               />
             ) : (
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#0769e7] text-white shadow-[0_8px_20px_rgba(7,105,231,.22)]">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--clinic-color,#0769e7)] text-white shadow-[0_8px_20px_rgba(7,105,231,.22)]">
                 <Stethoscope className="h-5 w-5" />
               </div>
             )}
@@ -87,13 +94,17 @@ export function Sidebar({
                       plan === 'FREE' ? 'text-muted-foreground' : 'text-primary'
                     )}
                   >
-                    {plan === 'FREE'
-                      ? 'Free Plan'
-                      : plan === 'PROFESSIONAL'
-                        ? 'Professional'
-                        : plan === 'ENTERPRISE'
-                          ? 'Enterprise'
-                          : 'Self-Hosted'}
+                    {t(
+                      plan === 'FREE'
+                        ? 'Free Plan'
+                        : plan === 'PROFESSIONAL'
+                          ? 'Professional'
+                          : plan === 'ENTERPRISE'
+                            ? 'Enterprise'
+                            : plan === 'SELF_HOSTED'
+                              ? 'Self-Hosted'
+                              : plan
+                    )}
                   </span>
                 )}
               </div>
@@ -185,7 +196,7 @@ export function Sidebar({
                         className={cn(
                           'flex min-h-11 items-center gap-3 rounded-xl px-3 py-2 text-[13px] transition-colors',
                           isActive
-                            ? 'bg-[#0769e7] text-white font-semibold shadow-[0_7px_18px_rgba(7,105,231,.18)]'
+                            ? 'bg-[var(--clinic-color,#0769e7)] text-white font-semibold shadow-[0_7px_18px_rgba(7,105,231,.18)]'
                             : 'text-slate-500 hover:bg-[#f4f8fd] hover:text-[#13233a]'
                         )}
                       >

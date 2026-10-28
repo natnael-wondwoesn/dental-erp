@@ -256,7 +256,7 @@ export default function ReportsPage() {
   }
 
   const formatPercentage = (value: number) => {
-    return `${value.toFixed(1)}%`
+    return `${(Number.isFinite(value) ? value : 0).toFixed(1)}%`
   }
 
   return (

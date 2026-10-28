@@ -173,7 +173,7 @@ export async function POST(req: Request) {
     if (parsed.intent === 'general') {
       result = await execGeneral(command, contextStr, hospital?.name || 'Hospital')
     } else {
-      result = await executeIntent(parsed.intent, parsed.params, hospitalId)
+      result = await executeIntent(parsed.intent, parsed.params, hospitalId, user.role)
       if (!result) result = await execGeneral(command, contextStr, hospital?.name || 'Hospital')
     }
   } catch (err) {

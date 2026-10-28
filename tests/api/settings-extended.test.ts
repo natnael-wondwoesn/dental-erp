@@ -688,7 +688,10 @@ describe('POST /api/settings/communications/test', () => {
 
     expect(body.success).toBe(true)
     expect(body.message).toContain('SMS sent')
-    expect(mockSmsService.sendSMS).toHaveBeenCalled()
+    expect(mockSmsService.initialize).toHaveBeenCalledWith('h1')
+    expect(mockSmsService.sendSMS).toHaveBeenCalledWith(
+      expect.objectContaining({ hospitalId: 'h1', phone: '9876543210' })
+    )
   })
 
   it('returns 400 when SMS send fails', async () => {

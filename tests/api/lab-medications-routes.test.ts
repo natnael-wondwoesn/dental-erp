@@ -159,6 +159,41 @@ describe('GET /api/lab-orders', () => {
       })
     )
   })
+
+  it('returns deadline state and supports overdue filtering', async () => {
+    mockAuth()
+    vi.mocked(prisma.labOrder.count).mockResolvedValue(1)
+    vi.mocked(prisma.labOrder.findMany).mockResolvedValue([
+      {
+        id: 'lo1',
+        orderNumber: 'LAB20260001',
+        workType: 'CROWN',
+        status: 'IN_PROGRESS',
+        expectedDate: new Date(Date.now() - 86400000),
+        labVendor: { id: 'v1', name: 'Lab A', phone: '0911000000', avgTurnaround: 5 },
+        patient: {
+          id: 'p1',
+          patientId: 'PT001',
+          firstName: 'John',
+          lastName: 'Doe',
+          phone: '0911000001',
+        },
+      },
+    ] as any)
+
+    const res = await labOrdersGET(makeReq('/api/lab-orders?due_state=OVERDUE'))
+    const body = await res.json()
+
+    expect(body.data[0].dueState).toBe('OVERDUE')
+    expect(prisma.labOrder.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          expectedDate: { lt: expect.any(Date) },
+          status: { notIn: ['FITTED', 'CANCELLED'] },
+        }),
+      })
+    )
+  })
 })
 
 // ═════════════════════════════════════════════════════════════════════════════

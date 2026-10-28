@@ -8,8 +8,13 @@ import '@fontsource/manrope/800.css'
 import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
 import { Providers } from '@/components/providers'
+import { publicBrand } from '@/lib/saas/public-brand'
+import { saasEnforcement } from '@/lib/saas/server'
 
-export const metadata: Metadata = {
+// Clinic metadata depends on the request hostname, including client dashboard routes.
+export const dynamic = 'force-dynamic'
+
+const baseMetadata: Metadata = {
   title: {
     default: 'D/R Lemlem Special Dental Clinic — Ethiopian Dental Care',
     template: '%s | D/R Lemlem Special Dental Clinic',
@@ -63,6 +68,20 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
     title: 'D/R Lemlem Special Dental Clinic',
   },
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  if (saasEnforcement() === 'disabled') return baseMetadata
+  const profile = await publicBrand()
+  const name = profile?.branding.displayName || profile?.name || 'Dental Clinic'
+  return {
+    ...baseMetadata,
+    title: { default: name, template: `%s | ${name}` },
+    openGraph: { ...baseMetadata.openGraph, title: name, siteName: name },
+    twitter: { ...baseMetadata.twitter, title: name },
+    appleWebApp: { capable: true, title: name },
+    robots: { index: false, follow: false },
+  }
 }
 
 export const viewport: Viewport = {

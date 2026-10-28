@@ -26,10 +26,16 @@ function LoginForm() {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [isControlPlane, setIsControlPlane] = useState(false)
+  const [isDemoWorkspace, setIsDemoWorkspace] = useState(false)
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
 
   useEffect(() => {
     setIsControlPlane(window.location.hostname.startsWith('control.'))
+    setIsDemoWorkspace(
+      ['lemlem.dental.clinic-cms.cc', 'dental-clinic-cms.duckdns.org'].includes(
+        window.location.hostname
+      )
+    )
   }, [])
 
   const {
@@ -101,7 +107,7 @@ function LoginForm() {
             <Input
               id="email"
               type="email"
-              placeholder={isControlPlane ? 'vendor@example.com' : 'admin@lemlemdental.et'}
+              placeholder={isControlPlane ? 'vendor@example.com' : 'Your clinic email'}
               {...register('email')}
               disabled={isLoading}
             />
@@ -137,10 +143,12 @@ function LoginForm() {
               </p>
             </div>
 
-            <div className="mt-4 rounded-2xl border border-[#e7edf5] bg-[#f8fbff] p-4 text-center text-xs text-muted-foreground">
-              <p className="font-medium text-slate-700">Demo workspace credentials</p>
-              <p className="font-mono mt-1">admin@lemlemdental.et / Admin@123</p>
-            </div>
+            {isDemoWorkspace && (
+              <div className="mt-4 rounded-2xl border border-[#e7edf5] bg-[#f8fbff] p-4 text-center text-xs text-muted-foreground">
+                <p className="font-medium text-slate-700">Demo workspace credentials</p>
+                <p className="font-mono mt-1">admin@lemlemdental.et / Admin@123</p>
+              </div>
+            )}
           </>
         )}
       </CardContent>

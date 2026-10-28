@@ -103,6 +103,14 @@ describe('loadSiteConfig', () => {
     expect(() => loadSiteConfig()).not.toThrow()
   })
 
+  it('ships a validated Berhanu public profile with booking contact and map data', () => {
+    process.env.SITE_ID = 'berhanu-dental'
+    const config = loadSiteConfig()
+    expect(config.clinic.heroImage).toBe('/assets/berhanu-hero-v1.png')
+    expect(config.contact.phones).toEqual(['+251969421087', '+251910101334', '+251911196496'])
+    expect(config.location.mapEmbedUrl).toContain('google.com/maps')
+  })
+
   it('throws and names the path when the file is missing', () => {
     process.env.SITE_CONFIG_PATH = '/nonexistent/site.json'
     expect(() => loadSiteConfig()).toThrow(/\/nonexistent\/site\.json/)

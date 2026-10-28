@@ -8,6 +8,7 @@ import { GlobalSearch } from './global-search'
 import { useSidebar } from './sidebar-context'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { useLanguage } from '@/lib/i18n'
+import { useTenantAccess } from '@/components/saas/tenant-access'
 
 const UserMenu = dynamic(() => import('./user-menu').then((m) => m.UserMenu), {
   ssr: false,
@@ -32,6 +33,7 @@ interface HeaderProps {
 }
 
 export function Header({ user, isPlatformControlPlane = false }: HeaderProps) {
+  const access = useTenantAccess()
   const { setMobileOpen } = useSidebar()
   const { t } = useLanguage()
 
@@ -57,18 +59,32 @@ export function Header({ user, isPlatformControlPlane = false }: HeaderProps) {
 
       {isPlatformControlPlane ? (
         <div className="flex-1 text-sm font-semibold text-slate-700">Vendor control plane</div>
-      ) : (
+      ) : !access ||
+        [
+          'patients',
+          'appointments',
+          'clinical',
+          'billing',
+          'finance',
+          'inventory',
+          'lab',
+          'staff',
+          'insurance',
+        ].every((key) => access.modules.includes(key as never)) ? (
         <GlobalSearch />
+      ) : (
+        <div className="flex-1" />
       )}
 
-      {!isPlatformControlPlane && (
-        <Link
-          href="/appointments/new"
-          className="hidden h-10 items-center gap-2 rounded-full bg-[#0769e7] px-4 text-sm font-semibold text-white shadow-[0_7px_18px_rgba(7,105,231,.18)] transition hover:bg-[#075dcc] xl:inline-flex"
-        >
-          <CalendarPlus className="h-4 w-4" /> {t('New appointment')}
-        </Link>
-      )}
+      {!isPlatformControlPlane &&
+        (!access || (access.allowsWrite && access.modules.includes('appointments'))) && (
+          <Link
+            href="/appointments/new"
+            className="hidden h-10 items-center gap-2 rounded-full bg-[var(--clinic-color,#0769e7)] px-4 text-sm font-semibold text-white shadow-[0_7px_18px_rgba(7,105,231,.18)] transition hover:bg-[#075dcc] xl:inline-flex"
+          >
+            <CalendarPlus className="h-4 w-4" /> {t('New appointment')}
+          </Link>
+        )}
 
       {!isPlatformControlPlane && <LanguageSwitcher compact />}
 

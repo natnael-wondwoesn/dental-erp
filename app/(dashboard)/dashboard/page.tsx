@@ -179,7 +179,7 @@ export default function DashboardPage() {
         <div className="rounded-[28px] border border-rose-100 bg-white p-10 shadow-sm">
           <RefreshCw className="mx-auto h-9 w-9 text-rose-500" />
           <h1 className="mt-5 text-2xl font-semibold text-[#13233a]">
-            Clinic overview unavailable
+            {t('Clinic overview unavailable')}
           </h1>
           <p className="mt-2 text-sm leading-6 text-slate-500">{error}</p>
           <button
@@ -313,7 +313,7 @@ export default function DashboardPage() {
                     <span
                       className={`w-fit rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.08em] ring-1 ring-inset ${statusStyle[appointment.status] || statusStyle.SCHEDULED}`}
                     >
-                      {appointment.status.replaceAll('_', ' ')}
+                      {t(appointment.status.replaceAll('_', ' '))}
                     </span>
                   </Link>
                 )

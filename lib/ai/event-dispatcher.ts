@@ -1,3 +1,4 @@
+import { assertModuleWrite } from '@/lib/saas/server'
 /**
  * Internal event dispatcher for AI-driven workflow triggers (Phase 4.6).
  *
@@ -36,6 +37,19 @@ export interface DispatchPayload {
 // Entry-point
 // ---------------------------------------------------------------------------
 export async function dispatchEvent({ type, hospitalId, payload }: DispatchPayload) {
+  await assertModuleWrite(hospitalId, [
+    'ai',
+    'patients',
+    'appointments',
+    'clinical',
+    'billing',
+    'finance',
+    'inventory',
+    'lab',
+    'crm',
+    'staff',
+    'reports',
+  ])
   // Log start
   const execution = await prisma.aISkillExecution.create({
     data: {

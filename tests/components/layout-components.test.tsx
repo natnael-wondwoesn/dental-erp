@@ -177,7 +177,7 @@ describe('Sidebar', () => {
 
   it('renders default name when hospitalName omitted', () => {
     render(<Sidebar role="ADMIN" />)
-    expect(screen.getByText('D/R Lemlem Special Dental Clinic')).toBeInTheDocument()
+    expect(screen.getByText('Dental Clinic')).toBeInTheDocument()
   })
 
   it('renders all navigation items from config', () => {
@@ -266,7 +266,7 @@ describe('Sidebar', () => {
     render(<Sidebar role="ADMIN" hospitalName="X" hospitalLogo="/logo.png" />)
     const img = screen.getByAltText('X')
     expect(img).toBeInTheDocument()
-    expect(img).toHaveAttribute('src', '/logo.png')
+    expect(img).toHaveAttribute('src', '/api/tenant-branding/logo')
   })
 
   it('renders the product mark when no logo', () => {
@@ -298,6 +298,17 @@ describe('MobileSidebar', () => {
   it('shows hospital name', () => {
     render(<MobileSidebar role="ADMIN" hospitalName="Test Clinic" />)
     expect(screen.getByText('Test Clinic')).toBeInTheDocument()
+  })
+
+  it('loads the tenant logo through the public branding endpoint', () => {
+    render(
+      <MobileSidebar
+        role="ADMIN"
+        hospitalName="Test Clinic"
+        hospitalLogo="/api/uploads/tenant/logo.png"
+      />
+    )
+    expect(screen.getByAltText('Test Clinic')).toHaveAttribute('src', '/api/tenant-branding/logo')
   })
 
   it('renders nothing when closed', () => {

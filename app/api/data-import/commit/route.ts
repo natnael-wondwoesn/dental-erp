@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { parseFile } from '@/lib/import/parsers'
 import { ENTITY_SCHEMAS, coerceValue } from '@/lib/import/schema-definitions'
 import bcrypt from 'bcryptjs'
+import { requestSaaSAccess, saasEnforcement } from '@/lib/saas/server'
 
 export async function POST(req: NextRequest) {
   const { error, session, hospitalId } = await requireAuthAndRole(['ADMIN'])
@@ -21,6 +22,27 @@ export async function POST(req: NextRequest) {
       where: { id: jobId, hospitalId },
     })
     if (!job) return NextResponse.json({ error: 'Import job not found' }, { status: 404 })
+
+    if (saasEnforcement() !== 'disabled') {
+      const target = (
+        {
+          patients: 'patients',
+          staff: 'staff',
+          appointments: 'appointments',
+          treatments: 'clinical',
+          invoices: 'billing',
+          payments: 'billing',
+          inventory: 'inventory',
+          procedures: 'clinical',
+          medications: 'clinical',
+          suppliers: 'inventory',
+          labVendors: 'lab',
+        } as Record<string, string>
+      )[job.entityType]
+      const access = await requestSaaSAccess(hospitalId)
+      if (!target || !access.modules.includes(target as never))
+        return NextResponse.json({ error: 'Target module is not enabled' }, { status: 403 })
+    }
 
     // Mark signoff
     await prisma.dataImportJob.update({

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { isPlatformControlPlane } from '@/lib/platform-mode'
+import { publicBrand } from '@/lib/saas/public-brand'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,8 +12,10 @@ export function generateMetadata(): Metadata {
   }
 }
 
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   const controlPlane = isPlatformControlPlane()
+  const profile = controlPlane ? null : await publicBrand()
+  const clinicName = profile?.branding.displayName || profile?.name || 'Dental Clinic'
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f4f8fd_0%,#eef5fd_100%)]">
@@ -22,7 +25,14 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <section className="hidden rounded-[32px] border border-white/60 bg-[#0f2d55] p-10 text-white shadow-[0_24px_70px_rgba(15,45,85,0.22)] lg:flex lg:flex-col lg:justify-between">
             <div className="space-y-6">
               <div className="inline-flex w-fit items-center rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-100">
-                {controlPlane ? 'Natnael Product Operations' : 'D/R Lemlem Special Dental Clinic'}
+                {profile?.branding.logo && (
+                  <img
+                    src="/api/tenant-branding/logo"
+                    alt=""
+                    className="mr-2 h-8 w-8 rounded object-contain"
+                  />
+                )}
+                {controlPlane ? 'Natnael Product Operations' : clinicName}
               </div>
               <div className="space-y-4">
                 <h1 className="max-w-xl text-4xl font-semibold tracking-[-0.05em]">
@@ -67,7 +77,21 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </section>
 
           <div className="flex items-center justify-center">
-            <div className="w-full max-w-md">{children}</div>
+            <div className="w-full max-w-md">
+              {!controlPlane && profile && (
+                <div className="mb-6 text-center lg:hidden">
+                  {profile.branding.logo && (
+                    <img
+                      src="/api/tenant-branding/logo"
+                      alt="Clinic logo"
+                      className="mx-auto mb-3 h-24 w-40 object-contain"
+                    />
+                  )}
+                  <p className="text-lg font-semibold text-slate-900">{clinicName}</p>
+                </div>
+              )}
+              {children}
+            </div>
           </div>
         </div>
       </div>
