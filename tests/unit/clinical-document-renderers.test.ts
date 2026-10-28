@@ -22,7 +22,11 @@ describe('clinical document renderers', () => {
       expect(html).toContain('D/R Lemlem Special Dental Clinic')
       expect(html).toContain(CLINIC_PRINTABLES[template])
       expect(html).toContain('window.print()')
-      if (template === 'cash-sales-attachment') {
+      if (template === 'berhanu-orthodontic-guidance') {
+        expect(html).toContain('/clinical-forms/berhanu/orthodontic-patient-guidance.jpg')
+      } else if (template === 'berhanu-pre-treatment-notice') {
+        expect(html).toContain('/clinical-forms/berhanu/before-dental-treatment-notice.jpg')
+      } else if (template === 'cash-sales-attachment') {
         expect(html).toContain('MRC CFF00006511')
         expect(html).toContain('ATTACHMENT')
         expect(html).toContain('@page{size:A5 portrait')

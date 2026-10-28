@@ -6,6 +6,8 @@ export const CLINIC_PRINTABLES = {
   'laboratory-order': 'Dental Laboratory Order',
   'cash-sales-attachment': 'Attachment Cash Sales Invoice',
   'treatment-sheet': 'Patient Treatment Sheet',
+  'berhanu-orthodontic-guidance': 'Orthodontic Patient Guidance',
+  'berhanu-pre-treatment-notice': 'Before Dental Treatment Notice',
 } as const
 
 export type ClinicPrintableKey = keyof typeof CLINIC_PRINTABLES
@@ -36,6 +38,7 @@ const baseCss = `
 @page{size:A4;margin:9mm}*{box-sizing:border-box}body{margin:0;background:#edf1f5;color:#111;font:12px/1.35 Arial,sans-serif}.am{font-family:'Noto Sans Ethiopic',Arial,sans-serif}.toolbar{width:210mm;margin:12px auto 0;text-align:right}.toolbar button{border:0;border-radius:999px;background:#145da0;color:#fff;padding:10px 20px;font-weight:700;cursor:pointer}.paper{width:210mm;min-height:297mm;margin:12px auto;padding:10mm 12mm;background:#fff;box-shadow:0 16px 44px #10243e22}.masthead{display:grid;grid-template-columns:24mm 1fr;align-items:center;text-align:center;border-bottom:2px solid #111;padding-bottom:4mm}.masthead img{width:22mm;height:22mm;object-fit:contain}.masthead h1{margin:1mm 0;font-size:21px}.masthead p{margin:0;font-size:13px}.clinic-am{font-size:16px;font-weight:700}.title{text-align:center;margin:5mm 0;font-weight:800;font-size:18px;text-decoration:underline}.field{display:flex;align-items:end;gap:2mm;min-height:8mm}.field span{white-space:nowrap}.field b{flex:1;border-bottom:1px solid #111;min-height:5mm}.grid{display:grid;gap:2mm 5mm}.two{grid-template-columns:1fr 1fr}.three{grid-template-columns:1fr 1fr 1fr}.box{border:1px solid #111;padding:3mm}.signature-row{display:grid;grid-template-columns:1fr 1fr;gap:22mm;margin-top:10mm}.signature-row div{border-top:1px solid #111;padding-top:2mm;text-align:center}.muted{font-size:10px}.checks{display:flex;gap:8mm}.check:before{content:'□';font-size:18px;margin-right:2mm;vertical-align:-1px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #111;padding:2mm;text-align:left;height:9mm}th{text-align:center;font-weight:700}@media print{body{background:#fff}.toolbar{display:none}.paper{width:auto;min-height:0;margin:0;padding:0;box-shadow:none}}
 body.treatment-sheet .paper{background:#f7dce9}body.treatment-sheet table td{height:10mm}body.consent .consent-points{margin:5mm 0 0;padding:0;list-style:none}body.consent .consent-points li{position:relative;padding-left:6mm;margin:4mm 0;font-family:'Noto Sans Ethiopic',Arial,sans-serif;font-size:12px}body.consent .consent-points li:before{content:'*';position:absolute;left:0;font-weight:900}body.laboratory-order .paper{max-width:180mm}body.laboratory-order .box{break-inside:avoid}
 body.cash-sales-attachment{font-family:'Times New Roman','Noto Sans Ethiopic',serif}body.cash-sales-attachment .paper{width:148mm;min-height:210mm;padding:5mm 6mm}body.cash-sales-attachment .receipt-head{text-align:center}body.cash-sales-attachment .receipt-head .am{font-size:12px;font-weight:700}body.cash-sales-attachment .receipt-head h1{font-size:13px;margin:0}body.cash-sales-attachment .receipt-head p{font-size:11px;margin:0}body.cash-sales-attachment .receipt-top{display:grid;grid-template-columns:1fr 1.2fr;gap:6mm;margin-top:3mm;font-size:9px}body.cash-sales-attachment .issuer{font-weight:700}body.cash-sales-attachment .issuer p{margin:1mm 0}body.cash-sales-attachment .receipt-fields .field{min-height:5mm}body.cash-sales-attachment .receipt-fields .field b{min-height:3mm}body.cash-sales-attachment .serial{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:11px}body.cash-sales-attachment .serial strong{font-size:17px;letter-spacing:2px}body.cash-sales-attachment .receipt-title{font-size:15px;margin:2mm 0 1mm}body.cash-sales-attachment table th,body.cash-sales-attachment table td{height:7mm;padding:1mm;font-size:8px}body.cash-sales-attachment table th{line-height:1.1}body.cash-sales-attachment .attachment-mark{position:absolute;left:22mm;top:104mm;z-index:2;transform:rotate(-12deg);font:900 30px/1 Arial,sans-serif;color:#555;opacity:.32;letter-spacing:1px}body.cash-sales-attachment .receipt-bottom{font-size:9px}body.cash-sales-attachment .receipt-bottom .signature-row{margin-top:5mm;gap:10mm}body.cash-sales-attachment .mrc{text-align:center;font-weight:700;font-size:10px;margin:4mm 0 0}body.cash-sales-attachment .invalid{text-align:center;font-weight:700;font-size:9px;margin:0}body.cash-sales-attachment .distribution{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:2mm;font-weight:700;text-align:center;margin-top:1mm}
+body.berhanu-orthodontic-guidance .paper,body.berhanu-pre-treatment-notice .paper{padding:8mm 10mm}body .patient-guide-image{display:block;width:100%;height:226mm;object-fit:contain;margin:4mm auto 0}body.berhanu-pre-treatment-notice .patient-guide-image{height:224mm}
 `
 
 function consent(clinic: MedicalCertificateClinic) {
@@ -96,18 +99,32 @@ function treatmentSheet(clinic: MedicalCertificateClinic) {
   <div class="signature-row" style="grid-template-columns:1fr"><div>Doctor name, signature and date</div></div>`
 }
 
+function berhanuPatientGuide(
+  clinic: MedicalCertificateClinic,
+  key: 'berhanu-orthodontic-guidance' | 'berhanu-pre-treatment-notice'
+) {
+  const orthodontic = key === 'berhanu-orthodontic-guidance'
+  const title = orthodontic ? 'Orthodontic Patient Guidance' : 'Before Dental Treatment Notice'
+  const image = orthodontic
+    ? '/clinical-forms/berhanu/orthodontic-patient-guidance.jpg'
+    : '/clinical-forms/berhanu/before-dental-treatment-notice.jpg'
+  return `${masthead(clinic)}<img class="patient-guide-image" src="${image}" alt="${title}">`
+}
+
 export function renderClinicPrintableHtml(
   key: ClinicPrintableKey,
   clinic: MedicalCertificateClinic
 ) {
   const content =
-    key === 'consent'
-      ? consent(clinic)
-      : key === 'laboratory-order'
-        ? laboratoryOrder(clinic)
-        : key === 'cash-sales-attachment'
-          ? cashSales(clinic)
-          : treatmentSheet(clinic)
+    key === 'berhanu-orthodontic-guidance' || key === 'berhanu-pre-treatment-notice'
+      ? berhanuPatientGuide(clinic, key)
+      : key === 'consent'
+        ? consent(clinic)
+        : key === 'laboratory-order'
+          ? laboratoryOrder(clinic)
+          : key === 'cash-sales-attachment'
+            ? cashSales(clinic)
+            : treatmentSheet(clinic)
   const pageCss = key === 'cash-sales-attachment' ? '@page{size:A5 portrait;margin:5mm}' : ''
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${e(CLINIC_PRINTABLES[key])}</title><style>${baseCss}${pageCss}</style></head><body class="${e(key)}"><div class="toolbar"><button onclick="window.print()">Print form</button></div><main class="paper">${content}</main></body></html>`
 }

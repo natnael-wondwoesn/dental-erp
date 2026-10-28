@@ -34,6 +34,9 @@ export async function GET(
       registrationNo: true,
     },
   })
+  if (template.startsWith('berhanu-') && !/berhanu\s+belta/i.test(clinic?.name || '')) {
+    return NextResponse.json({ error: 'Printable form not found' }, { status: 404 })
+  }
   const html = renderClinicPrintableHtml(
     template,
     await brandClinic(hospitalId, clinic || { name: 'Dental Clinic' })

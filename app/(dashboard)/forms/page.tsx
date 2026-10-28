@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   ClipboardList,
@@ -75,6 +76,21 @@ const formTypes = [
 ]
 
 export default function ClinicalFormsPage() {
+  const [showBerhanuGuides, setShowBerhanuGuides] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    fetch('/api/tenant-branding', { cache: 'no-store' })
+      .then((response) => response.json())
+      .then((profile) => {
+        if (active) setShowBerhanuGuides(/berhanu.*belta/i.test(profile?.name || ''))
+      })
+      .catch(() => undefined)
+    return () => {
+      active = false
+    }
+  }, [])
+
   return (
     <div className="mx-auto max-w-6xl space-y-8 p-4 sm:p-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
@@ -94,6 +110,37 @@ export default function ClinicalFormsPage() {
       </div>
 
       <div className="grid gap-5 md:grid-cols-2">
+        {showBerhanuGuides && (
+          <Card className="overflow-hidden border-border/70 shadow-sm">
+            <CardHeader>
+              <div className="mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-indigo-50 text-indigo-700 dark:bg-indigo-950/35 dark:text-indigo-300">
+                <ScrollText className="h-6 w-6" />
+              </div>
+              <CardTitle>Patient guidance notices</CardTitle>
+              <CardDescription className="min-h-12 leading-6">
+                Print the two original Amharic clinic notices with Dr. Berhanu Belta branding.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-3">
+              <Button asChild variant="outline" className="w-full">
+                <Link
+                  href="/api/clinical-forms/printables/berhanu-orthodontic-guidance"
+                  target="_blank"
+                >
+                  Open orthodontic guidance
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full">
+                <Link
+                  href="/api/clinical-forms/printables/berhanu-pre-treatment-notice"
+                  target="_blank"
+                >
+                  Open before-treatment notice
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        )}
         {formTypes.map((item) => {
           const Icon = item.icon
           return (
