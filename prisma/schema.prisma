@@ -67,6 +67,8 @@ model Hospital {
   treatments             Treatment[]
   treatmentPlans         TreatmentPlan[]
   dentalChartEntries     DentalChartEntry[]
+  bracesCases            BracesCase[]
+  bracesVisits           BracesVisit[]
   prescriptions          Prescription[]
   procedures             Procedure[]
   medications            Medication[]
@@ -356,6 +358,7 @@ model Staff {
   shifts             StaffShift[]
   leaves             Leave[]
   videoConsultations VideoConsultation[] @relation("DoctorVideoConsultations")
+  bracesVisits       BracesVisit[]
 
   @@unique([hospitalId, employeeId])
   @@index([hospitalId])
@@ -486,6 +489,7 @@ model Patient {
   treatments         Treatment[]
   treatmentPlans     TreatmentPlan[]
   dentalChart        DentalChartEntry[]
+  bracesCases        BracesCase[]
   prescriptions      Prescription[]
   invoices           Invoice[]
   documents          Document[]
@@ -3090,4 +3094,75 @@ enum DataImportStatus {
   COMPLETED
   FAILED
   CANCELLED
+}
+
+// ==================== BRACES (ORTHODONTIC) MODULE ====================
+
+// One case per patient. Repeatable sub-forms (planned procedures, stages,
+// retention follow-ups) are JSON arrays; visits are first-class rows.
+model BracesCase {
+  id         String @id @default(cuid())
+  hospitalId String
+  patientId  String
+
+  // 1. Orthodontic assessment
+  chiefComplaint    String? @db.Text
+  findings          Json? // string[] of CROWDING | SPACING | OVERBITE | UNDERBITE | CROSSBITE
+  severity          String? // MILD | MODERATE | SEVERE
+  clinicalDiagnosis String? @db.Text
+  assessmentNotes   String? @db.Text
+
+  // 2. Dental records (files live in Document; tooth chart in DentalChartEntry)
+  recordsNotes String? @db.Text
+
+  // 3. Treatment plan
+  bracesType        String? // METAL | CERAMIC | OTHER
+  objectives        String?  @db.Text
+  plannedProcedures Json? // string[]
+  stages            Json? // [{ name, procedure, expectedDate, status, notes }]
+  estimatedMonths   Int?
+  estimatedCost     Decimal? @db.Decimal(12, 2)
+  planNotes         String?  @db.Text
+  planStatus        String   @default("DRAFT") // DRAFT | APPROVED | IN_PROGRESS | COMPLETED
+
+  // 5. Retention plan
+  removalDate          DateTime?
+  retainerType         String? // FIXED | REMOVABLE | OTHER
+  retainerInstructions String?   @db.Text
+  retentionFollowUps   Json? // string[] of ISO dates
+  retentionNotes       String?   @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  hospital Hospital      @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  patient  Patient       @relation(fields: [patientId], references: [id])
+  visits   BracesVisit[]
+
+  @@unique([hospitalId, patientId])
+  @@index([hospitalId])
+}
+
+// 4. Progress and follow-up visits: one row per appointment.
+model BracesVisit {
+  id               String    @id @default(cuid())
+  hospitalId       String
+  bracesCaseId     String
+  visitDate        DateTime
+  visitType        String // ADJUSTMENT | REVIEW | EMERGENCY
+  wireAdjustments  String?   @db.Text
+  applianceChanges String?   @db.Text
+  clinicalProgress String?   @db.Text
+  patientConcerns  String?   @db.Text
+  nextAppointment  DateTime?
+  doctorId         String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  hospital   Hospital   @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  bracesCase BracesCase @relation(fields: [bracesCaseId], references: [id], onDelete: Cascade)
+  doctor     Staff?     @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+
+  @@index([hospitalId])
+  @@index([bracesCaseId, visitDate])
 }

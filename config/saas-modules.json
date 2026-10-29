@@ -6,6 +6,7 @@
   "billing": ["patients"],
   "insurance": ["billing"],
   "lab": ["clinical"],
+  "braces": ["clinical"],
   "finance": ["billing"],
   "inventory": ["core"],
   "staff": ["core"],

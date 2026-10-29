@@ -427,6 +427,16 @@ const mockPrismaClient = {
   },
 
   // Instrument
+  bracesCase: {
+    findUnique: vi.fn(),
+    upsert: vi.fn(),
+  },
+  bracesVisit: {
+    findFirst: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+  },
   instrument: {
     findUnique: vi.fn(),
     findFirst: vi.fn(),
