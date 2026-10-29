@@ -62,7 +62,9 @@ export default function ReceiptDetailPage({ params }: { params: Promise<{ id: st
 
         if (settingsRes.ok) {
           const settingsData = await settingsRes.json()
-          const prefixSetting = settingsData.data?.find((item: { key: string; value: string }) => item.key === 'receiptPrefix')
+          const prefixSetting = settingsData.data?.find(
+            (item: { key: string; value: string }) => item.key === 'receiptPrefix'
+          )
           if (prefixSetting?.value) setReceiptPrefix(prefixSetting.value)
         }
       } finally {
@@ -101,7 +103,8 @@ export default function ReceiptDetailPage({ params }: { params: Promise<{ id: st
           </Link>
           <h1 className="mt-2 text-3xl font-bold tracking-tight">{receiptNo}</h1>
           <p className="text-muted-foreground">
-            Receipt for invoice {payment.invoice.invoiceNo} issued on {formatDate(payment.paymentDate)}
+            Receipt for invoice {payment.invoice.invoiceNo} issued on{' '}
+            {formatDate(payment.paymentDate)}
           </p>
         </div>
         <Button variant="outline" onClick={() => window.print()}>
@@ -128,14 +131,21 @@ export default function ReceiptDetailPage({ params }: { params: Promise<{ id: st
                 <div className="mt-1 font-semibold">
                   {payment.invoice.patient.firstName} {payment.invoice.patient.lastName}
                 </div>
-                <div className="text-sm text-muted-foreground">{payment.invoice.patient.patientId}</div>
+                <div className="text-sm text-muted-foreground">
+                  {payment.invoice.patient.patientId}
+                </div>
                 <div className="text-sm text-muted-foreground">{payment.invoice.patient.phone}</div>
               </div>
               <div className="rounded-lg border p-4">
                 <div className="text-sm text-muted-foreground">Invoice</div>
                 <div className="mt-1 font-semibold">{payment.invoice.invoiceNo}</div>
-                <div className="text-sm text-muted-foreground">Status: {payment.invoice.status}</div>
-                <Link href={`/billing/invoices/${payment.invoice.id}`} className="text-sm text-primary">
+                <div className="text-sm text-muted-foreground">
+                  Status: {payment.invoice.status}
+                </div>
+                <Link
+                  href={`/billing/invoices/${payment.invoice.id}`}
+                  className="text-sm text-primary"
+                >
                   Open invoice
                 </Link>
               </div>
@@ -179,7 +189,9 @@ export default function ReceiptDetailPage({ params }: { params: Promise<{ id: st
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Amount paid</span>
-                <span className="font-semibold text-green-600">{formatCurrency(payment.amount)}</span>
+                <span className="font-semibold text-green-600">
+                  {formatCurrency(payment.amount)}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Invoice paid to date</span>

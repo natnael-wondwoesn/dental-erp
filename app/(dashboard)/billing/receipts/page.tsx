@@ -6,8 +6,21 @@ import { Eye, ReceiptText, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ExportMenu } from '@/components/ui/export-menu'
 import { ErpModuleOverview } from '@/components/dashboard/erp-overview'
@@ -76,7 +89,9 @@ export default function ReceiptsPage() {
 
       if (settingsRes.ok) {
         const settingsData = await settingsRes.json()
-        const prefixSetting = settingsData.data?.find((item: { key: string; value: string }) => item.key === 'receiptPrefix')
+        const prefixSetting = settingsData.data?.find(
+          (item: { key: string; value: string }) => item.key === 'receiptPrefix'
+        )
         if (prefixSetting?.value) setReceiptPrefix(prefixSetting.value)
       }
     } finally {
@@ -206,13 +221,27 @@ export default function ReceiptsPage() {
               {loading ? (
                 Array.from({ length: 6 }).map((_, index) => (
                   <TableRow key={index}>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                    <TableCell><Skeleton className="ml-auto h-4 w-20" /></TableCell>
-                    <TableCell><Skeleton className="ml-auto h-9 w-9" /></TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-40" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="ml-auto h-4 w-20" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="ml-auto h-9 w-9" />
+                    </TableCell>
                   </TableRow>
                 ))
               ) : payments.length === 0 ? (

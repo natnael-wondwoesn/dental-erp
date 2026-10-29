@@ -185,9 +185,10 @@ export async function GET(req: NextRequest) {
           treatmentCount: doctor.treatments.length,
           revenue,
           commission,
-          effectiveRate: revenue > 0 ? Number(((commission / revenue) * 100).toFixed(2)) : defaultRate,
-          categories: Object.values(categorySummary).sort((left, right) =>
-            right.revenue - left.revenue
+          effectiveRate:
+            revenue > 0 ? Number(((commission / revenue) * 100).toFixed(2)) : defaultRate,
+          categories: Object.values(categorySummary).sort(
+            (left, right) => right.revenue - left.revenue
           ),
           treatments: doctor.treatments.map((treatment) => ({
             id: treatment.id,

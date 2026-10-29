@@ -329,7 +329,11 @@ export default function LabVendorsPage() {
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
-          <Button variant="outline" onClick={() => router.push('/lab')} className="w-full sm:w-auto">
+          <Button
+            variant="outline"
+            onClick={() => router.push('/lab')}
+            className="w-full sm:w-auto"
+          >
             <FlaskConical className="mr-2 h-4 w-4" />
             Back to Lab Orders
           </Button>

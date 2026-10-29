@@ -52,7 +52,11 @@ services:
       migrate: { condition: service_completed_successfully }
     networks: ['internal']
     healthcheck:
-      test: ['CMD-SHELL', 'python -c "import urllib.request,sys;sys.exit(0 if urllib.request.urlopen(''http://localhost:8000/api/health'',timeout=3).status==200 else 1)"']
+      test:
+        [
+          'CMD-SHELL',
+          'python -c "import urllib.request,sys;sys.exit(0 if urllib.request.urlopen(''http://localhost:8000/api/health'',timeout=3).status==200 else 1)"',
+        ]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -71,7 +75,11 @@ services:
       edge:
         aliases: ['${CLIENT_SLUG:?CLIENT_SLUG is required}-web']
     healthcheck:
-      test: ['CMD-SHELL', 'node -e "require(''http'').get(''http://localhost:3000/'', r => process.exit(r.statusCode < 400 ? 0 : 1)).on(''error'', () => process.exit(1))"']
+      test:
+        [
+          'CMD-SHELL',
+          'node -e "require(''http'').get(''http://localhost:3000/'', r => process.exit(r.statusCode < 400 ? 0 : 1)).on(''error'', () => process.exit(1))"',
+        ]
       interval: 15s
       timeout: 5s
       retries: 5

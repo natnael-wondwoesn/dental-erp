@@ -7,7 +7,14 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ExportMenu } from '@/components/ui/export-menu'
 import { ErpModuleOverview } from '@/components/dashboard/erp-overview'
@@ -150,7 +157,8 @@ export default function CommissionsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dentist commissions</h1>
           <p className="text-muted-foreground">
-            Configure payable rates and review doctor-level commission statements from completed procedures.
+            Configure payable rates and review doctor-level commission statements from completed
+            procedures.
           </p>
         </div>
         <ExportMenu
@@ -170,8 +178,18 @@ export default function CommissionsPage() {
       </div>
 
       <div className="flex flex-col gap-3 md:flex-row md:items-center">
-        <Input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} className="md:w-[180px]" />
-        <Input type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} className="md:w-[180px]" />
+        <Input
+          type="date"
+          value={startDate}
+          onChange={(event) => setStartDate(event.target.value)}
+          className="md:w-[180px]"
+        />
+        <Input
+          type="date"
+          value={endDate}
+          onChange={(event) => setEndDate(event.target.value)}
+          className="md:w-[180px]"
+        />
         <Button onClick={fetchCommissions} variant="outline">
           Refresh range
         </Button>
@@ -184,7 +202,10 @@ export default function CommissionsPage() {
               ['Doctors', String(data?.summary.doctorCount || 0)],
               ['Completed procedures', String(data?.summary.totalTreatments || 0)],
               ['Revenue basis', money(data?.summary.totalRevenue || 0, data?.currency || 'ETB')],
-              ['Commission payable', money(data?.summary.totalCommission || 0, data?.currency || 'ETB')],
+              [
+                'Commission payable',
+                money(data?.summary.totalCommission || 0, data?.currency || 'ETB'),
+              ],
             ].map(([label, value]) => (
               <Card key={label}>
                 <CardHeader className="pb-2">
@@ -202,7 +223,8 @@ export default function CommissionsPage() {
           <CardHeader>
             <CardTitle>Commission rules</CardTitle>
             <CardDescription>
-              Default and category overrides used to derive commission from completed treatment revenue.
+              Default and category overrides used to derive commission from completed treatment
+              revenue.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -266,12 +288,24 @@ export default function CommissionsPage() {
                 {loading ? (
                   Array.from({ length: 6 }).map((_, index) => (
                     <TableRow key={index}>
-                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-12" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                      <TableCell><Skeleton className="ml-auto h-4 w-16" /></TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-32" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-12" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-20" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-20" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-16" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="ml-auto h-4 w-16" />
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : !data || data.doctors.length === 0 ? (
@@ -292,7 +326,9 @@ export default function CommissionsPage() {
                       </TableCell>
                       <TableCell>{doctor.treatmentCount}</TableCell>
                       <TableCell>{money(doctor.revenue, data.currency)}</TableCell>
-                      <TableCell className="font-medium">{money(doctor.commission, data.currency)}</TableCell>
+                      <TableCell className="font-medium">
+                        {money(doctor.commission, data.currency)}
+                      </TableCell>
                       <TableCell>{doctor.effectiveRate}%</TableCell>
                       <TableCell className="text-right">
                         <Link

@@ -17,7 +17,7 @@ services:
     networks:
       - dental_erp_internal
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 -u root -p"$$MYSQL_ROOT_PASSWORD" --silent']
       interval: 10s
       timeout: 5s
       retries: 12
@@ -28,8 +28,8 @@ services:
       context: .
       dockerfile: Dockerfile
     image: dental-erp-web:local
-    restart: "no"
-    command: ["node", "node_modules/prisma/build/index.js", "migrate", "deploy"]
+    restart: 'no'
+    command: ['node', 'node_modules/prisma/build/index.js', 'migrate', 'deploy']
     env_file:
       - .env
     environment:
@@ -46,9 +46,9 @@ services:
       dockerfile: Dockerfile
       target: deps
     image: dental-erp-web-seed:local
-    restart: "no"
-    profiles: ["seed"]
-    command: ["npx", "tsx", "prisma/seed.ts"]
+    restart: 'no'
+    profiles: ['seed']
+    command: ['npx', 'tsx', 'prisma/seed.ts']
     env_file:
       - .env
     environment:
