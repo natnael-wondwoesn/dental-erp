@@ -213,8 +213,10 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: backend/uv.lock
+      # Run inside the backend's locked environment: the script needs
+      # `cryptography`, which the bare Windows runner Python does not have.
       - name: Embed issuer public trust anchors
-        run: python scripts/embed_license_trust_anchors.py --require-nonempty
+        run: uv run --frozen --project backend python scripts/embed_license_trust_anchors.py --require-nonempty
         env:
           LICENSE_ISSUER_PUBLIC_KEYS_JSON: ${{ secrets.LICENSE_ISSUER_PUBLIC_KEYS_JSON }}
       - name: Build one-file Windows agent
