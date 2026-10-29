@@ -25,7 +25,9 @@ deploys.
 
 GitHub -> Actions -> **Deploy client** -> Run workflow:
 
-- `client`: the folder name under `/opt/clients` (for example `berhanu-dental`)
+- `client`: `berhanu-dental`, `lemlem` or `control` (the control platform).
+  Berhanu-style clinics live in `/opt/clients/<client>`; Lemlem and control are
+  described by `ops/deploy/clients/*.conf`
 - `version`: the released version without the `v` (for example `0.1.21`)
 
 The workflow runs `ops/deploy/deploy.sh` on the VPS. It pulls the image, dumps
@@ -49,5 +51,7 @@ module -> save.
 - Do not deploy from a working tree. Production runs tagged images only.
 - Pushing a tag and running Deploy client are the human-approved steps. An agent
   prepares the branch and PR, and says when it is ready to tag.
-- Lemlem and control are not on this path yet and still use
-  `ops/saas-control/deploy.py` (see `docs/SAAS_OPERATIONS.md`).
+- Lemlem and control use the same workflow. `ops/saas-control/deploy.py` is
+  legacy and should not be used for releases any more.
+- Deploy the control platform and Lemlem before large migrations land elsewhere,
+  and check each site after its deploy.

@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       client:
-        description: Client slug under /opt/clients (e.g. berhanu-dental)
+        description: Client - berhanu-dental, lemlem or control
         required: true
         type: string
       version:
@@ -55,6 +55,8 @@ jobs:
           IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}:${VERSION}"
           $SSH 'mkdir -p /opt/deploy' 
           cat ops/deploy/deploy.sh | $SSH 'cat > /opt/deploy/deploy.sh && chmod 700 /opt/deploy/deploy.sh'
+          # Per-client stack definitions for the legacy layouts (Lemlem, control).
+          tar -C ops/deploy -c clients | $SSH 'tar -x -C /opt/deploy'
           # Short-lived token, piped over stdin: nothing is stored on the VPS.
           printf '%s' "$GITHUB_TOKEN" | $SSH "docker login ghcr.io -u '$GITHUB_ACTOR' --password-stdin >/dev/null"
           $SSH "/opt/deploy/deploy.sh '$CLIENT' '$IMAGE'" || status=$?
