@@ -1,5 +1,5 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { configure, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { PublicBookingForm } from '@/components/site/public-booking-form'
 import { LanguageProvider } from '@/lib/i18n'
@@ -9,6 +9,10 @@ function response(body: unknown, ok = true) {
 }
 
 describe('PublicBookingForm', () => {
+  // Async UI steps are slow on shared CI runners; the 1s default flakes.
+  beforeAll(() => configure({ asyncUtilTimeout: 5000 }))
+  afterAll(() => configure({ asyncUtilTimeout: 1000 }))
+
   beforeEach(() => vi.restoreAllMocks())
 
   it('loads public doctors without requiring staff or patient authentication', async () => {

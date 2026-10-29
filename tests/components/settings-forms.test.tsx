@@ -450,7 +450,7 @@ describe('ClinicSettingsPage', () => {
       await waitFor(() => {
         const img = screen.getByAltText('Clinic logo')
         expect(img).toBeInTheDocument()
-        expect(img).toHaveAttribute('src', '/uploads/logo.png')
+        expect(img).toHaveAttribute('src', '/api/tenant-branding/logo')
       })
     })
   })

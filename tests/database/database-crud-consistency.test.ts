@@ -38,6 +38,7 @@ const prismaMock = vi.hoisted(() => {
       create: vi.fn(),
       update: vi.fn(),
       count: vi.fn(),
+      aggregate: vi.fn(),
     },
     invoiceItem: {
       createMany: vi.fn(),
@@ -195,6 +196,10 @@ describe('8.1 CRUD Operations', () => {
         firstName: 'John',
         lastName: 'Doe',
         hospitalId: HOSPITAL_A,
+      })
+      prismaMock.invoice.aggregate.mockResolvedValue({
+        _sum: { totalAmount: 0, paidAmount: 0, balanceAmount: 0 },
+        _count: 0,
       })
 
       const req = makeRequest(`/api/patients/${PATIENT_ID}`)
