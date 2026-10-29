@@ -98,6 +98,10 @@ No bidirectional hosted/offline clinical sync is provided.
 
 ## Approved releases and rollback
 
+> For Berhanu-style clinic stacks use the tag-and-deploy process in
+> [DEPLOYMENT.md](DEPLOYMENT.md). This section describes the legacy path still
+> used by Lemlem and the control platform.
+
 Source snapshots live under `/opt/dental-saas/releases/<version>`. `release.json`
 pins local Docker image IDs. `/etc/sunny-smile/approved-releases.json` is root-owned
 allowlist for customer worker deployments. Mutable `latest` is rejected.
