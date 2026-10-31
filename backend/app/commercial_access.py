@@ -22,6 +22,7 @@ class ModuleId(StrEnum):
     BILLING = "billing"
     INSURANCE = "insurance"
     LAB = "lab"
+    BRACES = "braces"
     FINANCE = "finance"
     INVENTORY = "inventory"
     STAFF = "staff"
@@ -46,6 +47,7 @@ MODULE_DEPENDENCIES = MappingProxyType(
         ModuleId.BILLING: frozenset({ModuleId.PATIENTS}),
         ModuleId.INSURANCE: frozenset({ModuleId.BILLING}),
         ModuleId.LAB: frozenset({ModuleId.CLINICAL}),
+        ModuleId.BRACES: frozenset({ModuleId.CLINICAL}),
         ModuleId.FINANCE: frozenset({ModuleId.BILLING}),
         ModuleId.INVENTORY: frozenset({ModuleId.CORE}),
         ModuleId.STAFF: frozenset({ModuleId.CORE}),

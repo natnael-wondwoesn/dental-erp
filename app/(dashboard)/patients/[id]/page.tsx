@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n'
 import { getCurrentUser } from '@/lib/api-client'
+import { useTenantAccess } from '@/components/saas/tenant-access'
 
 type Patient = {
   id: string
@@ -82,6 +83,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
   const { id } = use(params)
   const router = useRouter()
   const { t } = useLanguage()
+  const access = useTenantAccess()
   const [patient, setPatient] = useState<Patient | null>(null)
   const [loadError, setLoadError] = useState(false)
   const [tab, setTab] = useState<'upcoming' | 'past' | 'records'>('upcoming')
@@ -197,6 +199,14 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
             >
               <Stethoscope className="h-4 w-4" /> {t('Dental chart')}
             </Link>
+            {(!access || (access.modules as string[]).includes('braces')) && (
+              <Link
+                href={`/patients/${patient.id}/braces`}
+                className="inline-flex items-center gap-2 rounded-xl border bg-white px-4 py-2 text-sm font-semibold shadow-sm"
+              >
+                <Stethoscope className="h-4 w-4" /> {t('Braces')}
+              </Link>
+            )}
             <Link
               href={`/patients/${patient.id}/medical-history`}
               className="inline-flex items-center gap-2 rounded-xl border bg-white px-4 py-2 text-sm font-semibold shadow-sm"
