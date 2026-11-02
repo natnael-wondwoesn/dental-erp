@@ -118,7 +118,8 @@ export default function ClinicalFormsPage() {
               </div>
               <CardTitle>Patient guidance notices</CardTitle>
               <CardDescription className="min-h-12 leading-6">
-                Print the two original Amharic clinic notices with Dr. Berhanu Belta branding.
+                Print the Amharic patient notices as typeset A4 pages with Dr. Berhanu Belta
+                branding.
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3">
