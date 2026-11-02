@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { moduleIds, validateModules, type ModuleId, type SaaSAccess } from '@/lib/saas/catalog'
 import dependencies from '@/config/saas-modules.json'
+import { ClinicProfile } from '@/components/saas/clinic-profile'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -188,6 +189,17 @@ export function ClinicManager({ initial }: { initial: SaaSAccess[] }) {
                 request(`tenants/${selected.tenantId}/modules`, 'PUT', {
                   modules,
                   effectiveAt,
+                  revision: selected.revision,
+                })
+              }
+            />
+            <ClinicProfile
+              key={`profile-${selected.revision}`}
+              clinic={selected}
+              busy={busy}
+              save={(profile) =>
+                request(`tenants/${selected.tenantId}/profile`, 'PUT', {
+                  ...profile,
                   revision: selected.revision,
                 })
               }

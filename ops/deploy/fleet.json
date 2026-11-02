@@ -1,0 +1,8 @@
+{
+  "_comment": "Sites updated, in this order, by every tagged release. A failure stops the run so later sites keep their current version. Add a new client by adding its folder or .conf file on the VPS and one line here.",
+  "sites": [
+    { "client": "control", "backend": true },
+    { "client": "lemlem" },
+    { "client": "berhanu-dental" }
+  ]
+}

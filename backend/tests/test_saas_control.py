@@ -292,3 +292,73 @@ async def test_client_options_default_deny_and_owner_only_revisioned_grants(clie
     assert other["clientOptions"] == denied
     history = (await client.get('/api/saas/admin/tenants/clinic-a/history', headers=ADMIN)).json()
     assert any(e['action'] == 'CLIENT_OPTIONS' for e in history['events'])
+
+
+async def test_fleet_overview_audit_and_bulk_modules(client):
+    await register(client)
+    await register(client, "clinic-b", modules=["core", "patients", "clinical"])
+    bulk = await client.post(
+        "/api/saas/admin/modules/bulk",
+        headers=ADMIN,
+        json={"tenantIds": ["clinic-a", "clinic-b"], "add": ["clinical", "braces"]},
+    )
+    assert bulk.status_code == 200, bulk.text
+    assert [r["changed"] for r in bulk.json()["results"]] == [True, True]
+    a = (await client.get("/api/saas/access/clinic-a", headers=READER)).json()
+    assert {"clinical", "braces"} <= set(a["modules"])
+    bad = await client.post(
+        "/api/saas/admin/modules/bulk",
+        headers=ADMIN,
+        json={"tenantIds": ["clinic-a"], "remove": ["clinical"]},
+    )
+    assert bad.status_code == 422  # braces still requires clinical
+    overview = (await client.get("/api/saas/admin/overview", headers=ADMIN)).json()
+    assert overview["tenants"] == 2
+    assert overview["moduleAdoption"]["braces"] == 2
+    events = (await client.get("/api/saas/admin/audit?action=modules", headers=ADMIN)).json()
+    assert len(events["events"]) == 2
+    assert (await client.get("/api/saas/admin/audit")).status_code == 401
+
+
+async def test_profile_notes_and_deployment_records(client):
+    created = await register(client)
+    renamed = await client.put(
+        "/api/saas/admin/tenants/clinic-a/profile",
+        headers=ADMIN,
+        json={
+            "revision": created["revision"],
+            "name": "Renamed Dental",
+            "planName": "Practice",
+            "monthlyFee": "1500.00",
+        },
+    )
+    assert renamed.status_code == 200
+    assert renamed.json()["name"] == "Renamed Dental"
+    stale = await client.put(
+        "/api/saas/admin/tenants/clinic-a/profile",
+        headers=ADMIN,
+        json={"revision": 1, "name": "X Dental", "planName": "P", "monthlyFee": "0"},
+    )
+    assert stale.status_code == 409
+    note = await client.post(
+        "/api/saas/admin/tenants/clinic-a/notes", headers=ADMIN, json={"body": "Called owner"}
+    )
+    assert note.status_code == 201
+    listed = (await client.get("/api/saas/admin/tenants/clinic-a/notes", headers=ADMIN)).json()
+    assert listed["notes"][0]["body"] == "Called owner"
+    record = await client.post(
+        "/api/saas/admin/deployments",
+        headers=ADMIN,
+        json={"client": "control", "version": "0.1.24", "status": "SUCCEEDED"},
+    )
+    assert record.status_code == 201
+    bad = await client.post(
+        "/api/saas/admin/deployments",
+        headers=ADMIN,
+        json={"client": "Control Site", "version": "0.1.24", "status": "SUCCEEDED"},
+    )
+    assert bad.status_code == 422
+    deployments = (await client.get("/api/saas/admin/deployments", headers=ADMIN)).json()
+    assert deployments["deployments"][0]["client"] == "control"
+    overview = (await client.get("/api/saas/admin/overview", headers=ADMIN)).json()
+    assert overview["versions"][0]["version"] == "0.1.24"

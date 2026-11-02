@@ -71,6 +71,24 @@ export default async function OwnerConsolePage() {
           Manage clinic subscriptions and modules →
         </Link>
         <Link
+          href="/owner/fleet"
+          className="mt-3 ml-4 inline-block font-semibold text-primary underline"
+        >
+          Fleet overview and bulk modules →
+        </Link>
+        <Link
+          href="/owner/releases"
+          className="mt-3 ml-4 inline-block font-semibold text-primary underline"
+        >
+          Releases →
+        </Link>
+        <Link
+          href="/owner/audit"
+          className="mt-3 ml-4 inline-block font-semibold text-primary underline"
+        >
+          Audit log →
+        </Link>
+        <Link
           href="/owner/access"
           className="mt-3 ml-4 inline-block font-semibold text-primary underline"
         >
