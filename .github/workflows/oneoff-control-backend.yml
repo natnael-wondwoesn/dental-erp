@@ -1,0 +1,82 @@
+name: One-off control backend update
+
+# Temporary. Rolls only the SaaS control backend (migrate + api) to a published
+# backend image so the control plane knows modules added after it was staged.
+# Does not touch the clinic or control web containers. Remove after use.
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Full 40-character commit SHA of the published backend image
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: production-vps
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    steps:
+      - name: Validate input
+        run: '[[ "$SHA" =~ ^[0-9a-f]{40}$ ]]'
+        env:
+          SHA: ${{ inputs.sha }}
+
+      - name: Configure SSH
+        run: |
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$PRIVATE_KEY" > "$HOME/.ssh/deploy_key"
+          printf '%s\n' "$HOST_KEY" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/deploy_key" "$HOME/.ssh/known_hosts"
+        env:
+          PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          HOST_KEY: ${{ secrets.VPS_SSH_HOST_KEY }}
+
+      - name: Update control backend
+        run: |
+          SSH="ssh -i $HOME/.ssh/deploy_key -p ${VPS_PORT:-22} -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes $VPS_USER@$VPS_HOST"
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}-backend:${SHA}"
+          printf '%s' "$GITHUB_TOKEN" | $SSH "docker login ghcr.io -u '$GITHUB_ACTOR' --password-stdin >/dev/null"
+          $SSH "IMAGE='$IMAGE' bash -s" <<'REMOTE' || status=$?
+          set -euo pipefail
+          cd /opt/dental-saas
+          COMPOSE_FILE=/opt/dental-saas/current/ops/saas-control/compose.yml
+          test -f "$COMPOSE_FILE"
+          TS=$(date -u +%Y%m%dT%H%M%SZ)
+          PG=$(docker ps -q --filter label=com.docker.compose.project=dental-saas --filter label=com.docker.compose.service=postgres)
+          test -n "$PG"
+          mkdir -p /opt/backups/saas-control
+          docker exec "$PG" pg_dump -U dental_saas -Fc dental_saas > "/opt/backups/saas-control/$TS.dump"
+          test -s "/opt/backups/saas-control/$TS.dump"
+          echo "backup: /opt/backups/saas-control/$TS.dump"
+          docker pull "$IMAGE" >/dev/null
+          cp -p .env ".env.bak-$TS"
+          echo "previous: $(grep '^SAAS_BACKEND_IMAGE=' .env | cut -d= -f2-)"
+          sed -i "s|^SAAS_BACKEND_IMAGE=.*|SAAS_BACKEND_IMAGE=$IMAGE|" .env
+          compose() { docker compose --env-file /opt/dental-saas/.env -f "$COMPOSE_FILE" "$@"; }
+          if ! compose up -d --no-build --wait --wait-timeout 180 api; then
+            echo "update failed, restoring previous image"
+            cp -p ".env.bak-$TS" .env
+            compose up -d --no-build --wait --wait-timeout 180 api
+            exit 1
+          fi
+          echo "now running: $IMAGE"
+          docker ps --filter label=com.docker.compose.service=api --format '{{.Names}} {{.Status}}'
+          REMOTE
+          $SSH 'docker logout ghcr.io >/dev/null' || true
+          exit ${status:-0}
+        env:
+          SHA: ${{ inputs.sha }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
