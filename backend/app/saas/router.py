@@ -8,13 +8,19 @@ from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import AwareDatetime, Field, StrictBool, field_validator, model_validator
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.commercial_access import MODULE_DEPENDENCIES, HostedStatus, hosted_policy, validate_modules
 from app.config import get_settings
 from app.database import get_session
-from app.saas.models import SaaSAuditEvent, SaaSPayment, SaaSTenant
+from app.saas.models import (
+    SaaSAuditEvent,
+    SaaSDeployment,
+    SaaSPayment,
+    SaaSTenant,
+    SaaSTenantNote,
+)
 from app.schemas import ApiSchema
 
 router = APIRouter(prefix="/api/saas", tags=["saas"])
@@ -456,3 +462,223 @@ async def issue_offline_license(
     from app.saas.issuance import issue_license
 
     return await issue_license(session, tenant_id, payload.activation_request, actor)
+
+
+# ---------------------------------------------------------------- fleet management
+
+
+class BulkModules(ApiSchema):
+    tenant_ids: list[str] = Field(min_length=1, max_length=200)
+    add: list[str] = Field(default_factory=list)
+    remove: list[str] = Field(default_factory=list)
+
+
+class Profile(Revision):
+    name: str = Field(min_length=2, max_length=180)
+    plan_name: str = Field(min_length=1, max_length=100)
+    monthly_fee: Decimal = Field(ge=0, max_digits=14, decimal_places=2)
+
+
+class NoteCreate(ApiSchema):
+    body: str = Field(min_length=1, max_length=4000)
+
+
+class DeploymentRecord(ApiSchema):
+    client: str = Field(pattern=r"^[a-z0-9][a-z0-9-]*$", max_length=63)
+    version: str = Field(min_length=1, max_length=64, pattern=r"^[0-9A-Za-z._-]+$")
+    previous_version: str | None = Field(default=None, max_length=128)
+    status: Literal["SUCCEEDED", "FAILED", "ROLLED_BACK"]
+    detail: str | None = Field(default=None, max_length=2000)
+    run_url: str | None = Field(default=None, max_length=500, pattern=r"^https://")
+
+
+@router.get("/admin/overview")
+async def overview(_actor: Admin, session: Session):
+    now = datetime.now(UTC)
+    rows = (await session.scalars(select(SaaSTenant))).all()
+    snapshots = [snapshot(row, now) for row in rows]
+    by_state: dict[str, int] = {}
+    adoption: dict[str, int] = {}
+    expiring = []
+    for item in snapshots:
+        by_state[item["state"]] = by_state.get(item["state"], 0) + 1
+        for module in item["modules"]:
+            adoption[module] = adoption.get(module, 0) + 1
+        until = item["accessUntil"]
+        if until and now <= until <= now + timedelta(days=14):
+            expiring.append({"tenantId": item["tenantId"], "name": item["name"], "accessUntil": until})
+    monthly = sum((Decimal(item["monthlyFee"]) for item in snapshots), Decimal("0"))
+    latest = {}
+    for deployment in (
+        await session.scalars(select(SaaSDeployment).order_by(SaaSDeployment.created_at.desc()))
+    ).all():
+        latest.setdefault(deployment.client, deployment)
+    return {
+        "tenants": len(snapshots),
+        "byState": by_state,
+        "moduleAdoption": adoption,
+        "expiringSoon": sorted(expiring, key=lambda row: row["accessUntil"]),
+        "monthlyRecurring": str(monthly),
+        "currency": "ETB",
+        "versions": [
+            {
+                "client": row.client,
+                "version": row.version,
+                "status": row.status,
+                "at": row.created_at,
+            }
+            for row in latest.values()
+        ],
+    }
+
+
+@router.get("/admin/audit")
+async def fleet_audit(
+    _actor: Admin,
+    session: Session,
+    limit: int = 100,
+    action: str | None = None,
+    tenant_id: str | None = None,
+):
+    query = select(SaaSAuditEvent, SaaSTenant.name).join(
+        SaaSTenant, SaaSTenant.id == SaaSAuditEvent.tenant_id
+    )
+    if action:
+        query = query.where(SaaSAuditEvent.action == action.upper()[:60])
+    if tenant_id:
+        query = query.where(SaaSAuditEvent.tenant_id == tenant_id[:64])
+    rows = (
+        await session.execute(
+            query.order_by(SaaSAuditEvent.created_at.desc()).limit(max(1, min(limit, 500)))
+        )
+    ).all()
+    return {
+        "events": [
+            {
+                "id": event.id,
+                "tenantId": event.tenant_id,
+                "tenantName": name,
+                "actor": event.actor,
+                "action": event.action,
+                "details": event.details,
+                "createdAt": event.created_at,
+            }
+            for event, name in rows
+        ]
+    }
+
+
+@router.post("/admin/modules/bulk")
+async def bulk_modules(payload: BulkModules, actor: Admin, session: Session):
+    if not payload.add and not payload.remove:
+        raise HTTPException(422, "Choose at least one module to add or remove")
+    results = []
+    for tenant_id in dict.fromkeys(payload.tenant_ids):
+        tenant = await get_tenant(session, tenant_id)
+        before = list(effective_modules(tenant, datetime.now(UTC)))
+        target = (set(before) | set(payload.add)) - set(payload.remove)
+        try:
+            validated = sorted(validate_modules(target))
+        except ValueError as exc:
+            # One clinic's dependency problem must not half-apply the batch.
+            raise HTTPException(422, f"{tenant.name}: {exc}") from exc
+        if validated == sorted(before):
+            results.append({"tenantId": tenant.id, "changed": False})
+            continue
+        tenant.modules = validated
+        tenant.scheduled_modules = None
+        tenant.scheduled_at = None
+        tenant.revision += 1
+        audit(session, tenant, actor, "MODULES", before=before, after=validated, bulk=True)
+        results.append({"tenantId": tenant.id, "changed": True})
+    await session.flush()
+    return {"results": results}
+
+
+@router.put("/admin/tenants/{tenant_id}/profile")
+async def change_profile(tenant_id: str, payload: Profile, actor: Admin, session: Session):
+    tenant = await get_tenant(session, tenant_id, payload.revision)
+    before = {"name": tenant.name, "planName": tenant.plan_name, "monthlyFee": str(tenant.monthly_fee)}
+    tenant.name = payload.name.strip()
+    tenant.plan_name = payload.plan_name.strip()
+    tenant.monthly_fee = payload.monthly_fee
+    tenant.revision += 1
+    audit(
+        session,
+        tenant,
+        actor,
+        "PROFILE",
+        before=before,
+        after={
+            "name": tenant.name,
+            "planName": tenant.plan_name,
+            "monthlyFee": str(tenant.monthly_fee),
+        },
+    )
+    return snapshot(tenant)
+
+
+@router.get("/admin/tenants/{tenant_id}/notes")
+async def list_notes(tenant_id: str, _actor: Admin, session: Session):
+    await get_tenant(session, tenant_id)
+    rows = (
+        await session.scalars(
+            select(SaaSTenantNote)
+            .where(SaaSTenantNote.tenant_id == tenant_id)
+            .order_by(SaaSTenantNote.created_at.desc())
+            .limit(200)
+        )
+    ).all()
+    return {
+        "notes": [
+            {"id": r.id, "author": r.author, "body": r.body, "createdAt": r.created_at}
+            for r in rows
+        ]
+    }
+
+
+@router.post("/admin/tenants/{tenant_id}/notes", status_code=201)
+async def add_note(tenant_id: str, payload: NoteCreate, actor: Admin, session: Session):
+    await get_tenant(session, tenant_id)
+    note = SaaSTenantNote(
+        id=str(uuid.uuid4()), tenant_id=tenant_id, author=actor, body=payload.body.strip()
+    )
+    session.add(note)
+    await session.flush()
+    return {"id": note.id, "author": note.author, "body": note.body}
+
+
+@router.post("/admin/deployments", status_code=201)
+async def record_deployment(payload: DeploymentRecord, _actor: Admin, session: Session):
+    row = SaaSDeployment(id=str(uuid.uuid4()), **payload.model_dump())
+    session.add(row)
+    await session.flush()
+    return {"id": row.id}
+
+
+@router.get("/admin/deployments")
+async def list_deployments(_actor: Admin, session: Session, limit: int = 100):
+    rows = (
+        await session.scalars(
+            select(SaaSDeployment)
+            .order_by(SaaSDeployment.created_at.desc())
+            .limit(max(1, min(limit, 500)))
+        )
+    ).all()
+    total = await session.scalar(select(func.count()).select_from(SaaSDeployment))
+    return {
+        "total": total,
+        "deployments": [
+            {
+                "id": r.id,
+                "client": r.client,
+                "version": r.version,
+                "previousVersion": r.previous_version,
+                "status": r.status,
+                "detail": r.detail,
+                "runUrl": r.run_url,
+                "createdAt": r.created_at,
+            }
+            for r in rows
+        ],
+    }

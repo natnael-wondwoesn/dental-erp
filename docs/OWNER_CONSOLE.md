@@ -10,6 +10,17 @@ Clinic administrator accounts do not have platform-owner access.
 | `/owner/clinics` | Dental ERP module packages, branding, payment recording, term renewal, suspension/restoration and license issuance                                                   |
 | `/owner/access`  | Per-installation database status/stop/start; clinic user listing, administrator/staff creation, role changes and account activation; Dental ERP demo-data seed/reset |
 
+## Fleet tools
+
+| Owner page        | Use                                                                                                        |
+| ----------------- | ---------------------------------------------------------------------------------------------------------- |
+| `/owner/fleet`    | Clinic counts, monthly recurring revenue, renewals due in 14 days, module matrix with bulk add/remove, CSV |
+| `/owner/releases` | Version running on each site and the history of every automatic rollout, with a link to its run            |
+| `/owner/audit`    | Fleet-wide audit log of subscription, module, branding, profile and payment changes, with filters          |
+
+On `/owner/clinics`, **Profile and internal notes** edits a clinic's name, plan
+and monthly fee and keeps private notes that clinics never see.
+
 ## Everyday use
 
 To change modules, open Clinic subscriptions, select the clinic, select modules

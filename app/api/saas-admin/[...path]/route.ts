@@ -14,7 +14,7 @@ async function forward(request: NextRequest, context: { params: Promise<{ path: 
   }
   const { path } = await context.params
   if (
-    !/^tenants(?:\/[A-Za-z0-9_-]+(?:\/(modules|branding|suspension|renew|history|license|client-options))?)?$/.test(
+    !/^(?:tenants(?:\/[A-Za-z0-9_-]+(?:\/(modules|branding|suspension|renew|history|license|client-options|profile|notes))?)?|modules\/bulk)$/.test(
       path.join('/')
     )
   ) {

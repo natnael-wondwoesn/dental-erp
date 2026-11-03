@@ -311,12 +311,33 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - id: ver
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          echo "version=${v//[^0-9A-Za-z._-]/-}" >> "$GITHUB_OUTPUT"
       - uses: docker/build-push-action@v6
         with:
           context: backend
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name == 'push' }}
-          tags: ghcr.io/${{ github.repository }}-backend:${{ github.sha }}
+          tags: |
+            ghcr.io/${{ github.repository }}-backend:${{ github.sha }}
+            ghcr.io/${{ github.repository }}-backend:${{ steps.ver.outputs.version }}
           provenance: false
           cache-from: type=gha,scope=backend
           cache-to: type=gha,mode=max,scope=backend
+
+  # Roll the release out to every site automatically. Runs only for a pushed
+  # version tag, after both images are published, and uses the same
+  # `production` environment (and its protections) as a manual deploy.
+  deploy-fleet:
+    name: Deploy to all sites
+    needs: [publish, backend-image]
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: read
+    uses: ./.github/workflows/deploy-fleet.yml
+    with:
+      version: ${{ github.ref_name }}
+    secrets: inherit

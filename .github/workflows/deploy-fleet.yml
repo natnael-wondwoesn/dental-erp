@@ -1,0 +1,123 @@
+name: Deploy fleet
+
+# Rolls one released version out to every site in ops/deploy/fleet.json, in order,
+# stopping at the first failure (that site restores its previous version itself).
+# Called automatically at the end of Release. It can also be run by hand to
+# redeploy a version, or only some sites: clients="control berhanu-dental".
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      clients:
+        required: false
+        type: string
+        default: ''
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Released version without the v (e.g. 0.1.24)
+        required: true
+        type: string
+      clients:
+        description: Optional space-separated subset of sites (default is the whole fleet)
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: production-vps
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to the fleet
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate inputs
+        run: |
+          [[ "$VERSION" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]
+          [[ -z "$CLIENTS" || "$CLIENTS" =~ ^[a-z0-9\ -]+$ ]]
+        env:
+          VERSION: ${{ inputs.version }}
+          CLIENTS: ${{ inputs.clients }}
+
+      - name: Configure SSH
+        run: |
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$PRIVATE_KEY" > "$HOME/.ssh/deploy_key"
+          printf '%s\n' "$HOST_KEY" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/deploy_key" "$HOME/.ssh/known_hosts"
+        env:
+          PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          HOST_KEY: ${{ secrets.VPS_SSH_HOST_KEY }}
+
+      - name: Roll out
+        run: |
+          set -uo pipefail
+          VERSION="${VERSION#v}"
+          SSH="ssh -i $HOME/.ssh/deploy_key -p ${VPS_PORT:-22} -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes $VPS_USER@$VPS_HOST"
+          # ssh must not swallow the loop's stdin (the site list).
+          SSHN="$SSH -n"
+          REPO="${GITHUB_REPOSITORY,,}"
+          IMAGE="ghcr.io/$REPO:$VERSION"
+          BACKEND_IMAGE="ghcr.io/$REPO-backend:$VERSION"
+          RUN_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
+          $SSH 'mkdir -p /opt/deploy'
+          cat ops/deploy/deploy.sh | $SSH 'cat > /opt/deploy/deploy.sh && chmod 700 /opt/deploy/deploy.sh'
+          cat ops/deploy/deploy-backend.sh | $SSH 'cat > /opt/deploy/deploy-backend.sh && chmod 700 /opt/deploy/deploy-backend.sh'
+          cat ops/deploy/record.sh | $SSH 'cat > /opt/deploy/record.sh && chmod 700 /opt/deploy/record.sh'
+          tar -C ops/deploy -c clients | $SSH 'tar -x -C /opt/deploy'
+          # Short-lived token piped over stdin: nothing is stored on the VPS.
+          printf '%s' "$GITHUB_TOKEN" | $SSH "docker login ghcr.io -u '$GITHUB_ACTOR' --password-stdin >/dev/null"
+
+          record() { $SSHN "/opt/deploy/record.sh '$1' '$VERSION' '$2' '$3' '$4' '$RUN_URL'" || true; }
+
+          failed=""
+          while read -r client backend; do
+            if [[ -n "$CLIENTS" && " $CLIENTS " != *" $client "* ]]; then continue; fi
+            echo "::group::$client"
+            out="$(mktemp)"
+            status=0
+            if [[ "$backend" == "true" ]]; then
+              $SSHN "/opt/deploy/deploy-backend.sh '$client' '$BACKEND_IMAGE'" 2>&1 | tee "$out"
+              status=${PIPESTATUS[0]}
+            fi
+            if [[ $status -eq 0 ]]; then
+              $SSHN "/opt/deploy/deploy.sh '$client' '$IMAGE'" 2>&1 | tee -a "$out"
+              status=${PIPESTATUS[0]}
+            fi
+            previous="$(sed -n 's/.*previous: \([^,)]*\).*/\1/p' "$out" | tail -1)"
+            echo "::endgroup::"
+            if [[ $status -eq 0 ]]; then
+              record "$client" SUCCEEDED "$previous" ""
+            else
+              record "$client" ROLLED_BACK "$previous" "Rollout failed and the previous version was restored. See the run log."
+              failed="$client"
+              break
+            fi
+          done < <(jq -r '.sites[] | "\(.client) \(.backend // false)"' ops/deploy/fleet.json)
+
+          $SSH 'docker logout ghcr.io >/dev/null' || true
+          if [[ -n "$failed" ]]; then
+            echo "::error::Rollout stopped at $failed; later sites were not touched."
+            exit 1
+          fi
+        env:
+          VERSION: ${{ inputs.version }}
+          CLIENTS: ${{ inputs.clients }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
