@@ -95,6 +95,17 @@ describe('commercial catalog', () => {
 })
 
 describe('server request gate', () => {
+  it.each([
+    '/api/public/signup',
+    '/api/public/verify-email',
+    '/api/public/resend-verification',
+    '/api/public/invite/accept',
+  ])('permits anonymous public auth route %s', async (path) => {
+    expect(
+      (await evaluateSaaSGate(new NextRequest(`https://clinic.test${path}`))).response
+    ).toBeUndefined()
+    expect(mocks.access).not.toHaveBeenCalled()
+  })
   it('uses verified principal instead of forged tenant/policy headers', async () => {
     const result = await evaluateSaaSGate(
       await staffRequest('/api/patients', 'GET', {
