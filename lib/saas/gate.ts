@@ -117,7 +117,12 @@ export async function evaluateSaaSGate(request: NextRequest): Promise<{
   )
     return {}
   if (
-    ['/api/public/signup', '/api/public/verify-email', '/api/public/invite/accept'].includes(path)
+    [
+      '/api/public/signup',
+      '/api/public/verify-email',
+      '/api/public/resend-verification',
+      '/api/public/invite/accept',
+    ].includes(path)
   )
     return {}
   try {
