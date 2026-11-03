@@ -12,60 +12,75 @@ function VerifyEmailContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
-  const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'pending'>('loading')
-  const [message, setMessage] = useState('')
-
   const token = searchParams.get('token')
   const email = searchParams.get('email')
+  const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'pending'>(() =>
+    token ? 'loading' : email ? 'pending' : 'error'
+  )
+  const [message, setMessage] = useState(() =>
+    email
+      ? `We've sent a verification email to ${email}. Please check your inbox and click the verification link.`
+      : token
+        ? ''
+        : 'No verification token or email provided.'
+  )
 
   useEffect(() => {
-    if (token) {
-      verifyEmail(token)
-    } else if (email) {
-      setStatus('pending')
-      setMessage(
-        `We've sent a verification email to ${email}. Please check your inbox and click the verification link.`
-      )
-    } else {
-      setStatus('error')
-      setMessage('No verification token or email provided.')
-    }
-  }, [token, email])
+    if (!token) return
+    let cancelled = false
 
-  const verifyEmail = async (verificationToken: string) => {
-    try {
-      const response = await fetch('/api/public/verify-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: verificationToken }),
-      })
-
-      const result = await response.json()
-
-      if (response.ok) {
-        setStatus('success')
-        setMessage('Your email has been verified successfully!')
-        toast({
-          title: 'Email verified!',
-          description: 'You can now log in to your account.',
+    void (async () => {
+      try {
+        const response = await fetch('/api/public/verify-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token }),
         })
-      } else {
+        const result = await response.json()
+        if (cancelled) return
+        if (response.ok) {
+          setStatus('success')
+          setMessage('Your email has been verified successfully!')
+          toast({
+            title: 'Email verified!',
+            description: 'You can now log in to your account.',
+          })
+        } else {
+          setStatus('error')
+          setMessage(result.error || 'Verification failed. Please try again.')
+        }
+      } catch {
+        if (cancelled) return
         setStatus('error')
-        setMessage(result.error || 'Verification failed. Please try again.')
+        setMessage('An error occurred during verification. Please try again.')
       }
-    } catch {
-      setStatus('error')
-      setMessage('An error occurred during verification. Please try again.')
+    })()
+
+    return () => {
+      cancelled = true
     }
-  }
+  }, [token, toast])
 
   const resendVerification = async () => {
     if (!email) return
-
-    toast({
-      title: 'Verification email sent',
-      description: 'Please check your inbox for the verification link.',
-    })
+    try {
+      const response = await fetch('/api/public/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      if (!response.ok) throw new Error('Unable to resend verification email')
+      toast({
+        title: 'Verification email requested',
+        description: 'If the account is pending verification, check your inbox and spam folder.',
+      })
+    } catch {
+      toast({
+        variant: 'destructive',
+        title: 'Unable to resend email',
+        description: 'Please try again in a moment.',
+      })
+    }
   }
 
   return (

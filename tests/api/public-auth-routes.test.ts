@@ -33,6 +33,7 @@ vi.mock('@prisma/client', () => ({
 
 import { POST as signupPOST } from '@/app/api/public/signup/route'
 import { POST as verifyPOST, GET as verifyGET } from '@/app/api/public/verify-email/route'
+import { POST as resendPOST } from '@/app/api/public/resend-verification/route'
 import { prisma } from '@/lib/prisma'
 import { sendVerificationEmail } from '@/lib/email-helpers'
 
@@ -280,5 +281,62 @@ describe('GET /api/public/verify-email', () => {
     expect(body.valid).toBe(true)
     expect(body.hospitalName).toBe('Test Dental')
     expect(body.email).toBe('admin@test.com')
+  })
+})
+
+// ═════════════════════════════════════════════════════════════════════════════
+// 4. POST /api/public/resend-verification
+// ═════════════════════════════════════════════════════════════════════════════
+
+describe('POST /api/public/resend-verification', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('returns 400 for an invalid email', async () => {
+    const res = await resendPOST(
+      makeReq('/api/public/resend-verification', 'POST', { email: 'invalid' })
+    )
+    expect(res.status).toBe(400)
+  })
+
+  it('returns a generic response when the account does not exist', async () => {
+    vi.mocked(prisma.hospital.findUnique).mockResolvedValue(null)
+
+    const res = await resendPOST(
+      makeReq('/api/public/resend-verification', 'POST', { email: 'unknown@example.com' })
+    )
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.message).toContain('If an unverified account exists')
+    expect(sendVerificationEmail).not.toHaveBeenCalled()
+  })
+
+  it('rotates the token and sends a verification email', async () => {
+    vi.mocked(prisma.hospital.findUnique).mockResolvedValue({
+      id: 'h1',
+      name: 'Test Dental',
+      email: 'admin@test.com',
+      emailVerificationToken: 'old-token',
+    } as any)
+    vi.mocked(prisma.hospital.update).mockResolvedValue({} as any)
+
+    const res = await resendPOST(
+      makeReq('/api/public/resend-verification', 'POST', { email: 'ADMIN@test.com' })
+    )
+
+    expect(res.status).toBe(200)
+    expect(prisma.hospital.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'h1' },
+        data: expect.objectContaining({ emailVerificationToken: 'mock-verification-token-abc123' }),
+      })
+    )
+    expect(sendVerificationEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        hospitalId: 'h1',
+        to: 'admin@test.com',
+        token: 'mock-verification-token-abc123',
+      })
+    )
   })
 })

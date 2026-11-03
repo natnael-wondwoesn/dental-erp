@@ -44,7 +44,7 @@ class EmailService {
   private transporter: Transporter | null = null
   private config: EmailConfig | null = null
 
-  async initialize(hospitalId?: string) {
+  async initialize(hospitalId?: string, recovery = false) {
     if (saasEnforcement() !== 'disabled' && !hospitalId)
       throw new Error('Tenant context is required')
     // Load email configuration from settings
@@ -74,7 +74,10 @@ class EmailService {
       replyTo: settings.find((s) => s.key === 'email.replyTo')?.value,
     }
 
-    if (hospitalId && saasEnforcement() !== 'disabled') {
+    // Signup and account-recovery emails must work before a new tenant is
+    // registered with the control plane. Normal clinic email still uses the
+    // tenant branding policy.
+    if (hospitalId && !recovery && saasEnforcement() !== 'disabled') {
       const policy = await loadSaaSAccess(hospitalId)
       this.config.from.name = policy.branding.displayName || policy.name || this.config.from.name
     }
@@ -164,7 +167,7 @@ class EmailService {
     // Send email immediately
     try {
       if (!this.transporter || !this.config) {
-        await this.initialize(payload.hospitalId)
+        await this.initialize(payload.hospitalId, recovery)
       }
 
       const result = await this.transporter!.sendMail({

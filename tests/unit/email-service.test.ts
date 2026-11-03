@@ -10,6 +10,14 @@ vi.mock('nodemailer', () => ({
   },
 }))
 
+const saasMocks = vi.hoisted(() => ({
+  assertModuleWrite: vi.fn(),
+  loadSaaSAccess: vi.fn(),
+  saasEnforcement: vi.fn(() => 'disabled'),
+}))
+
+vi.mock('@/lib/saas/server', () => saasMocks)
+
 // Mock prisma
 vi.mock('@/lib/prisma', () => {
   const mock = {
@@ -38,6 +46,7 @@ let emailServiceModule: any
 
 beforeEach(async () => {
   vi.clearAllMocks()
+  saasMocks.saasEnforcement.mockReturnValue('disabled')
   vi.resetModules()
   emailServiceModule = await import('@/lib/services/email.service')
 })
@@ -150,6 +159,36 @@ describe('EmailService - Email Logging', () => {
         }),
       })
     )
+  })
+})
+
+describe('EmailService - Recovery delivery', () => {
+  it('does not require control-plane registration for recovery email', async () => {
+    saasMocks.saasEnforcement.mockReturnValue('hosted')
+    vi.mocked(prisma.setting.findMany).mockResolvedValue([
+      { key: 'email.smtp.host', value: 'smtp.example.com' },
+      { key: 'email.smtp.port', value: '465' },
+      { key: 'email.smtp.secure', value: 'true' },
+      { key: 'email.smtp.user', value: 'mailer@example.com' },
+      { key: 'email.smtp.password', value: 'secret' },
+      { key: 'email.from.name', value: 'Test Dental' },
+      { key: 'email.from.email', value: 'mailer@example.com' },
+    ] as any)
+    vi.mocked(prisma.emailLog.create).mockResolvedValue({ id: 'email-1' } as any)
+    vi.mocked(prisma.emailLog.update).mockResolvedValue({} as any)
+
+    const { emailService } = emailServiceModule
+    await emailService.sendEmail(
+      {
+        hospitalId: 'unregistered-hospital',
+        to: 'admin@example.com',
+        subject: 'Verify',
+        body: 'Hello',
+      },
+      true
+    )
+
+    expect(saasMocks.loadSaaSAccess).not.toHaveBeenCalled()
   })
 })
 
