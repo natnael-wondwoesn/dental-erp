@@ -1,0 +1,64 @@
+{
+  "clinic": {
+    "name": {
+      "en": "Megenagna Speciality Dental Clinic P.L.C.",
+      "am": "መገናኛ ስፔሻሊቲ የጥርስ ሕክምና ክሊኒክ ኃ/የተ/የግ/ማ"
+    },
+    "tagline": {
+      "en": "Speciality dental care in Megenagna.",
+      "am": "በመገናኛ የስፔሻሊቲ የጥርስ ሕክምና።"
+    },
+    "heroImage": "/assets/dentix-hero-ethiopia.png",
+    "teamImage": "/assets/dentix-team-ethiopia.png"
+  },
+  "location": {
+    "region": "Addis Ababa",
+    "city": "Addis Ababa",
+    "subCity": "Yeka",
+    "woreda": "13/14",
+    "landmark": "Maraton Business Center, 1st Floor",
+    "mapEmbedUrl": "https://www.google.com/maps?q=MEGENAGNA%20DENTAL%20CLINIC%2C%20Addis%20Ababa&output=embed"
+  },
+  "contact": {
+    "phones": ["+251911423397", "+251965177676"],
+    "email": "dr.wondowesen@megenagna.test"
+  },
+  "hours": [
+    {
+      "day": { "en": "Monday – Saturday", "am": "ሰኞ – ቅዳሜ" },
+      "open": "09:00",
+      "close": "19:30"
+    }
+  ],
+  "services": [
+    {
+      "title": { "en": "Teeth Cleaning & Whitening", "am": "ጥርስ ማጽዳትና ማንጣት" },
+      "copy": {
+        "en": "Professional cleaning, polishing, and whitening for a brighter, healthier smile.",
+        "am": "ለብሩህና ጤናማ ፈገግታ ሙያዊ የጥርስ ጽዳት፣ ፖሊሺንግ እና ማንጣት።"
+      }
+    },
+    {
+      "title": { "en": "Restorative Dentistry", "am": "የጥርስ ጥገና" },
+      "copy": {
+        "en": "Cavity filling, root canal treatment, crowns, and durable tooth restoration.",
+        "am": "የጥርስ መሙላት፣ የሥር ሕክምና፣ ክራውን እና ዘላቂ የጥርስ ጥገና።"
+      }
+    },
+    {
+      "title": { "en": "Braces & Dental Implants", "am": "ብሬስ እና የጥርስ ተከላ" },
+      "copy": {
+        "en": "Modern alignment, prosthodontic care, and implant options tailored to your smile.",
+        "am": "ለፈገግታዎ የተስማሙ ዘመናዊ ብሬስ፣ ሰው ሠራሽ ጥርስ እና የጥርስ ተከላ።"
+      }
+    }
+  ],
+  "doctors": [],
+  "about": {
+    "story": {
+      "en": "Megenagna Speciality Dental Clinic P.L.C.",
+      "am": "መገናኛ ስፔሻሊቲ የጥርስ ሕክምና ክሊኒክ ኃ/የተ/የግ/ማ"
+    },
+    "metrics": []
+  }
+}

@@ -4,6 +4,7 @@ import { renderMedicalCertificateHtml } from '@/lib/clinical-forms/medical-certi
 import { renderPrescriptionPaperHtml } from '@/lib/clinical-forms/prescription-paper'
 import {
   CLINIC_PRINTABLES,
+  isClinicPrintableAllowedForClinic,
   renderClinicPrintableHtml,
 } from '@/lib/clinical-forms/clinic-printables'
 
@@ -28,6 +29,10 @@ describe('clinical document renderers', () => {
       } else if (template === 'berhanu-pre-treatment-notice') {
         expect(html).toContain('ጥርስ ከማስነቀልዎ በፊት')
         expect(html).not.toContain('<img class="patient-guide-image"')
+      } else if (template === 'megenagna-treatment-consent') {
+        expect(html).toContain('/assets/megenagna/treatment-consent-reference.jpg')
+      } else if (template === 'megenagna-medical-history') {
+        expect(html).toContain('/assets/megenagna/medical-history-reference.jpg')
       } else if (template === 'cash-sales-attachment') {
         expect(html).toContain('MRC CFF00006511')
         expect(html).toContain('ATTACHMENT')
@@ -37,6 +42,28 @@ describe('clinical document renderers', () => {
       }
     }
   )
+
+  it('keeps clinic-specific printables isolated to their intended clinic', () => {
+    expect(
+      isClinicPrintableAllowedForClinic(
+        'megenagna-treatment-consent',
+        'Megenagna Speciality Dental Clinic P.L.C.'
+      )
+    ).toBe(true)
+    expect(
+      isClinicPrintableAllowedForClinic(
+        'megenagna-treatment-consent',
+        'Dr Berhanu Belta Specialty Dental Clinic'
+      )
+    ).toBe(false)
+    expect(
+      isClinicPrintableAllowedForClinic(
+        'berhanu-pre-treatment-notice',
+        'Megenagna Speciality Dental Clinic P.L.C.'
+      )
+    ).toBe(false)
+    expect(isClinicPrintableAllowedForClinic('consent', 'Any Dental Clinic')).toBe(true)
+  })
 
   it('preserves the supplied clinic identity instead of substituting another clinic', () => {
     const html = renderMedicalCertificateHtml(

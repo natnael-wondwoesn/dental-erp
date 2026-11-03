@@ -111,6 +111,15 @@ describe('loadSiteConfig', () => {
     expect(config.location.mapEmbedUrl).toContain('google.com/maps')
   })
 
+  it('ships a validated Megenagna profile with supplied identity and contact data', () => {
+    process.env.SITE_ID = 'megenagna'
+    const config = loadSiteConfig()
+    expect(config.clinic.name.en).toBe('Megenagna Speciality Dental Clinic P.L.C.')
+    expect(config.clinic.name.am).toBe('መገናኛ ስፔሻሊቲ የጥርስ ሕክምና ክሊኒክ ኃ/የተ/የግ/ማ')
+    expect(config.contact.phones).toEqual(['+251911423397', '+251965177676'])
+    expect(config.location.landmark).toContain('Maraton Business Center')
+  })
+
   it('throws and names the path when the file is missing', () => {
     process.env.SITE_CONFIG_PATH = '/nonexistent/site.json'
     expect(() => loadSiteConfig()).toThrow(/\/nonexistent\/site\.json/)

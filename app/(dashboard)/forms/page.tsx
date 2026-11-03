@@ -77,13 +77,17 @@ const formTypes = [
 
 export default function ClinicalFormsPage() {
   const [showBerhanuGuides, setShowBerhanuGuides] = useState(false)
+  const [showMegenagnaForms, setShowMegenagnaForms] = useState(false)
 
   useEffect(() => {
     let active = true
     fetch('/api/tenant-branding', { cache: 'no-store' })
       .then((response) => response.json())
       .then((profile) => {
-        if (active) setShowBerhanuGuides(/berhanu.*belta/i.test(profile?.name || ''))
+        if (!active) return
+        const clinicName = profile?.name || ''
+        setShowBerhanuGuides(/berhanu.*belta/i.test(clinicName))
+        setShowMegenagnaForms(/megenagna/i.test(clinicName))
       })
       .catch(() => undefined)
     return () => {
@@ -137,6 +141,38 @@ export default function ClinicalFormsPage() {
                   target="_blank"
                 >
                   Open before-treatment notice
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+        {showMegenagnaForms && (
+          <Card className="overflow-hidden border-border/70 shadow-sm">
+            <CardHeader>
+              <div className="mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-indigo-50 text-indigo-700 dark:bg-indigo-950/35 dark:text-indigo-300">
+                <ScrollText className="h-6 w-6" />
+              </div>
+              <CardTitle>Megenagna clinic forms</CardTitle>
+              <CardDescription className="min-h-12 leading-6">
+                Print the clinic&apos;s original Amharic consent and patient-history forms with
+                current clinic branding.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-3">
+              <Button asChild variant="outline" className="w-full">
+                <Link
+                  href="/api/clinical-forms/printables/megenagna-treatment-consent"
+                  target="_blank"
+                >
+                  Open treatment consent
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full">
+                <Link
+                  href="/api/clinical-forms/printables/megenagna-medical-history"
+                  target="_blank"
+                >
+                  Open patient medical history
                 </Link>
               </Button>
             </CardContent>

@@ -8,12 +8,23 @@ export const CLINIC_PRINTABLES = {
   'treatment-sheet': 'Patient Treatment Sheet',
   'berhanu-orthodontic-guidance': 'Orthodontic Patient Guidance',
   'berhanu-pre-treatment-notice': 'Before Dental Treatment Notice',
+  'megenagna-treatment-consent': 'Megenagna Treatment Consent',
+  'megenagna-medical-history': 'Megenagna Patient Medical History',
 } as const
 
 export type ClinicPrintableKey = keyof typeof CLINIC_PRINTABLES
 
 export function isClinicPrintableKey(value: string): value is ClinicPrintableKey {
   return Object.hasOwn(CLINIC_PRINTABLES, value)
+}
+
+export function isClinicPrintableAllowedForClinic(
+  key: ClinicPrintableKey,
+  clinicName: string
+): boolean {
+  if (key.startsWith('berhanu-')) return /berhanu\s+belta/i.test(clinicName)
+  if (key.startsWith('megenagna-')) return /megenagna/i.test(clinicName)
+  return true
 }
 
 function e(value: unknown): string {
@@ -31,7 +42,7 @@ function line(label: string, className = '') {
 
 function masthead(clinic: MedicalCertificateClinic) {
   const phones = [clinic.phone, clinic.alternatePhone].filter(Boolean).join(' / ')
-  return `<header class="masthead"><img src="/api/tenant-branding/logo" alt="" onerror="this.style.display='none'"><div>${clinic.nameAm ? `<div class="am clinic-am">${e(clinic.nameAm)}</div>` : ''}<h1>${e(resolveClinicName(clinic.name))}</h1>${phones ? `<p>Tel: ${e(phones)}</p>` : ''}</div></header>`
+  return `<header class="masthead"><img src="/api/tenant-branding/logo" alt="" onerror="this.style.visibility='hidden'"><div>${clinic.nameAm ? `<div class="am clinic-am">${e(clinic.nameAm)}</div>` : ''}<h1>${e(resolveClinicName(clinic.name))}</h1>${phones ? `<p>Tel: ${e(phones)}</p>` : ''}</div></header>`
 }
 
 const baseCss = `
@@ -136,6 +147,28 @@ function berhanuPatientGuide(
   return `${masthead(clinic)}<div class="guide-title am">${guide.title}</div><ul class="guide-list">${guide.items.map((item) => `<li>${item}</li>`).join('')}</ul>${guide.footer ? `<p class="guide-footer">${guide.footer}</p>` : ''}`
 }
 
+function megenagnaReferenceForm(
+  clinic: MedicalCertificateClinic,
+  key: 'megenagna-treatment-consent' | 'megenagna-medical-history'
+) {
+  const source =
+    key === 'megenagna-treatment-consent'
+      ? '/assets/megenagna/treatment-consent-reference.jpg'
+      : '/assets/megenagna/medical-history-reference.jpg'
+  const alt =
+    key === 'megenagna-treatment-consent'
+      ? 'Megenagna dental treatment consent form'
+      : 'Megenagna patient medical history form'
+  return (
+    masthead(clinic) +
+    '<div class="reference-scan"><img src="' +
+    source +
+    '" alt="' +
+    alt +
+    '"></div>'
+  )
+}
+
 export function renderClinicPrintableHtml(
   key: ClinicPrintableKey,
   clinic: MedicalCertificateClinic
@@ -143,13 +176,20 @@ export function renderClinicPrintableHtml(
   const content =
     key === 'berhanu-orthodontic-guidance' || key === 'berhanu-pre-treatment-notice'
       ? berhanuPatientGuide(clinic, key)
-      : key === 'consent'
-        ? consent(clinic)
-        : key === 'laboratory-order'
-          ? laboratoryOrder(clinic)
-          : key === 'cash-sales-attachment'
-            ? cashSales(clinic)
-            : treatmentSheet(clinic)
-  const pageCss = key === 'cash-sales-attachment' ? '@page{size:A5 portrait;margin:5mm}' : ''
+      : key === 'megenagna-treatment-consent' || key === 'megenagna-medical-history'
+        ? megenagnaReferenceForm(clinic, key)
+        : key === 'consent'
+          ? consent(clinic)
+          : key === 'laboratory-order'
+            ? laboratoryOrder(clinic)
+            : key === 'cash-sales-attachment'
+              ? cashSales(clinic)
+              : treatmentSheet(clinic)
+  const pageCss =
+    key === 'cash-sales-attachment'
+      ? '@page{size:A5 portrait;margin:5mm}'
+      : key === 'megenagna-treatment-consent' || key === 'megenagna-medical-history'
+        ? 'body .paper{padding:8mm 10mm}body .reference-scan{height:225mm;overflow:hidden;margin-top:4mm;background:#fff}body .reference-scan img{display:block;width:100%;height:auto;transform:translateY(-44mm);filter:grayscale(1) contrast(1.18)}body.megenagna-medical-history .reference-scan img{transform:translateY(-42mm)}'
+        : ''
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${e(CLINIC_PRINTABLES[key])}</title><style>${baseCss}${pageCss}</style></head><body class="${e(key)}"><div class="toolbar"><button onclick="window.print()">Print form</button></div><main class="paper">${content}</main></body></html>`
 }

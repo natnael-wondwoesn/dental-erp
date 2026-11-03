@@ -4,6 +4,7 @@ import { requireAuthAndRole } from '@/lib/api-helpers'
 import {
   CLINIC_PRINTABLES,
   isClinicPrintableKey,
+  isClinicPrintableAllowedForClinic,
   renderClinicPrintableHtml,
 } from '@/lib/clinical-forms/clinic-printables'
 import { prisma } from '@/lib/prisma'
@@ -34,7 +35,7 @@ export async function GET(
       registrationNo: true,
     },
   })
-  if (template.startsWith('berhanu-') && !/berhanu\s+belta/i.test(clinic?.name || '')) {
+  if (!isClinicPrintableAllowedForClinic(template, clinic?.name || '')) {
     return NextResponse.json({ error: 'Printable form not found' }, { status: 404 })
   }
   const html = renderClinicPrintableHtml(
