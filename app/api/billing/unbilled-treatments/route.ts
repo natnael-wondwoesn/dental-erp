@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       where: {
         hospitalId,
         patientId,
-        status: { in: ['COMPLETED', 'IN_PROGRESS'] },
+        status: { in: ['PLANNED', 'IN_PROGRESS', 'COMPLETED'] },
         invoiceItems: {
           none: {},
         },
