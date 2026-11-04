@@ -53,7 +53,7 @@ const validSignup = {
   hospitalName: 'Test Dental Clinic',
   adminName: 'John Doe',
   email: 'admin@testdental.com',
-  phone: '9876543210',
+  phone: '0911234567',
   password: 'secureP@ss123',
 }
 
@@ -62,7 +62,10 @@ const validSignup = {
 // ═════════════════════════════════════════════════════════════════════════════
 
 describe('POST /api/public/signup', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => {
+    vi.clearAllMocks()
+    delete process.env.PLATFORM_CONTROL_PLANE_MODE
+  })
 
   it('returns 400 for validation errors', async () => {
     const res = await signupPOST(
@@ -151,6 +154,83 @@ describe('POST /api/public/signup', () => {
         }),
       })
     )
+  })
+
+  it('creates an immediately usable account from a mobile number without verification', async () => {
+    vi.mocked(prisma.user.findFirst).mockResolvedValue(null)
+    const mockTx = {
+      hospital: { create: vi.fn().mockResolvedValue({ id: 'h-phone' }) },
+      user: { create: vi.fn().mockResolvedValue({ id: 'u-phone' }) },
+    }
+    vi.mocked(prisma.$transaction).mockImplementation(async (fn) => fn(mockTx as any))
+
+    const res = await signupPOST(
+      makeReq('/api/public/signup', 'POST', {
+        hospitalName: 'Mobile Dental Clinic',
+        adminName: 'Dr Mobile',
+        phone: '0911 234 567',
+        password: 'secureP@ss123',
+      })
+    )
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.verificationRequired).toBe(false)
+    expect(body.loginIdentifier).toBe('+251911234567')
+    expect(body.emailSent).toBe(false)
+    expect(sendVerificationEmail).not.toHaveBeenCalled()
+    expect(mockTx.hospital.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          phone: '+251911234567',
+          emailVerificationToken: null,
+          emailVerificationExpiry: null,
+        }),
+      })
+    )
+    expect(mockTx.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          phone: '+251911234567',
+          email: 'phone-251911234567@accounts.invalid',
+        }),
+      })
+    )
+  })
+
+  it('rejects a duplicate mobile number across equivalent Ethiopian formats', async () => {
+    vi.mocked(prisma.user.findFirst).mockResolvedValue({ id: 'u-existing' } as any)
+
+    const res = await signupPOST(
+      makeReq('/api/public/signup', 'POST', {
+        hospitalName: 'Mobile Dental Clinic',
+        adminName: 'Dr Mobile',
+        phone: '0911234567',
+        password: 'secureP@ss123',
+      })
+    )
+
+    expect(res.status).toBe(409)
+    expect((await res.json()).error).toContain('mobile number')
+    expect(prisma.user.findFirst).toHaveBeenCalledWith({
+      where: { phone: { in: ['+251911234567', '0911234567', '251911234567'] } },
+    })
+  })
+
+  it('does not enable mobile signup on the control plane', async () => {
+    process.env.PLATFORM_CONTROL_PLANE_MODE = 'true'
+
+    const res = await signupPOST(
+      makeReq('/api/public/signup', 'POST', {
+        hospitalName: 'Control Mobile Clinic',
+        adminName: 'Dr Mobile',
+        phone: '0911234567',
+        password: 'secureP@ss123',
+      })
+    )
+
+    expect(res.status).toBe(404)
+    expect(prisma.user.findFirst).not.toHaveBeenCalled()
   })
 
   it('handles email sending failure gracefully', async () => {

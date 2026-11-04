@@ -79,7 +79,7 @@ function fillForm(overrides: Record<string, string> = {}) {
     hospitalName: 'Test Dental Clinic',
     adminName: 'Dr. Test Admin',
     email: 'admin@test.com',
-    phone: '9876543210',
+    phone: '0911234567',
     password: 'password123',
     confirmPassword: 'password123',
   }
@@ -198,7 +198,7 @@ describe('SignupPage', () => {
         target: { value: 'not-an-email' },
       })
       fireEvent.change(screen.getByPlaceholderText(PHONE_PLACEHOLDER), {
-        target: { value: '9876543210' },
+        target: { value: '0911234567' },
       })
       fireEvent.change(screen.getByPlaceholderText('At least 8 characters'), {
         target: { value: 'password123' },
@@ -234,7 +234,7 @@ describe('SignupPage', () => {
       fireEvent.change(screen.getByPlaceholderText(PHONE_PLACEHOLDER), { target: { value: '123' } })
       fireEvent.click(screen.getByText(SUBMIT_LABEL))
       await waitFor(() => {
-        expect(screen.getByText('Phone number must be at least 10 digits')).toBeInTheDocument()
+        expect(screen.getByText('Please enter a valid Ethiopian mobile number')).toBeInTheDocument()
       })
     })
   })
@@ -264,7 +264,7 @@ describe('SignupPage', () => {
         target: { value: 'test@test.com' },
       })
       fireEvent.change(screen.getByPlaceholderText(PHONE_PLACEHOLDER), {
-        target: { value: '9876543210' },
+        target: { value: '0911234567' },
       })
       fireEvent.change(screen.getByPlaceholderText('At least 8 characters'), {
         target: { value: 'password123' },
@@ -284,7 +284,7 @@ describe('SignupPage', () => {
     it('submits form with valid data and redirects', async () => {
       ;(global.fetch as any).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ success: true }),
+        json: async () => ({ success: true, verificationRequired: true }),
       })
 
       render(<SignupPage />)
@@ -299,7 +299,7 @@ describe('SignupPage', () => {
         target: { value: 'test@test.com' },
       })
       fireEvent.change(screen.getByPlaceholderText(PHONE_PLACEHOLDER), {
-        target: { value: '9876543210' },
+        target: { value: '0911234567' },
       })
       fireEvent.change(screen.getByPlaceholderText('At least 8 characters'), {
         target: { value: 'password123' },
@@ -350,7 +350,7 @@ describe('SignupPage', () => {
         target: { value: 'test@test.com' },
       })
       fireEvent.change(screen.getByPlaceholderText(PHONE_PLACEHOLDER), {
-        target: { value: '9876543210' },
+        target: { value: '0911234567' },
       })
       fireEvent.change(screen.getByPlaceholderText('At least 8 characters'), {
         target: { value: 'password123' },
@@ -389,7 +389,7 @@ describe('SignupPage', () => {
         target: { value: 'test@test.com' },
       })
       fireEvent.change(screen.getByPlaceholderText(PHONE_PLACEHOLDER), {
-        target: { value: '9876543210' },
+        target: { value: '0911234567' },
       })
       fireEvent.change(screen.getByPlaceholderText('At least 8 characters'), {
         target: { value: 'password123' },
@@ -424,7 +424,7 @@ describe('SignupPage', () => {
     it('does not send confirmPassword to API', async () => {
       ;(global.fetch as any).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ success: true }),
+        json: async () => ({ success: true, verificationRequired: true }),
       })
 
       render(<SignupPage />)
@@ -439,7 +439,7 @@ describe('SignupPage', () => {
         target: { value: 'test@test.com' },
       })
       fireEvent.change(screen.getByPlaceholderText(PHONE_PLACEHOLDER), {
-        target: { value: '9876543210' },
+        target: { value: '0911234567' },
       })
       fireEvent.change(screen.getByPlaceholderText('At least 8 characters'), {
         target: { value: 'password123' },
@@ -460,8 +460,45 @@ describe('SignupPage', () => {
         expect(body).toHaveProperty('hospitalName', 'Test Clinic')
         expect(body).toHaveProperty('adminName', 'Dr Test')
         expect(body).toHaveProperty('email', 'test@test.com')
-        expect(body).toHaveProperty('phone', '9876543210')
+        expect(body).toHaveProperty('phone', '0911234567')
       })
+    })
+
+    it('submits phone-only signup and redirects directly to login', async () => {
+      ;(global.fetch as any).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, verificationRequired: false }),
+      })
+      render(<SignupPage />)
+
+      fireEvent.click(screen.getByRole('button', { name: 'Mobile number' }))
+      fireEvent.change(screen.getByPlaceholderText(HOSPITAL_PLACEHOLDER), {
+        target: { value: 'Mobile Clinic' },
+      })
+      fireEvent.change(screen.getByPlaceholderText(ADMIN_PLACEHOLDER), {
+        target: { value: 'Dr Mobile' },
+      })
+      fireEvent.change(screen.getByPlaceholderText(PHONE_PLACEHOLDER), {
+        target: { value: '0911234567' },
+      })
+      fireEvent.change(screen.getByPlaceholderText('At least 8 characters'), {
+        target: { value: 'password123' },
+      })
+      fireEvent.change(screen.getByPlaceholderText('Confirm your password'), {
+        target: { value: 'password123' },
+      })
+
+      await act(async () => fireEvent.click(screen.getByText(SUBMIT_LABEL)))
+
+      await waitFor(() => {
+        const body = JSON.parse((global.fetch as any).mock.calls[0][1].body)
+        expect(body.email).toBeUndefined()
+        expect(body.phone).toBe('0911234567')
+      })
+      expect(mockPush).toHaveBeenCalledWith('/login')
+      expect(mockToast).toHaveBeenCalledWith(
+        expect.objectContaining({ description: 'You can now sign in with your mobile number.' })
+      )
     })
   })
 
@@ -474,7 +511,7 @@ describe('SignupPage', () => {
         expect(screen.getByText('Hospital name must be at least 2 characters')).toBeInTheDocument()
         expect(screen.getByText('Your name must be at least 2 characters')).toBeInTheDocument()
         expect(screen.getByText('Please enter a valid email address')).toBeInTheDocument()
-        expect(screen.getByText('Phone number must be at least 10 digits')).toBeInTheDocument()
+        expect(screen.getByText('Please enter a valid Ethiopian mobile number')).toBeInTheDocument()
         expect(screen.getByText('Password must be at least 8 characters')).toBeInTheDocument()
       })
     })

@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast'
 import { setAccessToken } from '@/lib/api-client'
 
 const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  identifier: z.string().trim().min(1, 'Please enter your email or mobile number'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 })
 
@@ -53,14 +53,18 @@ function LoginForm() {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify(
+          isControlPlane
+            ? { email: data.identifier, password: data.password }
+            : { identifier: data.identifier, password: data.password }
+        ),
       })
 
       if (!response.ok) {
         toast({
           variant: 'destructive',
           title: 'Login failed',
-          description: 'Invalid email or password. Please try again.',
+          description: `Invalid ${isControlPlane ? 'email' : 'email, mobile number,'} or password. Please try again.`,
         })
       } else {
         const result = await response.json()
@@ -103,15 +107,21 @@ function LoginForm() {
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="identifier">
+              {isControlPlane ? 'Email' : 'Email or mobile number'}
+            </Label>
             <Input
-              id="email"
-              type="email"
-              placeholder={isControlPlane ? 'vendor@example.com' : 'Your clinic email'}
-              {...register('email')}
+              id="identifier"
+              type={isControlPlane ? 'email' : 'text'}
+              inputMode={isControlPlane ? 'email' : 'text'}
+              autoComplete="username"
+              placeholder={isControlPlane ? 'vendor@example.com' : 'Email or 0911234567'}
+              {...register('identifier')}
               disabled={isLoading}
             />
-            {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+            {errors.identifier && (
+              <p className="text-sm text-destructive">{errors.identifier.message}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>

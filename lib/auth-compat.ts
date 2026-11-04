@@ -5,11 +5,18 @@ import { z } from 'zod'
 import { prisma } from './prisma'
 import { resolveClinicName } from './branding'
 import { isPlatformControlPlane } from './platform-mode'
+import { ethiopianPhoneAliases, normalizeEthiopianPhone } from './public-booking'
 
-export const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-})
+export const loginSchema = z
+  .object({
+    identifier: z.string().trim().min(1).optional(),
+    email: z.string().trim().min(1).optional(),
+    password: z.string().min(6),
+  })
+  .refine((value) => value.identifier || value.email, {
+    message: 'Email or mobile number is required',
+    path: ['identifier'],
+  })
 
 export type UserWithAuthContext = Prisma.UserGetPayload<{
   include: {
@@ -25,15 +32,25 @@ export async function authenticateCredentials(body: unknown) {
     return { error: 'Invalid email or password format', status: 400 as const }
   }
 
-  const { email, password } = validated.data
+  const { password } = validated.data
+  const identifier = (validated.data.identifier || validated.data.email || '').trim()
+  const normalizedEmail = z.string().email().safeParse(identifier.toLowerCase())
+  const normalizedPhone = normalizeEthiopianPhone(identifier)
 
-  const user = await prisma.user.findUnique({
-    where: { email },
-    include: {
-      hospital: true,
-      staff: true,
-    },
-  })
+  if (!normalizedEmail.success && (!normalizedPhone || isPlatformControlPlane())) {
+    return { error: 'Invalid email or password format', status: 400 as const }
+  }
+
+  const include = { hospital: true, staff: true } as const
+  const user = normalizedEmail.success
+    ? await prisma.user.findUnique({
+        where: { email: normalizedEmail.data },
+        include,
+      })
+    : await prisma.user.findFirst({
+        where: { phone: { in: ethiopianPhoneAliases(normalizedPhone!) } },
+        include,
+      })
 
   if (!user || !user.isActive) {
     return { error: 'Invalid credentials', status: 401 as const }

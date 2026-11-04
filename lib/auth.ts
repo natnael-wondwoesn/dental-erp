@@ -3,12 +3,17 @@ import Credentials from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import { authConfig } from './auth.config'
 import { prisma } from './prisma'
+import { ethiopianPhoneAliases, normalizeEthiopianPhone } from './public-booking'
+import { isPlatformControlPlane } from './platform-mode'
 import { z } from 'zod'
 
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-})
+const loginSchema = z
+  .object({
+    identifier: z.string().trim().min(1).optional(),
+    email: z.string().trim().min(1).optional(),
+    password: z.string().min(6),
+  })
+  .refine((value) => value.identifier || value.email)
 
 export const { auth, signIn, signOut, handlers } = NextAuth({
   ...authConfig,
@@ -19,15 +24,20 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
 
         if (!validated.success) return null
 
-        const { email, password } = validated.data
+        const { password } = validated.data
+        const identifier = (validated.data.identifier || validated.data.email || '').trim()
+        const normalizedEmail = z.string().email().safeParse(identifier.toLowerCase())
+        const normalizedPhone = normalizeEthiopianPhone(identifier)
 
-        const user = await prisma.user.findUnique({
-          where: { email },
-          include: {
-            staff: true,
-            hospital: true,
-          },
-        })
+        if (!normalizedEmail.success && (!normalizedPhone || isPlatformControlPlane())) return null
+
+        const include = { staff: true, hospital: true } as const
+        const user = normalizedEmail.success
+          ? await prisma.user.findUnique({ where: { email: normalizedEmail.data }, include })
+          : await prisma.user.findFirst({
+              where: { phone: { in: ethiopianPhoneAliases(normalizedPhone!) } },
+              include,
+            })
 
         if (!user || !user.isActive) return null
 
