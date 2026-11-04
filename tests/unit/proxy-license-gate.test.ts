@@ -32,6 +32,14 @@ describe('deny-by-default API license proxy', () => {
     })
   })
 
+  it.each([
+    ['/signup', 'GET'],
+    ['/api/public/signup', 'POST'],
+  ])('keeps account creation control-managed at %s', async (path, method) => {
+    expect((await proxy(request(path, method))).status).toBe(404)
+    expect(mocks.gate).not.toHaveBeenCalled()
+  })
+
   it('does not consult license state for reads', async () => {
     expect((await proxy(request('/api/patients', 'GET'))).status).toBe(200)
     expect(mocks.gate).not.toHaveBeenCalled()

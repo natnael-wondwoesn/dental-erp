@@ -47,21 +47,16 @@ test.describe('Authentication', () => {
     })
   })
 
-  test('should have link to signup page', async ({ page }) => {
+  test('should not expose public account registration', async ({ page }) => {
     await page.goto('/login')
 
     const signupLink = page.getByRole('link', { name: /sign up|register|create account/i })
-    await expect(signupLink).toBeVisible()
+    await expect(signupLink).toHaveCount(0)
   })
 
-  test('should show signup form', async ({ page }) => {
-    await page.goto('/signup')
-
-    // Check for signup form elements
-    await expect(page.getByRole('heading', { name: /sign up|register|create/i })).toBeVisible()
-    await expect(page.getByLabel(/hospital|clinic|name/i).first()).toBeVisible()
-    await expect(page.getByLabel(/email/i)).toBeVisible()
-    await expect(page.getByLabel(/password/i).first()).toBeVisible()
+  test('should return 404 for the old signup page', async ({ page }) => {
+    const response = await page.goto('/signup')
+    expect(response?.status()).toBe(404)
   })
 
   test('should have link to pricing page', async ({ page }) => {
@@ -198,9 +193,9 @@ test.describe('Public Routes', () => {
     await expect(page.getByRole('heading')).toBeVisible()
   })
 
-  test('should allow access to signup page', async ({ page }) => {
-    await page.goto('/signup')
-    await expect(page).toHaveURL(/.*signup/)
+  test('should conceal signup page', async ({ page }) => {
+    const response = await page.goto('/signup')
+    expect(response?.status()).toBe(404)
   })
 
   test('should allow access to pricing page', async ({ page }) => {

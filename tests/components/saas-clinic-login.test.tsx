@@ -13,4 +13,7 @@ it('does not advertise another clinic’s demo credentials in a customer workspa
   )
   expect(screen.queryByText('Demo workspace credentials')).not.toBeInTheDocument()
   expect(screen.queryByText(/admin@lemlemdental/)).not.toBeInTheDocument()
+  expect(
+    screen.queryByRole('link', { name: /create.*workspace|sign up|register/i })
+  ).not.toBeInTheDocument()
 })
