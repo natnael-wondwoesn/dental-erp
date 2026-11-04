@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
@@ -15,12 +15,22 @@ import { useToast } from '@/hooks/use-toast'
 
 const signupSchema = z
   .object({
+    signupMethod: z.enum(['email', 'phone']),
     hospitalName: z.string().min(2, 'Hospital name must be at least 2 characters'),
     adminName: z.string().min(2, 'Your name must be at least 2 characters'),
-    email: z.string().email('Please enter a valid email address'),
-    phone: z.string().min(10, 'Phone number must be at least 10 digits'),
+    email: z.string().trim().optional(),
+    phone: z.string().trim().min(9, 'Please enter a valid Ethiopian mobile number'),
     password: z.string().min(8, 'Password must be at least 8 characters'),
     confirmPassword: z.string(),
+  })
+  .superRefine((data, context) => {
+    if (data.signupMethod === 'email' && !z.string().email().safeParse(data.email).success) {
+      context.addIssue({
+        code: 'custom',
+        path: ['email'],
+        message: 'Please enter a valid email address',
+      })
+    }
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Passwords do not match',
@@ -33,14 +43,29 @@ export default function SignupPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
+  const [isControlPlane, setIsControlPlane] = useState(false)
+  const [signupMethod, setSignupMethod] = useState<'email' | 'phone'>('email')
+
+  useEffect(() => {
+    setIsControlPlane(window.location.hostname.startsWith('control.'))
+  }, [])
 
   const {
     register,
     handleSubmit,
+    setValue,
+    clearErrors,
     formState: { errors },
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
+    defaultValues: { signupMethod: 'email' },
   })
+
+  const chooseSignupMethod = (method: 'email' | 'phone') => {
+    setSignupMethod(method)
+    setValue('signupMethod', method)
+    clearErrors(['email', 'phone'])
+  }
 
   const onSubmit = async (data: SignupFormData) => {
     setIsLoading(true)
@@ -52,7 +77,7 @@ export default function SignupPage() {
         body: JSON.stringify({
           hospitalName: data.hospitalName,
           adminName: data.adminName,
-          email: data.email,
+          email: data.signupMethod === 'email' ? data.email : undefined,
           phone: data.phone,
           password: data.password,
         }),
@@ -71,11 +96,16 @@ export default function SignupPage() {
 
       toast({
         title: 'Account created!',
-        description: 'Please check your email to verify your account.',
+        description: result.verificationRequired
+          ? 'Please check your email to verify your account.'
+          : 'You can now sign in with your mobile number.',
       })
 
-      // Redirect to verification pending page
-      router.push(`/verify-email?email=${encodeURIComponent(data.email)}`)
+      if (result.verificationRequired) {
+        router.push(`/verify-email?email=${encodeURIComponent(data.email || '')}`)
+      } else {
+        router.push('/login')
+      }
     } catch {
       toast({
         variant: 'destructive',
@@ -102,6 +132,30 @@ export default function SignupPage() {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <input type="hidden" {...register('signupMethod')} />
+          {!isControlPlane && (
+            <div
+              className="grid grid-cols-2 gap-2 rounded-xl bg-muted p-1"
+              aria-label="Signup method"
+            >
+              <Button
+                type="button"
+                variant={signupMethod === 'email' ? 'default' : 'ghost'}
+                onClick={() => chooseSignupMethod('email')}
+                disabled={isLoading}
+              >
+                Email
+              </Button>
+              <Button
+                type="button"
+                variant={signupMethod === 'phone' ? 'default' : 'ghost'}
+                onClick={() => chooseSignupMethod('phone')}
+                disabled={isLoading}
+              >
+                Mobile number
+              </Button>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="hospitalName">Hospital/Clinic Name</Label>
             <Input
@@ -128,20 +182,24 @@ export default function SignupPage() {
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="selam@lemlemdental.et"
-              {...register('email')}
-              disabled={isLoading}
-            />
-            {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
-          </div>
+          {signupMethod === 'email' && (
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="selam@lemlemdental.et"
+                {...register('email')}
+                disabled={isLoading}
+              />
+              {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+            </div>
+          )}
 
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number</Label>
+            <Label htmlFor="phone">
+              {signupMethod === 'phone' ? 'Mobile number' : 'Phone number'}
+            </Label>
             <Input
               id="phone"
               type="tel"
@@ -150,6 +208,11 @@ export default function SignupPage() {
               disabled={isLoading}
             />
             {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
+            {signupMethod === 'phone' && (
+              <p className="text-xs text-muted-foreground">
+                No SMS verification is required. Use this number to sign in.
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">

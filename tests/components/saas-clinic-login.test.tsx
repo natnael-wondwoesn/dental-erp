@@ -7,7 +7,10 @@ vi.mock('@/lib/api-client', () => ({ setAccessToken: vi.fn() }))
 
 it('does not advertise another clinic’s demo credentials in a customer workspace', () => {
   render(<LoginPage />)
-  expect(screen.getByLabelText('Email')).toHaveAttribute('placeholder', 'Your clinic email')
+  expect(screen.getByLabelText('Email or mobile number')).toHaveAttribute(
+    'placeholder',
+    'Email or 0911234567'
+  )
   expect(screen.queryByText('Demo workspace credentials')).not.toBeInTheDocument()
   expect(screen.queryByText(/admin@lemlemdental/)).not.toBeInTheDocument()
 })
