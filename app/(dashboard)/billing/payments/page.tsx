@@ -435,14 +435,6 @@ export default function PaymentsPage() {
                               View Receipt
                             </DropdownMenuItem>
                           )}
-                          {payment.status === 'COMPLETED' && (
-                            <DropdownMenuItem
-                              onClick={() => router.push(`/billing/payments/${payment.id}/refund`)}
-                            >
-                              <RotateCcw className="h-4 w-4 mr-2" />
-                              Process Refund
-                            </DropdownMenuItem>
-                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

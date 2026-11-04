@@ -269,12 +269,6 @@ export default function InsuranceClaimsPage() {
               Pre-Auth
             </Button>
           </Link>
-          <Link href="/billing/insurance/new">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              New Claim
-            </Button>
-          </Link>
         </div>
       </div>
 
@@ -425,12 +419,6 @@ export default function InsuranceClaimsPage() {
                     <div className="flex flex-col items-center gap-2">
                       <Shield className="h-8 w-8 text-muted-foreground" />
                       <p className="text-muted-foreground">No insurance claims found</p>
-                      <Link href="/billing/insurance/new">
-                        <Button variant="outline" size="sm">
-                          <Plus className="h-4 w-4 mr-2" />
-                          Create New Claim
-                        </Button>
-                      </Link>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -489,20 +477,8 @@ export default function InsuranceClaimsPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => router.push(`/billing/insurance/${claim.id}`)}
-                          >
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Details
-                          </DropdownMenuItem>
                           {claim.status === 'DRAFT' && (
                             <>
-                              <DropdownMenuItem
-                                onClick={() => router.push(`/billing/insurance/${claim.id}/edit`)}
-                              >
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit
-                              </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => handleSubmitClaim(claim.id)}>
                                 <Send className="h-4 w-4 mr-2" />
