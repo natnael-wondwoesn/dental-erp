@@ -8,6 +8,7 @@ type User = {
   id: string
   name: string
   email: string
+  phone?: string | null
   role: string
   roles?: string[]
   isActive: boolean
@@ -122,7 +123,8 @@ export function InstallationControls({
     void run({
       action: 'USER_CREATE',
       name: data.get('name'),
-      email: data.get('email'),
+      phone: data.get('phone') || undefined,
+      email: data.get('email') || undefined,
       role: data.get('role'),
       reason,
     })
@@ -233,7 +235,7 @@ export function InstallationControls({
                 {user.name} · {user.isActive ? 'Active' : 'Disabled'}
               </p>
               <p className="text-sm text-slate-600">
-                {user.email} · {user.roles?.join(', ') || user.role}
+                {user.phone || user.email} · {user.roles?.join(', ') || user.role}
               </p>
               <div className="flex flex-wrap gap-2 items-center">
                 <select
@@ -384,12 +386,18 @@ export function InstallationControls({
             required
           />
           <input
+            aria-label="New user mobile number"
+            className={field}
+            name="phone"
+            placeholder="Mobile number, e.g. 0911234567 (used to sign in)"
+            inputMode="tel"
+          />
+          <input
             aria-label="New user email"
             className={field}
             name="email"
-            placeholder="Login email"
+            placeholder="Email (optional if mobile number given)"
             type="email"
-            required
           />
           <select aria-label="New user role" className={field} name="role" required defaultValue="">
             <option value="" disabled>

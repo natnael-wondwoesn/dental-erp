@@ -113,5 +113,6 @@ export function toAuthenticatedUser(user: UserWithAuthContext) {
     timezone: user.hospital.timezone,
     isPlatformOwner: user.isPlatformOwner,
     isPlatformControlPlane: isPlatformControlPlane(),
+    mustChangePassword: Boolean(user.mustChangePassword),
   }
 }

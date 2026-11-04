@@ -18,7 +18,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     getCurrentUser().then((user) => {
       if (!user) router.replace('/login')
-      else if (
+      else if (user.mustChangePassword && pathname !== '/settings/password') {
+        router.replace('/settings/password?required=1')
+      } else if (
         user.isPlatformControlPlane &&
         pathname !== '/owner' &&
         !pathname.startsWith('/owner/')
