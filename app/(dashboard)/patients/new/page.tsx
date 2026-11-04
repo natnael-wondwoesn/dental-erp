@@ -17,7 +17,6 @@ import {
 } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { ArrowLeft, Loader2, Save } from 'lucide-react'
-import { DuplicateDetector } from '@/components/ai/duplicate-detector'
 
 const BLOOD_GROUPS = [
   { value: 'A_POSITIVE', label: 'A+' },
@@ -383,16 +382,6 @@ export default function NewPatientPage() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Duplicate Detection */}
-        <DuplicateDetector
-          firstName={form.firstName}
-          lastName={form.lastName}
-          phone={form.phone}
-          email={form.email}
-          dateOfBirth={form.dateOfBirth}
-          onSelect={(existingId) => router.push(`/patients/${existingId}`)}
-        />
 
         {/* Submit */}
         <div className="flex justify-end gap-3">

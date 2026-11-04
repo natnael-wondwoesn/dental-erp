@@ -148,24 +148,6 @@ describe('DashboardShell', () => {
     expect(screen.getByTestId('sidebar-provider')).toBeInTheDocument()
   })
 
-  it('renders CommandBar', () => {
-    render(
-      <DashboardShell user={defaultUser} hospital={defaultHospital}>
-        <p>Content</p>
-      </DashboardShell>
-    )
-    expect(screen.getByTestId('command-bar')).toBeInTheDocument()
-  })
-
-  it('renders ChatWidget', () => {
-    render(
-      <DashboardShell user={defaultUser} hospital={defaultHospital}>
-        <p>Content</p>
-      </DashboardShell>
-    )
-    expect(screen.getByTestId('chat-widget')).toBeInTheDocument()
-  })
-
   it('renders KeyboardShortcutHelp', () => {
     render(
       <DashboardShell user={defaultUser} hospital={defaultHospital}>

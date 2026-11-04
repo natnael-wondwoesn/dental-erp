@@ -16,8 +16,7 @@ import {
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Switch } from '@/components/ui/switch'
-import { ArrowLeft, Calendar, Clock, User, Search, Check, Loader2, Video } from 'lucide-react'
+import { ArrowLeft, Calendar, Clock, User, Search, Check, Loader2 } from 'lucide-react'
 import { formatTime } from '@/lib/appointment-utils'
 
 interface Patient {
@@ -69,7 +68,6 @@ export default function NewAppointmentPage() {
   const [chairNumber, setChairNumber] = useState('')
   const [chiefComplaint, setChiefComplaint] = useState('')
   const [notes, setNotes] = useState('')
-  const [isVirtual, setIsVirtual] = useState(false)
 
   // Fetch initial data
   useEffect(() => {
@@ -191,7 +189,6 @@ export default function NewAppointmentPage() {
           chairNumber: chairNumber ? parseInt(chairNumber) : null,
           chiefComplaint: chiefComplaint || null,
           notes: notes || null,
-          isVirtual,
         }),
       })
 
@@ -483,19 +480,6 @@ export default function NewAppointmentPage() {
                       <SelectItem value="5">Chair 5</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-
-                <div className="flex items-center justify-between rounded-lg border p-4 md:col-span-3">
-                  <div className="space-y-0.5">
-                    <Label className="flex items-center gap-2">
-                      <Video className="h-4 w-4 text-blue-600" />
-                      Virtual Visit (Video Consultation)
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Enable to create a tele-dentistry video consultation for this appointment
-                    </p>
-                  </div>
-                  <Switch checked={isVirtual} onCheckedChange={setIsVirtual} />
                 </div>
 
                 <div className="space-y-2 md:col-span-3">

@@ -28,6 +28,8 @@ interface Patient {
   allergies: string | null
 }
 
+import { COMMON_DENTAL_MEDICATIONS } from '@/lib/common-medications'
+
 interface MedicationOption {
   id: string
   name: string
@@ -179,16 +181,31 @@ export default function NewPrescriptionPage() {
     }
   }, [])
 
+  // The clinic's own catalog first, then the built-in common dental medications.
+  const allMedications = useMemo<MedicationOption[]>(() => {
+    const seen = new Set(medCatalog.map((m) => m.name.trim().toLowerCase()))
+    const builtIn = COMMON_DENTAL_MEDICATIONS.filter(
+      (m) => !seen.has(m.name.trim().toLowerCase())
+    ).map((m) => ({
+      id: `builtin:${m.name}`,
+      ...m,
+      defaultDosage: null,
+      defaultFrequency: null,
+      defaultDuration: null,
+    }))
+    return [...medCatalog, ...builtIn]
+  }, [medCatalog])
+
   const medOptions = useMemo(() => {
     const q = medSearch.trim().toLowerCase()
     const matches = q
-      ? medCatalog.filter(
+      ? allMedications.filter(
           (m) =>
             m.name.toLowerCase().startsWith(q) || (m.genericName || '').toLowerCase().startsWith(q)
         )
-      : medCatalog
+      : allMedications
     return matches.slice(0, 50)
-  }, [medCatalog, medSearch])
+  }, [allMedications, medSearch])
 
   // Only the Medication Name is populated; dosage, frequency and duration stay manual.
   const selectMedication = (med: MedicationOption, rowIndex: number) => {
@@ -197,7 +214,7 @@ export default function NewPrescriptionPage() {
         i === rowIndex
           ? {
               ...r,
-              medicationId: med.id,
+              medicationId: med.id.startsWith('builtin:') ? null : med.id,
               medicationName: `${med.name}${med.strength ? ` ${med.strength}` : ''}${med.form ? ` (${med.form})` : ''}`,
             }
           : r

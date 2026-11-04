@@ -19,7 +19,6 @@ import {
 import { ArrowLeft, Search, User, Stethoscope, Save, AlertCircle, Plus, Minus } from 'lucide-react'
 import { DentalChart } from '@/components/treatments/dental-chart'
 import { procedureCategoryConfig, formatCurrency } from '@/lib/treatment-utils'
-import { TreatmentAssist } from '@/components/ai/treatment-assist'
 import { VoiceInput } from '@/components/clinical/voice-input'
 import { HandwritingPad } from '@/components/clinical/handwriting-pad'
 import type { ClinicalInkDocument } from '@/lib/clinical-ink'
@@ -715,18 +714,6 @@ export default function NewTreatmentPage() {
             </div>
           </CardContent>
         </Card>
-
-        {/* AI Treatment Assistant */}
-        {formData.patientId && formData.procedureId && (
-          <TreatmentAssist
-            patientId={formData.patientId}
-            procedureId={formData.procedureId}
-            procedureName={procedures.find((p) => p.id === formData.procedureId)?.name}
-            diagnosis={formData.diagnosis}
-            findings={formData.findings}
-            procedureNotes={formData.procedureNotes}
-          />
-        )}
 
         {/* Follow-up */}
         <Card>

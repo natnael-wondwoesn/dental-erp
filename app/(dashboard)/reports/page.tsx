@@ -47,7 +47,6 @@ import {
   Area,
 } from 'recharts'
 
-import { ReportBuilder } from '@/components/ai/report-builder'
 import { ErpModuleOverview } from '@/components/dashboard/erp-overview'
 import { useLanguage } from '@/lib/i18n'
 
@@ -332,13 +331,6 @@ export default function ReportsPage() {
           </Select>
         </div>
       </div>
-
-      {/* AI Report Builder */}
-      <Card>
-        <CardContent className="pt-6">
-          <ReportBuilder />
-        </CardContent>
-      </Card>
 
       {/* Analytics Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">

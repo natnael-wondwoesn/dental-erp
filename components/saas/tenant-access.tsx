@@ -118,8 +118,6 @@ export function ModularDashboard() {
     ['forms', '/forms', 'Forms'],
     ['sterilization', '/sterilization', 'Sterilization'],
     ['devices', '/devices', 'Devices'],
-    ['video', '/video', 'Video consultations'],
-    ['ai', '/chat', 'AI tools'],
   ] as const
   return (
     <section className="space-y-6">
