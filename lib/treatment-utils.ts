@@ -168,6 +168,9 @@ export const procedureCategoryConfig: Record<
 }
 
 // Dental chart tooth condition colors and labels
+// A tooth the dentist has not examined yet; shown neutral grey, never as healthy.
+export const unassessedToothStyle = { label: 'Not examined', fillColor: '#9ca3af' }
+
 export const toothConditionConfig: Record<
   string,
   { label: string; color: string; bgColor: string; fillColor: string }
@@ -252,10 +255,10 @@ export const toothNumbers = {
   upperRight: [18, 17, 16, 15, 14, 13, 12, 11],
   // Upper Left (Quadrant 2)
   upperLeft: [21, 22, 23, 24, 25, 26, 27, 28],
-  // Lower Left (Quadrant 3)
-  lowerLeft: [38, 37, 36, 35, 34, 33, 32, 31],
-  // Lower Right (Quadrant 4)
-  lowerRight: [41, 42, 43, 44, 45, 46, 47, 48],
+  // Lower Left (Quadrant 3), displayed 31 -> 38 left to right
+  lowerLeft: [31, 32, 33, 34, 35, 36, 37, 38],
+  // Lower Right (Quadrant 4), displayed 48 -> 41 left to right
+  lowerRight: [48, 47, 46, 45, 44, 43, 42, 41],
 }
 
 // Tooth names by number (FDI notation)

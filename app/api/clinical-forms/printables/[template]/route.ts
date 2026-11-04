@@ -7,6 +7,7 @@ import {
   isClinicPrintableAllowedForClinic,
   renderClinicPrintableHtml,
 } from '@/lib/clinical-forms/clinic-printables'
+import { nextAttachmentNumber } from '@/lib/clinical-forms/attachment-number'
 import { prisma } from '@/lib/prisma'
 import { brandClinic } from '@/lib/saas/branding'
 
@@ -40,7 +41,9 @@ export async function GET(
   }
   const html = renderClinicPrintableHtml(
     template,
-    await brandClinic(hospitalId, clinic || { name: 'Dental Clinic' })
+    await brandClinic(hospitalId, clinic || { name: 'Dental Clinic' }),
+    // Each opened attachment consumes the next sequential number (001, 002, ...)
+    template === 'cash-sales-attachment' ? await nextAttachmentNumber(hospitalId) : undefined
   )
   return new Response(html, {
     headers: {
