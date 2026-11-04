@@ -120,12 +120,10 @@ test.describe('Responsive Design', () => {
     await expect(page.getByRole('button', { name: /sign in|login/i })).toBeVisible()
   })
 
-  test('signup page should be responsive on mobile', async ({ page }) => {
+  test('signup page should stay unavailable on mobile', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 })
-    await page.goto('/signup')
-
-    // Form should be scrollable and usable
-    await expect(page.getByRole('heading')).toBeVisible()
+    const response = await page.goto('/signup')
+    expect(response?.status()).toBe(404)
   })
 })
 
@@ -183,11 +181,12 @@ test.describe('Performance', () => {
     expect(loadTime).toBeLessThan(5000)
   })
 
-  test('signup page should load within acceptable time', async ({ page }) => {
+  test('signup rejection should load within acceptable time', async ({ page }) => {
     const startTime = Date.now()
-    await page.goto('/signup')
+    const response = await page.goto('/signup')
     const loadTime = Date.now() - startTime
 
+    expect(response?.status()).toBe(404)
     expect(loadTime).toBeLessThan(5000)
   })
 })

@@ -60,6 +60,7 @@ const CONTROL_PLANE_PREFIXES = [
   '/owner/',
   '/api/saas-admin/',
 ]
+const CONTROL_MANAGED_ACCOUNT_CREATION = new Set(['/signup', '/api/public/signup'])
 
 function isAllowedInControlPlane(pathname: string): boolean {
   return (
@@ -139,6 +140,12 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
         return new NextResponse(null, { status: 404 })
       }
       return NextResponse.next({ request: { headers: requestHeaders } })
+    }
+    // Clinic accounts are created only by the vendor through /owner/access.
+    // Keep both the registration page and its mutation endpoint unreachable
+    // from every clinic hostname.
+    if (CONTROL_MANAGED_ACCOUNT_CREATION.has(request.nextUrl.pathname)) {
+      return new NextResponse(null, { status: 404 })
     }
     const saas = await evaluateSaaSGate(request)
     if (saas.response) return saas.response

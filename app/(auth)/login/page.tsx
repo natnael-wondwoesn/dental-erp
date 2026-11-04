@@ -144,15 +144,6 @@ function LoginForm() {
 
         {!isControlPlane && (
           <>
-            <div className="mt-6 text-center text-sm">
-              <p className="text-muted-foreground">
-                Don&apos;t have an account?{' '}
-                <a href="/signup" className="text-primary hover:underline">
-                  Create a clinic workspace
-                </a>
-              </p>
-            </div>
-
             {isDemoWorkspace && (
               <div className="mt-4 rounded-2xl border border-[#e7edf5] bg-[#f8fbff] p-4 text-center text-xs text-muted-foreground">
                 <p className="font-medium text-slate-700">Demo workspace credentials</p>
