@@ -27,11 +27,14 @@ export const ownerOperationSchema = z.discriminatedUnion('action', [
       email: z
         .email()
         .max(255)
-        .transform((s) => s.toLowerCase()),
+        .transform((s) => s.toLowerCase())
+        .optional(),
+      phone: z.string().trim().max(24).optional(),
       role: z.string().min(1).max(40),
       reason,
     })
-    .strict(),
+    .strict()
+    .refine((v) => v.email || v.phone, 'Enter a mobile number or an email'),
   z
     .object({
       action: z.literal('USER_UPDATE'),

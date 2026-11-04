@@ -48,11 +48,13 @@ def validate(job):
             raise OwnerOperationError('Audit reason required')
         fields.add('reason')
     if action=='USER_CREATE':
-        fields|={'name','email','role','encryptedPassword'}
+        fields|={'name','email','role','encryptedPassword','phone'}
         if not isinstance(payload.get('name'),str) or not 2<=len(payload['name'])<=120:
             raise OwnerOperationError('Invalid user name')
         if not isinstance(payload.get('email'),str) or len(payload['email'])>255 or not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+',payload['email']):
             raise OwnerOperationError('Invalid user email')
+        if 'phone' in payload and (not isinstance(payload['phone'],str) or not re.fullmatch(r'\+251[79]\d{8}',payload['phone'])):
+            raise OwnerOperationError('Invalid mobile number')
         if not isinstance(payload.get('encryptedPassword'),str) or not 100<=len(payload['encryptedPassword'])<=1400:
             raise OwnerOperationError('Encrypted credential required')
     if action in {'USER_UPDATE','USER_RESET_PASSWORD','USER_DELETE'}:

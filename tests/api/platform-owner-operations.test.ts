@@ -119,6 +119,53 @@ describe('owner installation operations', () => {
     expect(data.request).not.toHaveProperty('passwordHash')
     delete process.env.PLATFORM_USER_PUBLIC_KEY_BASE64
   })
+  it('creates a phone-first user: normalises the number and generates a placeholder email', async () => {
+    const keys = generateKeyPairSync('rsa', { modulusLength: 2048 })
+    process.env.PLATFORM_USER_PUBLIC_KEY_BASE64 = Buffer.from(
+      keys.publicKey.export({ type: 'spki', format: 'pem' })
+    ).toString('base64')
+    const response = await POST(
+      request({
+        action: 'USER_CREATE',
+        name: 'Phone User',
+        phone: '0911234567',
+        role: 'RECEPTIONIST',
+        reason: 'Authorized onboarding',
+      }),
+      context
+    )
+    expect(response.status).toBe(202)
+    const data = mock.create.mock.calls.at(-1)![0].data
+    expect(data.request.phone).toBe('+251911234567')
+    expect(data.request.email).toBe('251911234567@phone.clinic-cms.invalid')
+    delete process.env.PLATFORM_USER_PUBLIC_KEY_BASE64
+  })
+  it('rejects a user with neither mobile number nor email, and an invalid number', async () => {
+    expect(
+      (
+        await POST(
+          request({ action: 'USER_CREATE', name: 'No Contact', role: 'ADMIN', reason: 'Testing' }),
+          context
+        )
+      ).status
+    ).toBe(400)
+    process.env.PLATFORM_USER_PUBLIC_KEY_BASE64 = 'x'
+    expect(
+      (
+        await POST(
+          request({
+            action: 'USER_CREATE',
+            name: 'Bad Phone',
+            phone: '12345',
+            role: 'ADMIN',
+            reason: 'Testing',
+          }),
+          context
+        )
+      ).status
+    ).toBe(400)
+    delete process.env.PLATFORM_USER_PUBLIC_KEY_BASE64
+  })
   it('scopes operation reads to the selected installation and excludes request ciphertext', async () => {
     mock.find.mockResolvedValue(null)
     const response = await GET(

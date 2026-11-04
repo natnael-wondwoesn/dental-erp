@@ -1,3 +1,4 @@
+import { normalizeEthiopianPhone } from '@/lib/public-booking'
 import bcrypt from 'bcryptjs'
 import { randomBytes, publicEncrypt, constants } from 'node:crypto'
 import { NextRequest, NextResponse } from 'next/server'
@@ -88,6 +89,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       { error: 'An operation is already pending; wait for completion' },
       { status: 409 }
     )
+  if (input.action === 'USER_CREATE') {
+    // Phone-first accounts: sign in with the mobile number. The user table needs a
+    // unique email, so a placeholder one is generated when none was given.
+    if (input.phone) {
+      const phone = normalizeEthiopianPhone(input.phone)
+      if (!phone)
+        return NextResponse.json(
+          { error: 'Enter a valid Ethiopian mobile number, for example 0911234567' },
+          { status: 400 }
+        )
+      input.phone = phone
+      if (!input.email) input.email = `${phone.slice(1)}@phone.clinic-cms.invalid`
+    }
+  }
   let temporaryPassword: string | undefined
   let encryptedPassword: string | undefined
   if (input.action === 'USER_CREATE' || input.action === 'USER_RESET_PASSWORD') {

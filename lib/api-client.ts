@@ -17,6 +17,7 @@ export interface AuthenticatedUser {
   timezone: string
   isPlatformOwner: boolean
   isPlatformControlPlane: boolean
+  mustChangePassword?: boolean
   saas?: SaaSAccess
 }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { KeyRound } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -12,6 +12,10 @@ export default function ChangePasswordPage() {
   const [newPassword, setNewPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [saving, setSaving] = useState(false)
+  const [required, setRequired] = useState(false)
+  useEffect(() => {
+    setRequired(new URLSearchParams(window.location.search).get('required') === '1')
+  }, [])
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
 
   async function submit(event: FormEvent) {
@@ -34,6 +38,8 @@ export default function ChangePasswordPage() {
       setNewPassword('')
       setConfirm('')
       setMessage({ ok: true, text: 'Password changed. Use it the next time you sign in.' })
+      // Reload so the "must change password" lock is lifted everywhere.
+      if (required) window.location.assign('/dashboard')
     } catch (error) {
       setMessage({ ok: false, text: error instanceof Error ? error.message : 'Failed' })
     } finally {
@@ -50,6 +56,11 @@ export default function ChangePasswordPage() {
             Change password
           </CardTitle>
           <CardDescription>
+            {required && (
+              <strong className="mb-2 block text-amber-700">
+                You are signing in with a temporary password. Choose your own password to continue.
+              </strong>
+            )}
             Change the password for your own account. Use at least 10 characters with a letter and a
             number.
           </CardDescription>
@@ -57,7 +68,9 @@ export default function ChangePasswordPage() {
         <CardContent>
           <form onSubmit={submit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="current">Current password</Label>
+              <Label htmlFor="current">
+                {required ? 'Temporary password' : 'Current password'}
+              </Label>
               <Input
                 id="current"
                 type="password"
