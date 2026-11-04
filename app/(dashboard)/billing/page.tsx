@@ -291,7 +291,8 @@ export default function BillingPage() {
                 <p className="text-sm text-red-700">{error}</p>
                 {error.includes('permission') && (
                   <p className="text-xs text-red-600 mt-1">
-                    Your account needs ADMIN or ACCOUNTANT role to view billing reports.
+                    Your account needs ADMIN, ACCOUNTANT or RECEPTIONIST role to view billing
+                    reports.
                   </p>
                 )}
               </div>
