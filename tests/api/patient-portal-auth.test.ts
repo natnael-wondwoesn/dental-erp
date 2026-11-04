@@ -14,6 +14,9 @@ vi.mock('@/lib/patient-auth', () => ({
   requirePatientAuth: vi.fn(),
 }))
 
+const mockSmsService = vi.hoisted(() => ({ sendSMS: vi.fn() }))
+vi.mock('@/lib/services/sms.service', () => ({ smsService: mockSmsService }))
+
 // ── Imports (after mocks) ────────────────────────────────────────────────────
 
 import { POST as sendOtpPOST } from '@/app/api/patient-portal/auth/send-otp/route'
@@ -86,7 +89,7 @@ describe('POST /api/patient-portal/auth/send-otp', () => {
     expect(body.error).toContain('not enabled')
   })
 
-  it('returns 404 when patient not found', async () => {
+  it('does not reveal whether a patient phone exists', async () => {
     vi.mocked(prisma.hospital.findUnique).mockResolvedValue({
       id: 'h1',
       name: 'Test Clinic',
@@ -102,8 +105,9 @@ describe('POST /api/patient-portal/auth/send-otp', () => {
     )
     const body = await res.json()
 
-    expect(res.status).toBe(404)
-    expect(body.error).toContain('No patient account')
+    expect(res.status).toBe(200)
+    expect(body.success).toBe(true)
+    expect(mockSmsService.sendSMS).not.toHaveBeenCalled()
   })
 
   it('returns 429 when rate limited (5+ OTPs in 10 min)', async () => {
@@ -136,6 +140,7 @@ describe('POST /api/patient-portal/auth/send-otp', () => {
     vi.mocked(prisma.patient.findFirst).mockResolvedValue({ id: 'p1', firstName: 'John' } as any)
     vi.mocked(prisma.patientOTP.count).mockResolvedValue(0)
     vi.mocked(prisma.patientOTP.create).mockResolvedValue({} as any)
+    mockSmsService.sendSMS.mockResolvedValue('sms-log-1')
 
     const res = await sendOtpPOST(
       makeReq('/api/patient-portal/auth/send-otp', 'POST', {

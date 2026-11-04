@@ -6,6 +6,7 @@ import { prisma } from './prisma'
 import { resolveClinicName } from './branding'
 import { isPlatformControlPlane } from './platform-mode'
 import { ethiopianPhoneAliases, normalizeEthiopianPhone } from './public-booking'
+import { clearLoginFailures, isLoginBlocked, recordLoginFailure } from './login-throttle'
 
 export const loginSchema = z
   .object({
@@ -25,7 +26,7 @@ export type UserWithAuthContext = Prisma.UserGetPayload<{
   }
 }>
 
-export async function authenticateCredentials(body: unknown) {
+export async function authenticateCredentials(body: unknown, clientIp = 'unknown') {
   const validated = loginSchema.safeParse(body)
 
   if (!validated.success) {
@@ -34,6 +35,9 @@ export async function authenticateCredentials(body: unknown) {
 
   const { password } = validated.data
   const identifier = (validated.data.identifier || validated.data.email || '').trim()
+  if (isLoginBlocked(identifier, clientIp)) {
+    return { error: 'Too many sign-in attempts. Try again later.', status: 429 as const }
+  }
   const normalizedEmail = z.string().email().safeParse(identifier.toLowerCase())
   const normalizedPhone = normalizeEthiopianPhone(identifier)
 
@@ -53,18 +57,22 @@ export async function authenticateCredentials(body: unknown) {
       })
 
   if (!user || !user.isActive) {
+    recordLoginFailure(identifier, clientIp)
     return { error: 'Invalid credentials', status: 401 as const }
   }
 
   if (!user.hospital || !user.hospital.isActive) {
+    recordLoginFailure(identifier, clientIp)
     return { error: 'Your clinic account is inactive', status: 401 as const }
   }
 
   const passwordMatch = await bcrypt.compare(password, user.password)
   if (!passwordMatch) {
+    recordLoginFailure(identifier, clientIp)
     return { error: 'Invalid credentials', status: 401 as const }
   }
 
+  clearLoginFailures(identifier, clientIp)
   return { user }
 }
 

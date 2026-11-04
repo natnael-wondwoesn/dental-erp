@@ -213,8 +213,8 @@ export default function ReceiptsPage() {
                 <TableHead>Invoice</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Method</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead className="text-right">Action</TableHead>
+                <TableHead className="min-w-28 text-right">Amount</TableHead>
+                <TableHead className="min-w-24 text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -273,7 +273,11 @@ export default function ReceiptsPage() {
                     <TableCell className="text-right">{formatCurrency(payment.amount)}</TableCell>
                     <TableCell className="text-right">
                       <Link href={`/billing/receipts/${payment.id}`}>
-                        <Button variant="outline" size="icon">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          aria-label={`View receipt ${payment.paymentNo}`}
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
                       </Link>

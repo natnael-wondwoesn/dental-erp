@@ -71,7 +71,19 @@ function makeReq(path: string, method = 'POST', body?: any): NextRequest {
 // ═════════════════════════════════════════════════════════════════════════════
 
 describe('POST /api/payments/verify', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(prisma.paymentOrder.findUnique).mockResolvedValue({
+      id: 'po1',
+      hospitalId: 'h1',
+      invoiceId: 'inv1',
+      amount: 5000,
+      consumedAt: null,
+      expiresAt: new Date(Date.now() + 60_000),
+    } as any)
+    vi.mocked(prisma.paymentOrder.updateMany).mockResolvedValue({ count: 1 })
+    vi.mocked(prisma.$transaction).mockImplementation(async (fn: any) => fn(prisma))
+  })
 
   it('returns 401 when unauthenticated', async () => {
     mockHospitalAuthError()
@@ -156,7 +168,7 @@ describe('POST /api/payments/verify', () => {
       gateway: {
         verifyPayment: vi.fn().mockResolvedValue({
           verified: true,
-          status: 'CAPTURED',
+          status: 'COMPLETED',
           transactionId: 'txn123',
           amount: 5000,
         }),
@@ -164,13 +176,12 @@ describe('POST /api/payments/verify', () => {
       credentials: { provider: 'RAZORPAY' },
     } as any)
     vi.mocked(prisma.payment.findFirst).mockResolvedValue({ paymentNo: 'PAY00010' } as any)
-    vi.mocked(prisma.$transaction).mockResolvedValue([
-      {
-        id: 'pay1',
-        paymentNo: 'PAY00011',
-        amount: 5000,
-      },
-    ] as any)
+    vi.mocked(prisma.payment.create).mockResolvedValue({
+      id: 'pay1',
+      paymentNo: 'PAY00011',
+      amount: 5000,
+    } as any)
+    vi.mocked(prisma.invoice.update).mockResolvedValue({} as any)
 
     const res = await verifyPOST(
       makeReq('/api/payments/verify', 'POST', {

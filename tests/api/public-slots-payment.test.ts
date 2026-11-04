@@ -344,7 +344,21 @@ describe('POST /api/payments/public-order', () => {
 // ═════════════════════════════════════════════════════════════════════════════
 
 describe('POST /api/payments/public-verify', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(prisma.paymentOrder.findUnique).mockResolvedValue({
+      id: 'po1',
+      hospitalId: 'h1',
+      invoiceId: 'inv1',
+      paymentLinkId: 'pl1',
+      amount: 5000,
+      consumedAt: null,
+      expiresAt: new Date(Date.now() + 60_000),
+    } as any)
+    vi.mocked(prisma.paymentOrder.updateMany).mockResolvedValue({ count: 1 })
+    vi.mocked(prisma.paymentLink.updateMany).mockResolvedValue({ count: 1 })
+    vi.mocked(prisma.$transaction).mockImplementation(async (fn: any) => fn(prisma))
+  })
 
   it('returns 400 when required fields missing', async () => {
     const res = await publicVerifyPOST(
@@ -420,13 +434,14 @@ describe('POST /api/payments/public-verify', () => {
           verified: true,
           transactionId: 'txn_123',
           amount: 5000,
-          status: 'CAPTURED',
+          status: 'COMPLETED',
         }),
       },
       credentials: { provider: 'RAZORPAY' },
     })
     vi.mocked(prisma.payment.findFirst).mockResolvedValue({ paymentNo: 'PAY00050' } as any)
-    vi.mocked(prisma.$transaction).mockResolvedValue([{}, {}, {}])
+    vi.mocked(prisma.payment.create).mockResolvedValue({ id: 'p1' } as any)
+    vi.mocked(prisma.invoice.update).mockResolvedValue({} as any)
 
     const res = await publicVerifyPOST(
       makeReq('/api/payments/public-verify', 'POST', {
@@ -459,13 +474,23 @@ describe('POST /api/payments/public-verify', () => {
           verified: true,
           transactionId: 'txn_456',
           amount: 3000,
-          status: 'CAPTURED',
+          status: 'COMPLETED',
         }),
       },
       credentials: { provider: 'RAZORPAY' },
     })
     vi.mocked(prisma.payment.findFirst).mockResolvedValue(null) // no previous payments
-    vi.mocked(prisma.$transaction).mockResolvedValue([{}, {}, {}])
+    vi.mocked(prisma.paymentOrder.findUnique).mockResolvedValue({
+      id: 'po1',
+      hospitalId: 'h1',
+      invoiceId: 'inv1',
+      paymentLinkId: 'pl1',
+      amount: 3000,
+      consumedAt: null,
+      expiresAt: new Date(Date.now() + 60_000),
+    } as any)
+    vi.mocked(prisma.payment.create).mockResolvedValue({ id: 'p1' } as any)
+    vi.mocked(prisma.invoice.update).mockResolvedValue({} as any)
 
     const res = await publicVerifyPOST(
       makeReq('/api/payments/public-verify', 'POST', {

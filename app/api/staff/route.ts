@@ -2,6 +2,24 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAuthAndRole, checkStaffLimit } from '@/lib/api-helpers'
 import bcrypt from 'bcryptjs'
+import { saasEnforcement } from '@/lib/saas/server'
+
+const PRIVATE_STAFF_FIELDS = new Set([
+  'dateOfBirth',
+  'aadharNumber',
+  'panNumber',
+  'salary',
+  'bankAccountNo',
+  'bankIfsc',
+  'emergencyContact',
+  'emergencyPhone',
+])
+
+function publicStaff<T extends Record<string, unknown>>(staff: T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(staff).filter(([key]) => !PRIVATE_STAFF_FIELDS.has(key))
+  ) as Partial<T>
+}
 
 // GET - List staff members
 export async function GET(request: NextRequest) {
@@ -65,8 +83,9 @@ export async function GET(request: NextRequest) {
       prisma.staff.count({ where }),
     ])
 
+    const visibleStaff = session.user.role === 'ADMIN' ? staff : staff.map(publicStaff)
     return NextResponse.json({
-      staff,
+      staff: visibleStaff,
       pagination: {
         page,
         limit,
@@ -107,6 +126,13 @@ export async function POST(request: NextRequest) {
   const { error, hospitalId, session } = await requireAuthAndRole()
   if (error || !hospitalId) {
     return error || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (saasEnforcement() === 'hosted') {
+    return NextResponse.json(
+      { error: 'Staff accounts are created by the platform owner' },
+      { status: 403 }
+    )
   }
 
   try {

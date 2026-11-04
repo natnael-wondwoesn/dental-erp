@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -29,6 +29,30 @@ export default function CommunicationsPage() {
   const [emailTo, setEmailTo] = useState('')
   const [emailSubject, setEmailSubject] = useState('')
   const [emailBody, setEmailBody] = useState('')
+  const [smsHistory, setSmsHistory] = useState<any[]>([])
+  const [emailHistory, setEmailHistory] = useState<any[]>([])
+  const [templates, setTemplates] = useState<any[]>([])
+  const [surveys, setSurveys] = useState<any[]>([])
+
+  const loadCommunicationData = async () => {
+    const endpoints = ['sms', 'email', 'templates', 'surveys']
+    const results = await Promise.allSettled(
+      endpoints.map((endpoint) =>
+        fetch(`/api/communications/${endpoint}?limit=20`).then((response) => {
+          if (!response.ok) throw new Error(`Failed to load ${endpoint}`)
+          return response.json()
+        })
+      )
+    )
+    if (results[0].status === 'fulfilled') setSmsHistory(results[0].value.data || [])
+    if (results[1].status === 'fulfilled') setEmailHistory(results[1].value.data || [])
+    if (results[2].status === 'fulfilled') setTemplates(results[2].value.data || [])
+    if (results[3].status === 'fulfilled') setSurveys(results[3].value.data || [])
+  }
+
+  useEffect(() => {
+    void loadCommunicationData()
+  }, [])
 
   const handleSendSMS = async () => {
     if (!smsPhone || !smsMessage) {
@@ -60,6 +84,7 @@ export default function CommunicationsPage() {
         })
         setSmsPhone('')
         setSmsMessage('')
+        void loadCommunicationData()
       } else {
         throw new Error(data.error || 'Failed to send SMS')
       }
@@ -106,6 +131,7 @@ export default function CommunicationsPage() {
         setEmailTo('')
         setEmailSubject('')
         setEmailBody('')
+        void loadCommunicationData()
       } else {
         throw new Error(data.error || 'Failed to send email')
       }
@@ -194,8 +220,21 @@ export default function CommunicationsPage() {
                 <CardDescription>Recent SMS communications</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">SMS history will be displayed here</p>
-                {/* SMS history table/list will go here */}
+                {smsHistory.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No SMS messages yet.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {smsHistory.map((item) => (
+                      <div key={item.id} className="rounded-lg border p-3 text-sm">
+                        <div className="flex justify-between gap-3 font-medium">
+                          <span>{item.phone}</span>
+                          <span>{item.status}</span>
+                        </div>
+                        <p className="mt-1 line-clamp-2 text-muted-foreground">{item.message}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -255,10 +294,21 @@ export default function CommunicationsPage() {
                 <CardDescription>Recent email communications</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Email history will be displayed here
-                </p>
-                {/* Email history table/list will go here */}
+                {emailHistory.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No email messages yet.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {emailHistory.map((item) => (
+                      <div key={item.id} className="rounded-lg border p-3 text-sm">
+                        <div className="flex justify-between gap-3 font-medium">
+                          <span className="truncate">{item.email}</span>
+                          <span>{item.status}</span>
+                        </div>
+                        <p className="mt-1 truncate text-muted-foreground">{item.subject}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -282,14 +332,25 @@ export default function CommunicationsPage() {
                       Create and manage reusable message templates
                     </p>
                   </div>
-                  <Button>Create Template</Button>
                 </div>
 
-                <div className="border rounded-lg p-4">
-                  <p className="text-sm text-muted-foreground">
-                    Template list will be displayed here
-                  </p>
-                </div>
+                {templates.length === 0 ? (
+                  <div className="border rounded-lg p-4 text-sm text-muted-foreground">
+                    No templates yet.
+                  </div>
+                ) : (
+                  templates.map((template) => (
+                    <div key={template.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between gap-3">
+                        <span className="font-medium">{template.name}</span>
+                        <span className="text-sm text-muted-foreground">{template.channel}</span>
+                      </div>
+                      <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+                        {template.content}
+                      </p>
+                    </div>
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
@@ -309,14 +370,27 @@ export default function CommunicationsPage() {
                     <h3 className="font-semibold">Active Surveys</h3>
                     <p className="text-sm text-muted-foreground">Collect feedback from patients</p>
                   </div>
-                  <Button>Create Survey</Button>
                 </div>
 
-                <div className="border rounded-lg p-4">
-                  <p className="text-sm text-muted-foreground">
-                    Survey list will be displayed here
-                  </p>
-                </div>
+                {surveys.length === 0 ? (
+                  <div className="border rounded-lg p-4 text-sm text-muted-foreground">
+                    No surveys yet.
+                  </div>
+                ) : (
+                  surveys.map((survey) => (
+                    <div key={survey.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between gap-3">
+                        <span className="font-medium">{survey.title}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {survey._count?.responses || 0} responses
+                        </span>
+                      </div>
+                      {survey.description && (
+                        <p className="mt-2 text-sm text-muted-foreground">{survey.description}</p>
+                      )}
+                    </div>
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>

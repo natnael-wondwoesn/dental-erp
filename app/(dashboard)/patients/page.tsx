@@ -249,7 +249,9 @@ export default function PatientsPage() {
                       <TableHead>{t('Age')}</TableHead>
                       <TableHead>{t('Blood Group')}</TableHead>
                       <TableHead>{t('Location')}</TableHead>
-                      <TableHead className="text-right">{t('Actions')}</TableHead>
+                      <TableHead className="sticky right-0 bg-background text-right">
+                        {t('Actions')}
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -383,7 +385,9 @@ export default function PatientsPage() {
                       <TableHead>{t('Age')}</TableHead>
                       <TableHead>{t('Blood Group')}</TableHead>
                       <TableHead>{t('Location')}</TableHead>
-                      <TableHead className="text-right">{t('Actions')}</TableHead>
+                      <TableHead className="sticky right-0 bg-background text-right">
+                        {t('Actions')}
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -428,10 +432,14 @@ export default function PatientsPage() {
                             {patient.city || 'N/A'}
                           </div>
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="sticky right-0 bg-background text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label={`Actions for ${patient.firstName} ${patient.lastName}`}
+                              >
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>

@@ -71,10 +71,10 @@ export default function CommunicationSettingsPage() {
       // Load SMS settings
       if (data.sms) {
         setSmsGateway(data.sms.gateway || 'MSG91')
-        setSmsApiKey(data.sms.apiKey || '')
+        setSmsApiKey('')
         setSmsSenderId(data.sms.senderId || '')
         setSmsRoute(data.sms.route || '4')
-        setSmsAuthKey(data.sms.authKey || '')
+        setSmsAuthKey('')
         setSmsWebhookUrl(data.sms.webhookUrl || '')
         setSmsEnabled(data.sms.enabled !== 'false' && data.sms.enabled !== false)
       }
@@ -94,7 +94,7 @@ export default function CommunicationSettingsPage() {
         setEmailPort(data.email.smtp_port || '587')
         setEmailSecure(data.email.smtp_secure === 'true' || data.email.smtp_secure === true)
         setEmailUser(data.email.smtp_user || '')
-        setEmailPassword(data.email.smtp_password || '')
+        setEmailPassword('')
         setEmailFromName(data.email.from_name || 'Your Dental Clinic')
         setEmailFromEmail(data.email.from_email || '')
         setEmailReplyTo(data.email.replyTo || '')

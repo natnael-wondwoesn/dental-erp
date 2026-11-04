@@ -159,7 +159,7 @@ describe('POST /api/patient-portal/upload-photo', () => {
       name: 'photo.jpg',
       type: 'image/jpeg',
       size: 102400,
-      arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(8)),
+      arrayBuffer: vi.fn().mockResolvedValue(Uint8Array.from([0xff, 0xd8, 0xff, 0xd9]).buffer),
     }
 
     const req = makeMockFileRequest(mockFile, { description: 'Toothache', category: 'pain' })
@@ -193,6 +193,20 @@ describe('POST /api/patient-portal/upload-photo', () => {
     expect(res.status).toBe(400)
     const body = await res.json()
     expect(body.error).toContain('JPEG, PNG, and WebP')
+  })
+
+  it('rejects SVG content disguised as a JPEG and never stores it', async () => {
+    const bytes = new TextEncoder().encode('<svg><script>alert(1)</script></svg>')
+    const req = makeMockFileRequest({
+      name: 'attack.svg',
+      type: 'image/jpeg',
+      size: bytes.byteLength,
+      arrayBuffer: vi.fn().mockResolvedValue(bytes.buffer),
+    })
+
+    const res = await photoModule.POST(req)
+    expect(res.status).toBe(400)
+    expect(prisma.document.create).not.toHaveBeenCalled()
   })
 
   it('returns 400 for oversized file (>10MB)', async () => {

@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { generateOTP } from '@/lib/patient-auth'
+import { smsService } from '@/lib/services/sms.service'
+
+const GENERIC_RESPONSE = {
+  success: true,
+  message: 'If a matching patient account exists, an OTP will be sent.',
+}
 
 /**
  * POST: Send OTP to patient's phone for portal login.
@@ -44,10 +50,7 @@ export async function POST(req: NextRequest) {
     })
 
     if (!patient) {
-      return NextResponse.json(
-        { error: 'No patient account found with this phone number' },
-        { status: 404 }
-      )
+      return NextResponse.json(GENERIC_RESPONSE)
     }
 
     // Rate limit: max 5 OTPs in 10 minutes
@@ -70,6 +73,21 @@ export async function POST(req: NextRequest) {
     const otp = generateOTP()
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000) // 5 minutes
 
+    try {
+      await smsService.sendSMS({
+        hospitalId: hospital.id,
+        patientId: patient.id,
+        phone,
+        message: `${otp} is your ${hospital.name} patient portal code. It expires in 5 minutes.`,
+      })
+    } catch (error) {
+      console.error('Patient portal OTP delivery failed:', error)
+      return NextResponse.json(
+        { error: 'Patient portal sign-in is temporarily unavailable' },
+        { status: 503 }
+      )
+    }
+
     await prisma.patientOTP.create({
       data: {
         hospitalId: hospital.id,
@@ -79,18 +97,7 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // TODO: Send OTP via SMS using existing SMS service
-    // For now, log OTP in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[Patient Portal OTP] ${phone}: ${otp}`)
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: 'OTP sent to your phone number',
-      // Include OTP in dev mode for testing
-      ...(process.env.NODE_ENV === 'development' && { otp }),
-    })
+    return NextResponse.json(GENERIC_RESPONSE)
   } catch (err: unknown) {
     console.error('Send OTP error:', err)
     return NextResponse.json({ error: 'Failed to send OTP' }, { status: 500 })

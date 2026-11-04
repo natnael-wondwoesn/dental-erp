@@ -141,14 +141,23 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
       )
     }
 
-    let patient = await prisma.patient.findFirst({
+    // A phone number alone is not proof of identity. Only attach the booking to an
+    // existing chart when the submitted name also matches; otherwise create a
+    // separate record so an anonymous caller never touches (or learns about)
+    // someone else's patient file. Reception can merge duplicates later.
+    const sameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase()
+    const candidates = await prisma.patient.findMany({
       where: {
         hospitalId: hospital.id,
         phone: { in: ethiopianPhoneAliases(normalizedPhone) },
         isActive: true,
       },
       select: { id: true, firstName: true, lastName: true },
+      take: 10,
     })
+    let patient: { id: string; firstName: string; lastName: string } | null =
+      candidates.find((c) => sameName(c.firstName, firstName) && sameName(c.lastName, lastName)) ??
+      null
     let patientCreated = false
     if (!patient) {
       patient = await prisma.patient.create({

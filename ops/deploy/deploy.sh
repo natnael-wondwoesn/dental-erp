@@ -76,6 +76,19 @@ else
 fi
 [[ -s "$BACKUPS/$CLIENT/$STAMP.sql.gz" ]] || { echo "backup is empty, aborting" >&2; exit 1; }
 
+# Standard clinic stacks keep patient documents in the app's persistent
+# /app/uploads volume. Back it up beside the database before changing images.
+if [[ $LEGACY -eq 0 ]]; then
+  log "backing up uploaded files"
+  "${COMPOSE[@]}" exec -T app sh -c 'test ! -d /app/uploads || tar -C /app -czf - uploads' \
+    > "$BACKUPS/$CLIENT/$STAMP.uploads.tar.gz"
+  [[ -s "$BACKUPS/$CLIENT/$STAMP.uploads.tar.gz" ]] || {
+    echo "uploads backup is empty, aborting" >&2
+    exit 1
+  }
+  sha256sum "$BACKUPS/$CLIENT/$STAMP.uploads.tar.gz" > "$BACKUPS/$CLIENT/$STAMP.uploads.tar.gz.sha256"
+fi
+
 set_image() {
   if [[ $LEGACY -eq 1 ]]; then
     { echo "services:"; for s in $IMAGE_SERVICES; do printf '  %s:\n    image: %s\n' "$s" "$1"; done; } > "$OVERLAY"
@@ -113,4 +126,6 @@ echo "$STAMP ok $CLIENT $PREVIOUS -> $IMAGE" >> deployments.log
 log "done: $CLIENT now runs $IMAGE (previous: $PREVIOUS, backup: $BACKUPS/$CLIENT/$STAMP.sql.gz)"
 
 ls -1t "$BACKUPS/$CLIENT"/*.sql.gz 2>/dev/null | tail -n +15 | xargs -r rm -f
+ls -1t "$BACKUPS/$CLIENT"/*.uploads.tar.gz 2>/dev/null | tail -n +15 | xargs -r rm -f
+find "$BACKUPS/$CLIENT" -name '*.uploads.tar.gz.sha256' -type f -mtime +45 -delete
 docker image prune -f >/dev/null

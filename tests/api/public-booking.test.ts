@@ -169,7 +169,7 @@ describe('POST /api/public/[slug]/book', () => {
     vi.mocked(prisma.holiday.findFirst).mockResolvedValue(null)
     vi.mocked(prisma.staffShift.findUnique).mockResolvedValue(null)
     vi.mocked(prisma.appointment.findMany).mockResolvedValue([])
-    vi.mocked(prisma.patient.findFirst).mockResolvedValue(null)
+    vi.mocked(prisma.patient.findMany).mockResolvedValue([])
     vi.mocked(prisma.patient.create).mockResolvedValue({
       id: 'p-new',
       firstName: 'Abel',
@@ -201,11 +201,13 @@ describe('POST /api/public/[slug]/book', () => {
       patientPortalEnabled: true,
       workingHours: null,
     } as any)
-    vi.mocked(prisma.patient.findFirst).mockResolvedValue({
-      id: 'p1',
-      firstName: 'John',
-      lastName: 'Doe',
-    } as any)
+    vi.mocked(prisma.patient.findMany).mockResolvedValue([
+      {
+        id: 'p1',
+        firstName: 'Abel',
+        lastName: 'Tesfaye',
+      },
+    ] as any)
     vi.mocked(prisma.staff.findFirst).mockResolvedValue(null)
 
     const res = await publicBookPOST(
@@ -221,11 +223,13 @@ describe('POST /api/public/[slug]/book', () => {
       patientPortalEnabled: true,
       workingHours: null,
     } as any)
-    vi.mocked(prisma.patient.findFirst).mockResolvedValue({
-      id: 'p1',
-      firstName: 'John',
-      lastName: 'Doe',
-    } as any)
+    vi.mocked(prisma.patient.findMany).mockResolvedValue([
+      {
+        id: 'p1',
+        firstName: 'Abel',
+        lastName: 'Tesfaye',
+      },
+    ] as any)
     vi.mocked(prisma.staff.findFirst).mockResolvedValue({
       id: 'd1',
       firstName: 'Dr',
@@ -250,11 +254,13 @@ describe('POST /api/public/[slug]/book', () => {
       patientPortalEnabled: true,
       workingHours: null,
     } as any)
-    vi.mocked(prisma.patient.findFirst).mockResolvedValue({
-      id: 'p1',
-      firstName: 'John',
-      lastName: 'Doe',
-    } as any)
+    vi.mocked(prisma.patient.findMany).mockResolvedValue([
+      {
+        id: 'p1',
+        firstName: 'Abel',
+        lastName: 'Tesfaye',
+      },
+    ] as any)
     vi.mocked(prisma.staff.findFirst).mockResolvedValue({
       id: 'd1',
       firstName: 'Dr',
@@ -279,5 +285,43 @@ describe('POST /api/public/[slug]/book', () => {
     expect(body.success).toBe(true)
     expect(body.appointment.appointmentNo).toBe('APT00100')
     expect(body.appointment.doctor).toBe('Dr. Dr Smith')
+  })
+  it('does not attach a booking to an existing chart when the name differs', async () => {
+    vi.mocked(prisma.hospital.findUnique).mockResolvedValue({
+      id: 'h1',
+      patientPortalEnabled: true,
+      workingHours: null,
+    } as any)
+    vi.mocked(prisma.patient.findMany).mockResolvedValue([
+      { id: 'victim', firstName: 'Someone', lastName: 'Else' },
+    ] as any)
+    vi.mocked(prisma.staff.findFirst).mockResolvedValue({
+      id: 'd1',
+      firstName: 'Dr',
+      lastName: 'Smith',
+    } as any)
+    vi.mocked(prisma.holiday.findFirst).mockResolvedValue(null)
+    vi.mocked(prisma.staffShift.findUnique).mockResolvedValue(null)
+    vi.mocked(prisma.appointment.findMany).mockResolvedValue([])
+    vi.mocked(prisma.patient.create).mockResolvedValue({
+      id: 'new',
+      firstName: 'Abel',
+      lastName: 'Tesfaye',
+    } as any)
+    vi.mocked(prisma.appointment.create).mockResolvedValue({
+      appointmentNo: 'APT1',
+      scheduledDate: new Date('2099-03-15'),
+      scheduledTime: '10:00',
+    } as any)
+
+    const res = await publicBookPOST(
+      makeReq('/api/public/test/book', 'POST', validBooking),
+      makeParams('test')
+    )
+    expect(res.status).toBe(201)
+    expect(prisma.patient.create).toHaveBeenCalled()
+    expect(prisma.appointment.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ patientId: 'new' }) })
+    )
   })
 })

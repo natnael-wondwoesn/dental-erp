@@ -108,6 +108,7 @@ model Hospital {
 
   paymentGatewayConfig PaymentGatewayConfig?
   paymentLinks         PaymentLink[]
+  paymentOrders        PaymentOrder[]
   patientOTPs          PatientOTP[]
   formTemplates        FormTemplate[]
   formSubmissions      FormSubmission[]
@@ -1063,6 +1064,7 @@ model Invoice {
   items          InvoiceItem[]
   payments       Payment[]
   paymentLinks   PaymentLink[]
+  paymentOrders  PaymentOrder[]
   paymentPlans   PaymentPlan[]
   insuranceClaim InsuranceClaim? @relation(fields: [insuranceClaimId], references: [id])
 
@@ -1128,6 +1130,7 @@ model Payment {
   recordedBy User?    @relation("PaymentRecorder", fields: [recordedById], references: [id])
 
   @@unique([hospitalId, paymentNo])
+  @@unique([gateway, gatewayPaymentId])
   @@index([hospitalId])
   @@index([invoiceId])
   @@index([paymentDate])
@@ -1371,6 +1374,27 @@ model PaymentLink {
   @@index([hospitalId])
   @@index([token])
   @@index([invoiceId])
+}
+
+model PaymentOrder {
+  id            String    @id @default(cuid())
+  hospitalId    String
+  invoiceId     String
+  paymentLinkId String?
+  provider      String
+  orderId       String
+  amount        Decimal   @db.Decimal(10, 2)
+  currency      String
+  expiresAt     DateTime
+  consumedAt    DateTime?
+  createdAt     DateTime  @default(now())
+
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  invoice  Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, orderId])
+  @@index([hospitalId, invoiceId])
+  @@index([paymentLinkId])
 }
 
 // ==================== INVENTORY MANAGEMENT ====================

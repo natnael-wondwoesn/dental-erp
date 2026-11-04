@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { requireAuthAndRole, checkStaffLimit, generateToken } from '@/lib/api-helpers'
 import { Role, StaffInviteStatus } from '@prisma/client'
 import { sendInviteEmail } from '@/lib/email-helpers'
+import { saasEnforcement } from '@/lib/saas/server'
 
 const inviteSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -17,6 +18,13 @@ export async function POST(request: Request) {
 
   if (error || !hospitalId) {
     return error || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (saasEnforcement() === 'hosted') {
+    return NextResponse.json(
+      { error: 'Staff accounts are created by the platform owner' },
+      { status: 403 }
+    )
   }
 
   try {

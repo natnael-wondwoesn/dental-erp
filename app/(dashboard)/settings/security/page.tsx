@@ -156,6 +156,18 @@ export default function SecuritySettingsPage() {
         <p className="text-muted-foreground">Configure security policies and access controls</p>
       </div>
 
+      <div
+        role="note"
+        className="mb-6 flex gap-3 rounded-md border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900"
+      >
+        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
+        <p>
+          These values are recorded for your clinic&apos;s policy file only. They are{' '}
+          <strong>not yet enforced</strong> by the system. Sign-in is currently protected by
+          built-in rate limiting and secure session cookies, regardless of what is set here.
+        </p>
+      </div>
+
       <div className="space-y-6">
         {/* Password Policy */}
         <Card>

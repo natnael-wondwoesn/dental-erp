@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
             patient: {
               select: { firstName: true, lastName: true, email: true, phone: true },
             },
-            hospital: { select: { name: true } },
+            hospital: { select: { name: true, currency: true } },
           },
         },
       },
@@ -51,6 +51,18 @@ export async function POST(req: NextRequest) {
     }
 
     const payAmount = Math.min(amount || balance, balance)
+    if (payAmount <= 0) {
+      return NextResponse.json({ error: 'Invalid payment amount' }, { status: 400 })
+    }
+    const currency = link.invoice.hospital.currency || 'INR'
+    if (currency !== 'INR') {
+      return NextResponse.json(
+        {
+          error: `Online payment gateways are not available for ${currency}`,
+        },
+        { status: 400 }
+      )
+    }
 
     // Get gateway for this hospital
     const gatewayResult = await getGateway(link.hospitalId)
@@ -68,6 +80,19 @@ export async function POST(req: NextRequest) {
       customerName: `${link.invoice.patient.firstName} ${link.invoice.patient.lastName}`,
       customerEmail: link.invoice.patient.email || undefined,
       customerPhone: link.invoice.patient.phone,
+    })
+
+    await prisma.paymentOrder.create({
+      data: {
+        hospitalId: link.hospitalId,
+        invoiceId: link.invoice.id,
+        paymentLinkId: link.id,
+        provider: order.provider.toLowerCase(),
+        orderId: order.orderId,
+        amount: payAmount,
+        currency,
+        expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+      },
     })
 
     const checkoutConfig = gateway.getCheckoutConfig(order, credentials)

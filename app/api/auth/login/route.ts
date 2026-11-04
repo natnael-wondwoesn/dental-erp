@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticateCredentials, signAccessToken, toAuthenticatedUser } from '@/lib/auth-compat'
 import { loadSaaSAccess, saasEnforcement } from '@/lib/saas/server'
+import { loginClientIp } from '@/lib/login-throttle'
 
 export async function POST(req: NextRequest) {
   try {
-    const result = await authenticateCredentials(await req.json())
+    const result = await authenticateCredentials(await req.json(), loginClientIp(req.headers))
     if ('error' in result) {
       return NextResponse.json({ error: result.error }, { status: result.status })
     }
