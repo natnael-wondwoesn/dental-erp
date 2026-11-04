@@ -5,6 +5,7 @@ import { KeyRound } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Label } from '@/components/ui/label'
 
 export default function ChangePasswordPage() {
@@ -71,9 +72,8 @@ export default function ChangePasswordPage() {
               <Label htmlFor="current">
                 {required ? 'Temporary password' : 'Current password'}
               </Label>
-              <Input
+              <PasswordInput
                 id="current"
-                type="password"
                 autoComplete="current-password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
@@ -82,9 +82,8 @@ export default function ChangePasswordPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="new">New password</Label>
-              <Input
+              <PasswordInput
                 id="new"
-                type="password"
                 autoComplete="new-password"
                 minLength={10}
                 value={newPassword}
@@ -94,9 +93,8 @@ export default function ChangePasswordPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirm">Confirm new password</Label>
-              <Input
+              <PasswordInput
                 id="confirm"
-                type="password"
                 autoComplete="new-password"
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}

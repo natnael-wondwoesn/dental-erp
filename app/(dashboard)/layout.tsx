@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { DashboardShell } from '@/components/layout/dashboard-shell'
+import { isPathAllowedForRole } from '@/config/nav'
 import { AuthenticatedUser, getCurrentUser } from '@/lib/api-client'
 import {
   TenantAccessProvider,
@@ -26,6 +27,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         !pathname.startsWith('/owner/')
       ) {
         router.replace('/owner')
+      } else if (
+        !user.isPlatformOwner &&
+        !user.isPlatformControlPlane &&
+        !isPathAllowedForRole(user.roles[0] || '', pathname)
+      ) {
+        router.replace('/dashboard')
       } else if (!user.saas && user.roles.includes('DOCTOR') && pathname === '/dashboard') {
         router.replace('/doctor/dashboard')
       }
@@ -53,7 +60,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       >
         <TenantWorkspace>
           {identity.saas && ['/dashboard', '/doctor/dashboard'].includes(pathname) ? (
-            <ModularDashboard />
+            <ModularDashboard role={identity.roles[0]} />
           ) : (
             children
           )}

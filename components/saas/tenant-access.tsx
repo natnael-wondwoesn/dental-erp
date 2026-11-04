@@ -1,5 +1,6 @@
 'use client'
 
+import { isPathAllowedForRole } from '@/config/nav'
 import { createContext, useContext, useEffect, useState, type CSSProperties } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
@@ -100,7 +101,7 @@ export function TenantWorkspace({ children }: { children: React.ReactNode }) {
   )
 }
 
-export function ModularDashboard() {
+export function ModularDashboard({ role }: { role?: string }) {
   const { t } = useLanguage()
   const access = useTenantAccess()
   const links = [
@@ -133,6 +134,7 @@ export function ModularDashboard() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {links
           .filter(([id]) => access?.modules.includes(id))
+          .filter(([, href]) => !role || isPathAllowedForRole(role, href))
           .map(([id, href, label]) => (
             <Link
               key={id}

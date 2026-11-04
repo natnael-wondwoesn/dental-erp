@@ -9,6 +9,7 @@ import { z } from 'zod'
 import { Loader2, UserPlus, XCircle, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -231,9 +232,8 @@ function AcceptInviteContent() {
 
           <div className="space-y-2">
             <Label htmlFor="password">Create Password</Label>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               placeholder="At least 8 characters"
               {...register('password')}
               disabled={isSubmitting}
@@ -245,9 +245,8 @@ function AcceptInviteContent() {
 
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input
+            <PasswordInput
               id="confirmPassword"
-              type="password"
               placeholder="Confirm your password"
               {...register('confirmPassword')}
               disabled={isSubmitting}
