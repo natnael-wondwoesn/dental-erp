@@ -477,3 +477,28 @@ export function getNavigationForTier(
   if (tier === 'landing') return []
   return getNavigationForRole(role, isPlatformOwner)
 }
+
+const ALWAYS_ALLOWED_SEGMENTS = new Set(['dashboard', 'doctor', 'notifications', 'search', 'owner'])
+
+function firstSegment(path: string) {
+  return path.split('?')[0].split('/').filter(Boolean)[0] ?? ''
+}
+
+/** Top-level areas a role may open: whatever its sidebar offers, plus a few shared pages. */
+export function allowedSegmentsForRole(role: string): Set<string> {
+  const segments = new Set(ALWAYS_ALLOWED_SEGMENTS)
+  for (const section of getNavigationForRole(role)) {
+    for (const item of section.items) {
+      segments.add(firstSegment(item.href))
+      for (const sub of item.subItems ?? []) segments.add(firstSegment(sub.href))
+    }
+  }
+  return segments
+}
+
+/** Page-level guard that mirrors the sidebar so hidden modules are not reachable by URL or tile. */
+export function isPathAllowedForRole(role: string, path: string): boolean {
+  if (role === 'ADMIN') return true
+  if (path === '/settings/password') return true
+  return allowedSegmentsForRole(role).has(firstSegment(path))
+}

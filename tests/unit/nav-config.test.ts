@@ -212,3 +212,15 @@ describe('getNavigationForTier', () => {
     expect(getNavigationForTier('RECEPTIONIST', 'landing')).toEqual([])
   })
 })
+
+describe('role page guard', () => {
+  it('limits a receptionist to the areas in their sidebar', async () => {
+    const { isPathAllowedForRole } = await import('@/config/nav')
+    expect(isPathAllowedForRole('RECEPTIONIST', '/patients/abc')).toBe(true)
+    expect(isPathAllowedForRole('RECEPTIONIST', '/billing/invoices/new')).toBe(true)
+    expect(isPathAllowedForRole('RECEPTIONIST', '/settings/password')).toBe(true)
+    expect(isPathAllowedForRole('RECEPTIONIST', '/staff')).toBe(false)
+    expect(isPathAllowedForRole('RECEPTIONIST', '/inventory')).toBe(false)
+    expect(isPathAllowedForRole('ADMIN', '/staff')).toBe(true)
+  })
+})
