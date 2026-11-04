@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
   try {
     // Check if user has permission
-    if (!['ADMIN', 'ACCOUNTANT'].includes(session.user.role)) {
+    if (!['ADMIN', 'ACCOUNTANT', 'RECEPTIONIST'].includes(session.user.role)) {
       return NextResponse.json(
         { error: "You don't have permission to view reports" },
         { status: 403 }
