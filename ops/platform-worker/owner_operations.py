@@ -7,7 +7,7 @@ import re
 import subprocess
 import time
 
-ACTIONS = {'STATUS','USER_LIST','USER_CREATE','USER_UPDATE','DB_STOP','DB_START','DEMO_SEED','DEMO_RESET'}
+ACTIONS = {'STATUS','USER_LIST','USER_CREATE','USER_UPDATE','USER_RESET_PASSWORD','USER_DELETE','DB_STOP','DB_START','DEMO_SEED','DEMO_RESET'}
 REGISTRY = Path(os.environ.get('OWNER_TARGETS_PATH','/etc/sunny-smile/owner-targets.json'))
 PRIVATE_KEY = Path(os.environ.get('OWNER_USER_PRIVATE_KEY','/etc/sunny-smile/owner-user-private.pem'))
 HERE = Path(__file__).resolve().parent
@@ -55,13 +55,27 @@ def validate(job):
             raise OwnerOperationError('Invalid user email')
         if not isinstance(payload.get('encryptedPassword'),str) or not 100<=len(payload['encryptedPassword'])<=1400:
             raise OwnerOperationError('Encrypted credential required')
-    if action=='USER_UPDATE':
-        fields|={'userId','role','isActive'}
+    if action in {'USER_UPDATE','USER_RESET_PASSWORD','USER_DELETE'}:
+        fields.add('userId')
         if not isinstance(payload.get('userId'),str) or not IDENT.fullmatch(payload['userId']):
             raise OwnerOperationError('Invalid user ID')
+        if action!='USER_UPDATE' and target['productKey']!='dental-erp':
+            raise OwnerOperationError('This user action is available only for Dental ERP installations')
+    if action=='USER_RESET_PASSWORD':
+        fields.add('encryptedPassword')
+        if not isinstance(payload.get('encryptedPassword'),str) or not 100<=len(payload['encryptedPassword'])<=1400:
+            raise OwnerOperationError('Encrypted credential required')
+    if action=='USER_UPDATE':
+        fields|={'role','isActive','name','email'}
         if 'isActive' in payload and not isinstance(payload['isActive'],bool):
             raise OwnerOperationError('Invalid account status')
-        if not ({'role','isActive'} & payload.keys()):
+        if 'name' in payload and (not isinstance(payload['name'],str) or not 2<=len(payload['name'])<=120):
+            raise OwnerOperationError('Invalid user name')
+        if 'email' in payload and (not isinstance(payload['email'],str) or len(payload['email'])>255 or not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+',payload['email'])):
+            raise OwnerOperationError('Invalid user email')
+        if ({'name','email'} & payload.keys()) and target['productKey']!='dental-erp':
+            raise OwnerOperationError('This user action is available only for Dental ERP installations')
+        if not ({'role','isActive','name','email'} & payload.keys()):
             raise OwnerOperationError('No account change specified')
     if 'role' in payload and payload['role'] not in ROLES[target['productKey']]:
         raise OwnerOperationError('Unsupported product role')
@@ -131,7 +145,7 @@ def execute(job):
         return json.loads(output)
     data={k:v for k,v in payload.items() if k in {'action','name','email','role','userId','isActive'}}
     data.update(tenantId=target['tenantId'],operationId=job['id'])
-    if action=='USER_CREATE':
+    if action in {'USER_CREATE','USER_RESET_PASSWORD'}:
         credential=decrypt(payload['encryptedPassword'])
         if target['productKey']=='dental-erp':
             if not re.fullmatch(r'\$2[aby]\$12\$[./A-Za-z0-9]{53}',credential):
@@ -149,7 +163,7 @@ def execute(job):
     except subprocess.CalledProcessError as exc:
         # Adapters deliberately return only sanitized, credential-free errors.
         message=exc.stderr.decode(errors='replace').strip()
-        safe={'Email already exists','Clinic binding not found','Unsupported role','User not found in this clinic','Keep at least one active clinic administrator','Clinic account schema validation failed','User operation failed; check product schema compatibility','User operation failed: duplicate email or unavailable account schema'}
+        safe={'Email already exists','Clinic binding not found','Unsupported role','User not found in this clinic','Keep at least one active clinic administrator','User has clinical records; disable the account instead','Clinic account schema validation failed','User operation failed; check product schema compatibility','User operation failed: duplicate email or unavailable account schema'}
         if message not in safe and not re.fullmatch(r'User operation failed \(P[0-9]{4}\)',message):
             message='Clinic user operation failed; check product compatibility'
         raise OwnerOperationError(message) from None

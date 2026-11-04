@@ -64,6 +64,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     !productUserRoles[installation.product.key].includes(input.role)
   )
     return NextResponse.json({ error: 'Role is not supported by this product' }, { status: 400 })
+  if (
+    (input.action === 'USER_RESET_PASSWORD' ||
+      input.action === 'USER_DELETE' ||
+      (input.action === 'USER_UPDATE' && (input.name || input.email))) &&
+    installation.product.key !== 'dental-erp'
+  )
+    return NextResponse.json(
+      { error: 'This user action is available only for Dental ERP installations' },
+      { status: 400 }
+    )
   if (input.action === 'DB_STOP' && input.confirmHostname !== installation.hostname)
     return NextResponse.json(
       { error: 'Type the exact clinic hostname to stop its database' },
@@ -80,7 +90,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     )
   let temporaryPassword: string | undefined
   let encryptedPassword: string | undefined
-  if (input.action === 'USER_CREATE') {
+  if (input.action === 'USER_CREATE' || input.action === 'USER_RESET_PASSWORD') {
     const publicKey = process.env.PLATFORM_USER_PUBLIC_KEY_BASE64
     if (!publicKey)
       return NextResponse.json(

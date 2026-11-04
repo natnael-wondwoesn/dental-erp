@@ -5,6 +5,8 @@ export const ownerOperationActions = [
   'USER_LIST',
   'USER_CREATE',
   'USER_UPDATE',
+  'USER_RESET_PASSWORD',
+  'USER_DELETE',
   'DB_STOP',
   'DB_START',
   'DEMO_SEED',
@@ -34,15 +36,39 @@ export const ownerOperationSchema = z.discriminatedUnion('action', [
     .object({
       action: z.literal('USER_UPDATE'),
       userId: z.string().regex(/^[A-Za-z0-9_-]{1,64}$/),
+      name: z.string().trim().min(2).max(120).optional(),
+      email: z
+        .email()
+        .max(255)
+        .transform((s) => s.toLowerCase())
+        .optional(),
       role: z.string().min(1).max(40).optional(),
       isActive: z.boolean().optional(),
       reason,
     })
     .strict()
     .refine(
-      (v) => v.role !== undefined || v.isActive !== undefined,
-      'Choose a role or active status'
+      (v) =>
+        v.role !== undefined ||
+        v.isActive !== undefined ||
+        v.name !== undefined ||
+        v.email !== undefined,
+      'Choose a name, email, role or active status'
     ),
+  z
+    .object({
+      action: z.literal('USER_RESET_PASSWORD'),
+      userId: z.string().regex(/^[A-Za-z0-9_-]{1,64}$/),
+      reason,
+    })
+    .strict(),
+  z
+    .object({
+      action: z.literal('USER_DELETE'),
+      userId: z.string().regex(/^[A-Za-z0-9_-]{1,64}$/),
+      reason,
+    })
+    .strict(),
   z.object({ action: z.literal('DB_STOP'), confirmHostname: z.string().min(1), reason }).strict(),
   z.object({ action: z.literal('DB_START'), reason }).strict(),
   z.object({ action: z.literal('DEMO_SEED'), reason }).strict(),

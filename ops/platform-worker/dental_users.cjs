@@ -89,11 +89,54 @@ const selected = {
         })
         if (!other) throw Error('Keep at least one active clinic administrator')
       }
+      if (x.action === 'USER_RESET_PASSWORD') {
+        const updated = await tx.user.update({
+          where: { id: user.id },
+          data: { password: x.passwordHash, mustChangePassword: true },
+          select: selected,
+        })
+        return { user: updated, message: 'Password reset; the user must change it at next sign-in' }
+      }
+      if (x.action === 'USER_DELETE') {
+        if (user.role === 'ADMIN' && user.isActive) {
+          const other = await tx.user.count({
+            where: {
+              hospitalId: x.tenantId,
+              role: 'ADMIN',
+              isActive: true,
+              isPlatformOwner: false,
+              id: { not: user.id },
+            },
+          })
+          if (!other) throw Error('Keep at least one active clinic administrator')
+        }
+        try {
+          await tx.staff.deleteMany({ where: { userId: user.id, hospitalId: x.tenantId } })
+          await tx.user.delete({ where: { id: user.id } })
+        } catch (e) {
+          if (e.code === 'P2003' || e.code === 'P2014')
+            throw Error('User has clinical records; disable the account instead')
+          throw e
+        }
+        return { deleted: user.id, message: 'User deleted' }
+      }
       const data = {
+        ...(x.name !== undefined ? { name: x.name } : {}),
+        ...(x.email !== undefined ? { email: x.email } : {}),
         ...(x.role !== undefined ? { role: x.role, isHospitalAdmin: x.role === 'ADMIN' } : {}),
         ...(x.isActive !== undefined ? { isActive: x.isActive } : {}),
       }
       const updated = await tx.user.update({ where: { id: user.id }, data, select: selected })
+      if (x.name !== undefined || x.email !== undefined) {
+        const [firstName, ...rest] = (x.name ?? user.name).split(' ')
+        await tx.staff.updateMany({
+          where: { userId: user.id, hospitalId: x.tenantId },
+          data: {
+            ...(x.name !== undefined ? { firstName, lastName: rest.join(' ') } : {}),
+            ...(x.email !== undefined ? { email: x.email } : {}),
+          },
+        })
+      }
       if (x.isActive !== undefined)
         await tx.staff.updateMany({
           where: { userId: user.id, hospitalId: x.tenantId },
@@ -115,6 +158,7 @@ const selected = {
                 'Unsupported role',
                 'User not found in this clinic',
                 'Keep at least one active clinic administrator',
+                'User has clinical records; disable the account instead',
               ].includes(e.message)
             ? e.message
             : 'Clinic account schema validation failed'
