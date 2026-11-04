@@ -67,6 +67,7 @@ model Hospital {
   treatments             Treatment[]
   treatmentPlans         TreatmentPlan[]
   dentalChartEntries     DentalChartEntry[]
+  dentalExaminations     DentalExamination[]
   bracesCases            BracesCase[]
   bracesVisits           BracesVisit[]
   prescriptions          Prescription[]
@@ -490,6 +491,7 @@ model Patient {
   treatments         Treatment[]
   treatmentPlans     TreatmentPlan[]
   dentalChart        DentalChartEntry[]
+  dentalExaminations DentalExamination[]
   bracesCases        BracesCase[]
   prescriptions      Prescription[]
   invoices           Invoice[]
@@ -1024,6 +1026,27 @@ model Medication {
 
   @@index([hospitalId])
   @@index([name])
+}
+
+// One saved dental chart examination. `teeth` only holds assessed teeth
+// ({ "36": { condition, treatmentRequired, notes } }); a tooth missing from the
+// map is unassessed. Current condition and planned treatment are kept apart.
+model DentalExamination {
+  id          String   @id @default(cuid())
+  hospitalId  String
+  patientId   String
+  examinedAt  DateTime
+  dentistId   String?
+  dentistName String
+  teeth       Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  patient  Patient  @relation(fields: [patientId], references: [id])
+
+  @@index([hospitalId])
+  @@index([patientId, examinedAt])
 }
 
 // ==================== BILLING & FINANCIAL ====================

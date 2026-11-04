@@ -1,9 +1,11 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
+import { X } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 import {
   Dialog,
   DialogContent,
@@ -21,182 +23,143 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
+import { useToast } from '@/hooks/use-toast'
 import {
   toothConditionConfig,
   toothNumbers,
   toothNames,
-  toothSurfaceLabels,
   getToothType,
+  unassessedToothStyle,
 } from '@/lib/treatment-utils'
+import {
+  EXAM_CONDITIONS,
+  EXAM_TREATMENTS,
+  type ExamTeeth,
+  type ExamTooth,
+} from '@/lib/dental-examination'
 
-interface DentalChartEntry {
+interface SavedExamination {
   id: string
-  toothNumber: number
-  condition: string
-  surfaces: string | null
-  notes: string | null
-  recordedDate: string
-  isActive: boolean
-  recordedBy?: {
-    firstName: string
-    lastName: string
-  }
+  examinedAt: string
+  dentistName: string
+  teeth: ExamTeeth
 }
 
 interface DentalChartProps {
   patientId: string
-  entries?: DentalChartEntry[]
-  onToothClick?: (toothNumber: number, entries: DentalChartEntry[]) => void
-  onEntryCreate?: (data: any) => Promise<void>
-  onEntryUpdate?: (id: string, data: any) => Promise<void>
-  editable?: boolean
   selectedTeeth?: number[]
   onTeethSelect?: (teeth: number[]) => void
 }
 
-const conditions = [
-  'HEALTHY',
-  'CARIES',
-  'FILLED',
-  'CROWN',
-  'BRIDGE',
-  'MISSING',
-  'IMPLANT',
-  'ROOT_CANAL',
-  'EXTRACTION_NEEDED',
-  'VENEER',
-]
-
-const surfaces = ['M', 'D', 'O', 'B', 'L', 'I', 'F', 'P']
-
-const EMPTY_ENTRIES: DentalChartEntry[] = []
 const EMPTY_TEETH: number[] = []
+const LEGEND = ['UNASSESSED', ...EXAM_CONDITIONS.map((c) => c.value)]
+const today = () => new Date().toISOString().slice(0, 10)
+
+// "Lower Left First Molar" -> "First Molar"
+const shortToothName = (n: number) =>
+  (toothNames[n] || '').replace(/^(Upper|Lower) (Left|Right) /, '')
+const conditionLabel = (value?: string) =>
+  value && value !== 'UNASSESSED' ? toothConditionConfig[value]?.label : unassessedToothStyle.label
 
 export function DentalChart({
   patientId,
-  entries = EMPTY_ENTRIES,
-  onToothClick,
-  onEntryCreate,
-  onEntryUpdate,
-  editable = false,
   selectedTeeth = EMPTY_TEETH,
   onTeethSelect,
 }: DentalChartProps) {
-  const [chartData, setChartData] = useState<Record<number, DentalChartEntry[]>>({})
-  const [selectedTooth, setSelectedTooth] = useState<number | null>(null)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [dialogMode, setDialogMode] = useState<'view' | 'edit' | 'add'>('view')
-  const [formData, setFormData] = useState({
-    condition: 'HEALTHY',
-    surfaces: [] as string[],
+  const { toast } = useToast()
+  const [teeth, setTeeth] = useState<ExamTeeth>({})
+  const [examinations, setExaminations] = useState<SavedExamination[]>([])
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [examDate, setExamDate] = useState(today())
+  const [dirty, setDirty] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  const [detailTooth, setDetailTooth] = useState<number | null>(null)
+  const [form, setForm] = useState<ExamTooth>({
+    condition: '',
+    treatmentRequired: 'NONE',
     notes: '',
   })
-  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // A new examination starts from the latest saved one; a brand-new chart is all grey.
+  const loadExaminations = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/dental-examinations?patientId=${patientId}`)
+      if (!res.ok) return
+      const data = await res.json()
+      const list: SavedExamination[] = data.examinations || []
+      setExaminations(list)
+      setTeeth(list[0]?.teeth ? { ...list[0].teeth } : {})
+      setEditingId(null)
+      setExamDate(today())
+      setDirty(false)
+    } catch {
+      /* chart stays usable without history */
+    }
+  }, [patientId])
 
   useEffect(() => {
-    // Group entries by tooth number
-    const grouped: Record<number, DentalChartEntry[]> = {}
-    entries.forEach((entry) => {
-      if (!grouped[entry.toothNumber]) {
-        grouped[entry.toothNumber] = []
-      }
-      grouped[entry.toothNumber].push(entry)
-    })
-    setChartData(grouped)
-  }, [entries])
+    loadExaminations()
+  }, [loadExaminations])
 
-  const getToothCondition = (toothNumber: number): string => {
-    const toothEntries = chartData[toothNumber]
-    if (!toothEntries || toothEntries.length === 0) return 'HEALTHY'
-    // Return the most recent active entry's condition
-    const activeEntry = toothEntries.find((e) => e.isActive)
-    return activeEntry?.condition || 'HEALTHY'
-  }
+  const getToothCondition = (toothNumber: number): string =>
+    teeth[String(toothNumber)]?.condition || 'UNASSESSED'
 
-  const getToothColor = (toothNumber: number): string => {
-    const condition = getToothCondition(toothNumber)
-    const config = toothConditionConfig[condition]
-    return config?.fillColor || '#22c55e'
+  const getToothColor = (toothNumber: number): string =>
+    toothConditionConfig[getToothCondition(toothNumber)]?.fillColor ||
+    unassessedToothStyle.fillColor
+
+  const openDetails = (toothNumber: number) => {
+    const existing = teeth[String(toothNumber)]
+    setForm(existing ? { ...existing } : { condition: '', treatmentRequired: 'NONE', notes: '' })
+    setDetailTooth(toothNumber)
   }
 
   const handleToothClick = (toothNumber: number) => {
-    if (onTeethSelect) {
-      // Selection mode for treatment
-      const isSelected = selectedTeeth.includes(toothNumber)
-      if (isSelected) {
-        onTeethSelect(selectedTeeth.filter((t) => t !== toothNumber))
-      } else {
-        onTeethSelect([...selectedTeeth, toothNumber])
-      }
-    } else {
-      // View/Edit mode
-      setSelectedTooth(toothNumber)
-      const toothEntries = chartData[toothNumber] || []
+    if (onTeethSelect && !selectedTeeth.includes(toothNumber)) {
+      onTeethSelect([...selectedTeeth, toothNumber])
+    }
+    openDetails(toothNumber)
+  }
 
-      if (editable) {
-        if (toothEntries.length > 0) {
-          const latestEntry = toothEntries.find((e) => e.isActive) || toothEntries[0]
-          setFormData({
-            condition: latestEntry.condition,
-            surfaces: latestEntry.surfaces ? latestEntry.surfaces.split(',') : [],
-            notes: latestEntry.notes || '',
-          })
-          setDialogMode('edit')
-        } else {
-          setFormData({
-            condition: 'HEALTHY',
-            surfaces: [],
-            notes: '',
-          })
-          setDialogMode('add')
+  const applyToothDetails = () => {
+    if (!detailTooth || !form.condition) return
+    setTeeth((prev) => ({ ...prev, [String(detailTooth)]: form }))
+    setDirty(true)
+    setDetailTooth(null)
+  }
+
+  const saveChart = async () => {
+    setSaving(true)
+    try {
+      const res = await fetch(
+        editingId ? `/api/dental-examinations/${editingId}` : '/api/dental-examinations',
+        {
+          method: editingId ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ patientId, examinedAt: examDate, teeth }),
         }
-      } else {
-        setDialogMode('view')
-      }
-
-      setIsDialogOpen(true)
-
-      if (onToothClick) {
-        onToothClick(toothNumber, toothEntries)
-      }
+      )
+      if (!res.ok) throw new Error((await res.json()).error || 'Failed to save chart')
+      toast({ title: 'Dental chart saved' })
+      await loadExaminations()
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Error', description: error.message })
+    } finally {
+      setSaving(false)
     }
   }
 
-  const handleSubmit = async () => {
-    if (!selectedTooth) return
-
-    setIsSubmitting(true)
-    try {
-      const data = {
-        patientId,
-        toothNumber: selectedTooth,
-        condition: formData.condition,
-        surfaces: formData.surfaces.length > 0 ? formData.surfaces.join(',') : null,
-        notes: formData.notes || null,
-      }
-
-      if (dialogMode === 'add' && onEntryCreate) {
-        await onEntryCreate(data)
-      } else if (dialogMode === 'edit' && onEntryUpdate) {
-        const existingEntry = chartData[selectedTooth]?.find((e) => e.isActive)
-        if (existingEntry) {
-          await onEntryUpdate(existingEntry.id, data)
-        }
-      }
-
-      setIsDialogOpen(false)
-    } catch (error) {
-      console.error('Error saving dental chart entry:', error)
-    } finally {
-      setIsSubmitting(false)
-    }
+  const openExamination = (exam: SavedExamination) => {
+    setTeeth({ ...exam.teeth })
+    setEditingId(exam.id)
+    setExamDate(exam.examinedAt.slice(0, 10))
+    setDirty(false)
   }
 
   const renderTooth = (toothNumber: number, position: 'upper' | 'lower') => {
     const condition = getToothCondition(toothNumber)
     const isSelected = selectedTeeth.includes(toothNumber)
-    const hasEntry = chartData[toothNumber]?.some((e) => e.isActive)
     const toothType = getToothType(toothNumber)
 
     // Tooth dimensions based on type
@@ -218,7 +181,7 @@ export function DentalChart({
           relative flex flex-col items-center justify-center
           transition-all duration-200 hover:scale-110
           ${isSelected ? 'ring-2 ring-primary ring-offset-2' : ''}
-          ${hasEntry && condition !== 'HEALTHY' ? 'cursor-pointer' : 'cursor-pointer'}
+          cursor-pointer
         `}
         title={`${toothNumber}: ${toothNames[toothNumber]}`}
       >
@@ -304,13 +267,16 @@ export function DentalChart({
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Dental Chart</CardTitle>
           <div className="flex gap-2 flex-wrap">
-            {Object.entries(toothConditionConfig).map(([key, config]) => (
+            {LEGEND.map((key) => (
               <div key={key} className="flex items-center gap-1 text-xs">
                 <div
                   className="w-3 h-3 rounded-full border border-border"
-                  style={{ backgroundColor: config.fillColor }}
+                  style={{
+                    backgroundColor:
+                      toothConditionConfig[key]?.fillColor ?? unassessedToothStyle.fillColor,
+                  }}
                 />
-                <span className="text-muted-foreground">{config.label}</span>
+                <span className="text-muted-foreground">{conditionLabel(key)}</span>
               </div>
             ))}
           </div>
@@ -322,28 +288,23 @@ export function DentalChart({
           <div className="text-center">
             <div className="text-sm font-medium text-muted-foreground mb-2">Upper Jaw</div>
             <div className="flex gap-1 justify-center">
-              {/* Upper Right (18-11) */}
               <div className="flex gap-1 border-r-2 border-border pr-2">
                 {toothNumbers.upperRight.map((num) => renderTooth(num, 'upper'))}
               </div>
-              {/* Upper Left (21-28) */}
               <div className="flex gap-1 pl-2">
                 {toothNumbers.upperLeft.map((num) => renderTooth(num, 'upper'))}
               </div>
             </div>
           </div>
 
-          {/* Divider */}
           <div className="w-full border-t border-border" />
 
-          {/* Lower Jaw */}
+          {/* Lower Jaw: 48-41 | 31-38 */}
           <div className="text-center">
             <div className="flex gap-1 justify-center">
-              {/* Lower Right (48-41) */}
               <div className="flex gap-1 border-r-2 border-border pr-2">
                 {toothNumbers.lowerRight.map((num) => renderTooth(num, 'lower'))}
               </div>
-              {/* Lower Left (31-38) */}
               <div className="flex gap-1 pl-2">
                 {toothNumbers.lowerLeft.map((num) => renderTooth(num, 'lower'))}
               </div>
@@ -355,155 +316,179 @@ export function DentalChart({
         {/* Selected teeth display */}
         {selectedTeeth.length > 0 && (
           <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-            <div className="text-sm font-medium mb-2">Selected Teeth:</div>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm font-medium">Selected Teeth:</div>
+              {onTeethSelect && (
+                <Button type="button" variant="ghost" size="sm" onClick={() => onTeethSelect([])}>
+                  Clear All
+                </Button>
+              )}
+            </div>
             <div className="flex flex-wrap gap-2">
-              {selectedTeeth
+              {[...selectedTeeth]
                 .sort((a, b) => a - b)
                 .map((tooth) => (
-                  <Badge key={tooth} variant="secondary">
-                    {tooth} - {toothNames[tooth]?.split(' ').slice(-2).join(' ')}
+                  <Badge key={tooth} variant="secondary" className="gap-1 pr-1">
+                    <button
+                      type="button"
+                      className="hover:underline"
+                      onClick={() => openDetails(tooth)}
+                    >
+                      {tooth} – {shortToothName(tooth)} – {conditionLabel(getToothCondition(tooth))}
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Remove tooth ${tooth}`}
+                      className="rounded p-0.5 hover:bg-muted"
+                      onClick={() => onTeethSelect?.(selectedTeeth.filter((t) => t !== tooth))}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
                   </Badge>
                 ))}
             </div>
           </div>
         )}
+
+        {/* Examination: date, save and history */}
+        <div className="mt-4 space-y-3 border-t pt-4">
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="exam-date">Examination date</Label>
+              <Input
+                id="exam-date"
+                type="date"
+                className="w-44"
+                value={examDate}
+                onChange={(e) => {
+                  setExamDate(e.target.value)
+                  setDirty(true)
+                }}
+              />
+            </div>
+            <Button
+              type="button"
+              onClick={saveChart}
+              disabled={saving || !patientId || !examDate || (!dirty && !!editingId)}
+            >
+              {saving ? 'Saving...' : editingId ? 'Update Chart' : 'Save Chart'}
+            </Button>
+            {editingId && (
+              <Button type="button" variant="outline" onClick={loadExaminations}>
+                Cancel edit
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {editingId
+              ? 'Editing a previously saved examination.'
+              : 'Saving creates a new examination; earlier ones are kept. The dentist is recorded from your login.'}
+          </p>
+
+          {examinations.length > 0 && (
+            <div className="space-y-1">
+              <div className="text-sm font-medium">Previous examinations</div>
+              {examinations.map((exam) => (
+                <div
+                  key={exam.id}
+                  className="flex items-center justify-between rounded border p-2 text-sm"
+                >
+                  <span>
+                    {new Date(exam.examinedAt).toLocaleDateString()} · {exam.dentistName} ·{' '}
+                    {Object.keys(exam.teeth).length === 1
+                      ? '1 tooth recorded'
+                      : `${Object.keys(exam.teeth).length} teeth recorded`}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => openExamination(exam)}
+                  >
+                    {editingId === exam.id ? 'Open' : 'View / Edit'}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </CardContent>
 
       {/* Tooth Detail Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={detailTooth !== null} onOpenChange={(open) => !open && setDetailTooth(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              Tooth {selectedTooth} - {selectedTooth && toothNames[selectedTooth]}
+              Tooth {detailTooth} – {detailTooth ? shortToothName(detailTooth) : ''}
             </DialogTitle>
             <DialogDescription>
-              {dialogMode === 'view'
-                ? 'View tooth condition and history'
-                : dialogMode === 'add'
-                  ? 'Add new condition record'
-                  : 'Update tooth condition'}
+              Current condition and planned treatment are recorded separately.
             </DialogDescription>
           </DialogHeader>
 
-          {dialogMode === 'view' ? (
-            <div className="space-y-4">
-              {selectedTooth && chartData[selectedTooth]?.length > 0 ? (
-                chartData[selectedTooth]
-                  .filter((e) => e.isActive)
-                  .map((entry) => (
-                    <div key={entry.id} className="p-3 border rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <Badge
-                          className={`${toothConditionConfig[entry.condition]?.bgColor} ${toothConditionConfig[entry.condition]?.color}`}
-                        >
-                          {toothConditionConfig[entry.condition]?.label}
-                        </Badge>
-                        <span className="text-sm text-muted-foreground">
-                          {new Date(entry.recordedDate).toLocaleDateString()}
-                        </span>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Current Condition</Label>
+              <Select
+                value={form.condition}
+                onValueChange={(v) => setForm({ ...form, condition: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select condition" />
+                </SelectTrigger>
+                <SelectContent>
+                  {EXAM_CONDITIONS.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: toothConditionConfig[c.value]?.fillColor }}
+                        />
+                        {c.label}
                       </div>
-                      {entry.surfaces && (
-                        <div className="text-sm mb-1">
-                          <span className="font-medium">Surfaces:</span>{' '}
-                          {entry.surfaces
-                            .split(',')
-                            .map((s) => toothSurfaceLabels[s] || s)
-                            .join(', ')}
-                        </div>
-                      )}
-                      {entry.notes && (
-                        <div className="text-sm text-muted-foreground">{entry.notes}</div>
-                      )}
-                      {entry.recordedBy && (
-                        <div className="text-xs text-muted-foreground mt-2">
-                          Recorded by Dr. {entry.recordedBy.firstName} {entry.recordedBy.lastName}
-                        </div>
-                      )}
-                    </div>
-                  ))
-              ) : (
-                <div className="text-center py-4 text-muted-foreground">
-                  No conditions recorded for this tooth
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Condition</Label>
-                <Select
-                  value={formData.condition}
-                  onValueChange={(value) => setFormData({ ...formData, condition: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select condition" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {conditions.map((condition) => (
-                      <SelectItem key={condition} value={condition}>
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: toothConditionConfig[condition]?.fillColor }}
-                          />
-                          {toothConditionConfig[condition]?.label}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Affected Surfaces</Label>
-                <div className="flex flex-wrap gap-2">
-                  {surfaces.map((surface) => (
-                    <label
-                      key={surface}
-                      className="flex items-center gap-2 p-2 border rounded cursor-pointer hover:bg-muted/50"
-                    >
-                      <Checkbox
-                        checked={formData.surfaces.includes(surface)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setFormData({ ...formData, surfaces: [...formData.surfaces, surface] })
-                          } else {
-                            setFormData({
-                              ...formData,
-                              surfaces: formData.surfaces.filter((s) => s !== surface),
-                            })
-                          }
-                        }}
-                      />
-                      <span className="text-sm">
-                        {surface} ({toothSurfaceLabels[surface]})
-                      </span>
-                    </label>
+                    </SelectItem>
                   ))}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Notes</Label>
-                <Textarea
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="Add any observations or notes..."
-                  rows={3}
-                />
-              </div>
+                </SelectContent>
+              </Select>
             </div>
-          )}
+
+            <div className="space-y-2">
+              <Label>Treatment Required</Label>
+              <Select
+                value={form.treatmentRequired}
+                onValueChange={(v) => setForm({ ...form, treatmentRequired: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {EXAM_TREATMENTS.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Clinical Notes</Label>
+              <Textarea
+                value={form.notes}
+                onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                placeholder="Add any observations or notes..."
+                rows={3}
+              />
+            </div>
+          </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              {dialogMode === 'view' ? 'Close' : 'Cancel'}
+            <Button type="button" variant="outline" onClick={() => setDetailTooth(null)}>
+              Cancel
             </Button>
-            {dialogMode !== 'view' && (
-              <Button onClick={handleSubmit} disabled={isSubmitting}>
-                {isSubmitting ? 'Saving...' : 'Save'}
-              </Button>
-            )}
+            <Button type="button" onClick={applyToothDetails} disabled={!form.condition}>
+              Save
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

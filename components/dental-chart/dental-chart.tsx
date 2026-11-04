@@ -49,6 +49,7 @@ interface DentalChartProps {
 }
 
 const TOOTH_CONDITIONS = [
+  { value: 'UNASSESSED', label: 'Not examined', color: 'bg-gray-300' },
   { value: 'HEALTHY', label: 'Healthy', color: 'bg-green-500' },
   { value: 'CARIES', label: 'Caries', color: 'bg-red-500' },
   { value: 'FILLED', label: 'Filled', color: 'bg-blue-500' },
@@ -133,7 +134,7 @@ interface ToothProps {
 
 function Tooth({ number, entries, onClick, isUpper }: ToothProps) {
   const activeEntry = entries.find((e) => !e.resolvedDate)
-  const condition = activeEntry?.condition || 'HEALTHY'
+  const condition = activeEntry?.condition || 'UNASSESSED'
   const isMissing = condition === 'MISSING' || condition === 'EXTRACTION'
 
   return (
@@ -504,7 +505,7 @@ export function DentalChart({ patientId }: DentalChartProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {TOOTH_CONDITIONS.map((condition) => (
+                    {TOOTH_CONDITIONS.filter((c) => c.value !== 'UNASSESSED').map((condition) => (
                       <SelectItem key={condition.value} value={condition.value}>
                         <div className="flex items-center gap-2">
                           <div className={`w-3 h-3 rounded ${condition.color}`} />

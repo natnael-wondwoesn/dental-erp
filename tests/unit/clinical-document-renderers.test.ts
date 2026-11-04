@@ -20,7 +20,8 @@ describe('clinical document renderers', () => {
     (template) => {
       const html = renderClinicPrintableHtml(template, clinic)
 
-      expect(html).toContain('D/R Lemlem Special Dental Clinic')
+      if (template !== 'laboratory-order')
+        expect(html).toContain('D/R Lemlem Special Dental Clinic')
       expect(html).toContain(CLINIC_PRINTABLES[template])
       expect(html).toContain('window.print()')
       if (template === 'berhanu-orthodontic-guidance') {
@@ -63,6 +64,18 @@ describe('clinical document renderers', () => {
       )
     ).toBe(false)
     expect(isClinicPrintableAllowedForClinic('consent', 'Any Dental Clinic')).toBe(true)
+  })
+
+  it('numbers cash sales attachments from the supplied sequence and omits the clinic name from lab orders', () => {
+    expect(renderClinicPrintableHtml('cash-sales-attachment', clinic, '001')).toContain(
+      '<strong>001</strong>'
+    )
+    expect(renderClinicPrintableHtml('cash-sales-attachment', clinic, '014')).toContain(
+      '<strong>014</strong>'
+    )
+    const lab = renderClinicPrintableHtml('laboratory-order', clinic)
+    expect(lab).not.toContain('Lemlem')
+    expect(lab).not.toContain('Name of clinic')
   })
 
   it('preserves the supplied clinic identity instead of substituting another clinic', () => {

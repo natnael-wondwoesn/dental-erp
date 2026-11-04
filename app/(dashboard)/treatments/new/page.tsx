@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ArrowLeft, Search, User, Stethoscope, Save, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Search, User, Stethoscope, Save, AlertCircle, Plus, Minus } from 'lucide-react'
 import { DentalChart } from '@/components/treatments/dental-chart'
 import { procedureCategoryConfig, formatCurrency } from '@/lib/treatment-utils'
 import { TreatmentAssist } from '@/components/ai/treatment-assist'
@@ -53,6 +53,8 @@ interface Procedure {
   defaultDuration: number
   basePrice: string | number
 }
+
+const COST_STEP = 100 // ETB
 
 export default function NewTreatmentPage() {
   const router = useRouter()
@@ -176,6 +178,12 @@ export default function NewTreatmentPage() {
       cost: procedure ? procedure.basePrice.toString() : '',
     })
   }
+
+  const adjustCost = (delta: number) =>
+    setFormData((prev) => ({
+      ...prev,
+      cost: String(Math.max(0, (parseFloat(prev.cost) || 0) + delta)),
+    }))
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -401,14 +409,41 @@ export default function NewTreatmentPage() {
 
             <div className="space-y-2">
               <Label htmlFor="cost">Treatment Cost</Label>
-              <Input
-                id="cost"
-                type="number"
-                step="0.01"
-                value={formData.cost}
-                onChange={(e) => setFormData({ ...formData, cost: e.target.value })}
-                placeholder="Enter treatment cost"
-              />
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  aria-label="Decrease treatment cost by 100 ETB"
+                  onClick={() => adjustCost(-COST_STEP)}
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <Input
+                  id="cost"
+                  type="number"
+                  min="0"
+                  step="any"
+                  value={formData.cost}
+                  onChange={(e) => setFormData({ ...formData, cost: e.target.value })}
+                  onKeyDown={(e) => {
+                    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                      e.preventDefault()
+                      adjustCost(e.key === 'ArrowUp' ? COST_STEP : -COST_STEP)
+                    }
+                  }}
+                  placeholder="Enter treatment cost"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  aria-label="Increase treatment cost by 100 ETB"
+                  onClick={() => adjustCost(COST_STEP)}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

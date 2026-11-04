@@ -265,6 +265,12 @@ export default function BillingPage() {
               return rows
             }}
           />
+          <Link href="/billing/outstanding">
+            <Button variant="outline">
+              <AlertCircle className="h-4 w-4 mr-2" />
+              {t('Outstanding Balances')}
+            </Button>
+          </Link>
           <Link href="/billing/invoices/new">
             <Button>
               <Plus className="h-4 w-4 mr-2" />

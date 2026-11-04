@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -96,7 +96,7 @@ export default function NewPrescriptionPage() {
 
   // Medication search
   const [medSearch, setMedSearch] = useState('')
-  const [medOptions, setMedOptions] = useState<MedicationOption[]>([])
+  const [medCatalog, setMedCatalog] = useState<MedicationOption[]>([])
   const [searchingMeds, setSearchingMeds] = useState(false)
   const [activeMedRow, setActiveMedRow] = useState<number | null>(null)
 
@@ -159,28 +159,38 @@ export default function NewPrescriptionPage() {
     return () => clearTimeout(timer)
   }, [patientSearch])
 
-  // Medication search
+  // Medication catalog: loaded once, filtered client-side as the doctor types
   useEffect(() => {
-    if (medSearch.length < 2) {
-      setMedOptions([])
-      return
-    }
-    const timer = setTimeout(async () => {
-      setSearchingMeds(true)
-      try {
-        const res = await fetch(
-          `/api/medications?search=${encodeURIComponent(medSearch)}&limit=10&active=true`
-        )
-        const result = await res.json()
-        setMedOptions(result.data || [])
-      } catch {
+    let active = true
+    setSearchingMeds(true)
+    fetch('/api/medications?limit=500&active=true')
+      .then((res) => res.json())
+      .then((result) => {
+        if (active) setMedCatalog(result.data || [])
+      })
+      .catch(() => {
         /* ignore */
-      }
-      setSearchingMeds(false)
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [medSearch])
+      })
+      .finally(() => {
+        if (active) setSearchingMeds(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
+  const medOptions = useMemo(() => {
+    const q = medSearch.trim().toLowerCase()
+    const matches = q
+      ? medCatalog.filter(
+          (m) =>
+            m.name.toLowerCase().startsWith(q) || (m.genericName || '').toLowerCase().startsWith(q)
+        )
+      : medCatalog
+    return matches.slice(0, 50)
+  }, [medCatalog, medSearch])
+
+  // Only the Medication Name is populated; dosage, frequency and duration stay manual.
   const selectMedication = (med: MedicationOption, rowIndex: number) => {
     setMedications((prev) =>
       prev.map((r, i) =>
@@ -189,15 +199,11 @@ export default function NewPrescriptionPage() {
               ...r,
               medicationId: med.id,
               medicationName: `${med.name}${med.strength ? ` ${med.strength}` : ''}${med.form ? ` (${med.form})` : ''}`,
-              dosage: r.dosage || med.defaultDosage || '',
-              frequency: r.frequency || med.defaultFrequency || '',
-              duration: r.duration || med.defaultDuration || '',
             }
           : r
       )
     )
     setMedSearch('')
-    setMedOptions([])
     setActiveMedRow(null)
   }
 
@@ -433,27 +439,43 @@ export default function NewPrescriptionPage() {
                       updateMedRow(index, 'medicationName', e.target.value)
                       updateMedRow(index, 'medicationId', '')
                     }}
-                    onFocus={() => setActiveMedRow(index)}
+                    onFocus={() => {
+                      setActiveMedRow(index)
+                      setMedSearch(med.medicationName)
+                    }}
+                    onBlur={() => setActiveMedRow((cur) => (cur === index ? null : cur))}
                     placeholder="Search from catalog or type name..."
                   />
-                  {activeMedRow === index && medOptions.length > 0 && (
+                  {activeMedRow === index && (
                     <div className="absolute z-10 mt-1 w-full bg-popover border rounded-md shadow-md max-h-48 overflow-y-auto">
-                      {medOptions.map((m) => (
-                        <button
-                          key={m.id}
-                          className="w-full px-3 py-2 text-left hover:bg-accent text-sm"
-                          onClick={() => selectMedication(m, index)}
-                        >
-                          <span className="font-medium">{m.name}</span>
-                          {m.strength && (
-                            <span className="text-muted-foreground ml-1">{m.strength}</span>
-                          )}
-                          {m.form && <span className="text-muted-foreground ml-1">({m.form})</span>}
-                          {m.genericName && (
-                            <span className="text-muted-foreground ml-2">— {m.genericName}</span>
-                          )}
-                        </button>
-                      ))}
+                      {medOptions.length > 0 ? (
+                        medOptions.map((m) => (
+                          <button
+                            type="button"
+                            key={m.id}
+                            className="w-full px-3 py-2 text-left hover:bg-accent text-sm"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => selectMedication(m, index)}
+                          >
+                            <span className="font-medium">{m.name}</span>
+                            {m.strength && (
+                              <span className="text-muted-foreground ml-1">{m.strength}</span>
+                            )}
+                            {m.form && (
+                              <span className="text-muted-foreground ml-1">({m.form})</span>
+                            )}
+                            {m.genericName && (
+                              <span className="text-muted-foreground ml-2">— {m.genericName}</span>
+                            )}
+                          </button>
+                        ))
+                      ) : (
+                        <div className="px-3 py-2 text-sm text-muted-foreground">
+                          {searchingMeds
+                            ? 'Loading medications...'
+                            : 'No matching medication found. You can type the name manually.'}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

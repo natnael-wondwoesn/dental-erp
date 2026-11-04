@@ -46,16 +46,6 @@ const formTypes = [
     printable: true,
   },
   {
-    title: 'Patient treatment sheet',
-    description:
-      'Print the clinic clinical sheet for vitals, history, examination, assessment and plan.',
-    icon: FileText,
-    href: '/api/clinical-forms/printables/treatment-sheet',
-    action: 'Open and print treatment sheet',
-    tone: 'bg-rose-50 text-rose-700 dark:bg-rose-950/35 dark:text-rose-300',
-    printable: true,
-  },
-  {
     title: 'Medical certificates',
     description:
       'Prepare medical leave and treatment certificates using patient records, then print or email them.',
