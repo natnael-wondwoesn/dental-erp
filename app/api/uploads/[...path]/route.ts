@@ -36,12 +36,16 @@ export async function GET(
     }
 
     const object = await getStorage().get(toStorageKey(requested));
+    const dangerousInlineType = object.contentType === 'image/svg+xml' || object.contentType === 'text/html';
 
     return new NextResponse(new Uint8Array(object.body), {
       headers: {
         'Content-Type': object.contentType,
         'Content-Length': String(object.size),
         'Cache-Control': 'private, max-age=3600',
+        'X-Content-Type-Options': 'nosniff',
+        'Content-Security-Policy': "default-src 'none'; sandbox",
+        ...(dangerousInlineType ? { 'Content-Disposition': 'attachment' } : {}),
       },
     });
   } catch (error: any) {

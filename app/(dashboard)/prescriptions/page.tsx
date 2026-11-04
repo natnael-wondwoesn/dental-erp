@@ -222,6 +222,7 @@ export default function PrescriptionsPage() {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8"
+                          aria-label={`View prescription ${rx.prescriptionNo}`}
                           onClick={() => router.push(`/prescriptions/${rx.id}`)}
                         >
                           <Eye className="h-3.5 w-3.5" />
@@ -230,6 +231,7 @@ export default function PrescriptionsPage() {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-destructive"
+                          aria-label={`Delete prescription ${rx.prescriptionNo}`}
                           onClick={() => handleDelete(rx)}
                         >
                           <Trash2 className="h-3.5 w-3.5" />

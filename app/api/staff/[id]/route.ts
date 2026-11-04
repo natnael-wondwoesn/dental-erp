@@ -3,6 +3,17 @@ import { prisma } from '@/lib/prisma'
 import { requireAuthAndRole } from '@/lib/api-helpers'
 import bcrypt from 'bcryptjs'
 
+const PRIVATE_STAFF_FIELDS = new Set([
+  'dateOfBirth',
+  'aadharNumber',
+  'panNumber',
+  'salary',
+  'bankAccountNo',
+  'bankIfsc',
+  'emergencyContact',
+  'emergencyPhone',
+])
+
 // GET - Get single staff member details
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { error, hospitalId, session } = await requireAuthAndRole()
@@ -42,7 +53,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Staff not found' }, { status: 404 })
     }
 
-    return NextResponse.json(staff)
+    if (session.user.role === 'ADMIN') return NextResponse.json(staff)
+    return NextResponse.json(
+      Object.fromEntries(Object.entries(staff).filter(([key]) => !PRIVATE_STAFF_FIELDS.has(key)))
+    )
   } catch (error) {
     console.error('Error fetching staff:', error)
     return NextResponse.json({ error: 'Failed to fetch staff details' }, { status: 500 })

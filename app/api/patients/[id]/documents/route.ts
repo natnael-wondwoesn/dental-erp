@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuthAndRole } from '@/lib/api-helpers'
 import prisma from '@/lib/prisma'
-import path from 'path'
 import { randomUUID } from 'crypto'
 import { buildStorageKey, getStorage } from '@/lib/storage'
+import { extensionForMime, hasExpectedSignature } from '@/lib/uploads/file-validation'
 
 // GET /api/patients/[id]/documents - Get all documents for a patient
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -137,18 +137,22 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     // Stored name is a UUID, so nothing attacker-controlled reaches the key.
     // The extension is kept for content-type sniffing on the way back out and
     // is reduced to a safe character set first.
-    const ext = path
-      .extname(file.name)
-      .toLowerCase()
-      .replace(/[^.a-z0-9]/g, '')
+    const bytes = Buffer.from(await file.arrayBuffer())
+    if (!hasExpectedSignature(bytes, file.type)) {
+      return NextResponse.json(
+        { error: 'File content does not match its declared type' },
+        { status: 400 }
+      )
+    }
+
+    const ext = extensionForMime(file.type)!
     const fileName = `${randomUUID()}${ext}`
 
     // Tenant-prefixed storage key. Whether this lands on local disk or in a
     // bucket is the driver's business, not this route's.
     const key = buildStorageKey(hospitalId, 'documents', id, fileName)
 
-    const bytes = await file.arrayBuffer()
-    await getStorage().put(key, Buffer.from(bytes), { contentType: file.type })
+    await getStorage().put(key, bytes, { contentType: file.type })
 
     // Create document record. If this fails the bytes are already stored, so
     // drop them again — otherwise the file survives with no row pointing at
@@ -173,9 +177,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       })
     } catch (err) {
       // Swallow a failure here: the original error is what the caller needs.
-      await getStorage()
-        .delete(key)
-        .catch(() => {})
+      await Promise.resolve(getStorage().delete(key)).catch(() => {})
       throw err
     }
 

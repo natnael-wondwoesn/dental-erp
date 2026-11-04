@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
 
       try {
         // Initialize email service with current settings
-        await emailService.initialize()
+        await emailService.initialize(hospitalId)
 
         // Send test email
         const testSubject = testData.subject || 'Test Email from DentalERP'
@@ -97,6 +97,7 @@ export async function POST(request: NextRequest) {
         `
 
         await emailService.sendEmail({
+          hospitalId,
           to: testData.email,
           subject: testSubject,
           body: testBody,

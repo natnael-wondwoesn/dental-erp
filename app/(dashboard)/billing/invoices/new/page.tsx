@@ -191,9 +191,13 @@ export default function NewInvoicePage() {
     fetch(`/api/billing/patient-outstanding?patientId=${selectedPatient.id}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (!data) return
-        setOutstanding(data)
-        if (data.invoices.length > 0) setTargetInvoiceId(data.invoices[0].id)
+        if (!data || !Array.isArray(data.invoices)) return
+        const normalized = {
+          invoices: data.invoices,
+          totalOutstanding: typeof data.totalOutstanding === 'number' ? data.totalOutstanding : 0,
+        }
+        setOutstanding(normalized)
+        if (normalized.invoices.length > 0) setTargetInvoiceId(normalized.invoices[0].id)
       })
       .catch((err) => console.error('Error fetching outstanding balance:', err))
   }, [selectedPatient])

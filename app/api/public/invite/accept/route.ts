@@ -3,6 +3,11 @@ import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { StaffInviteStatus, Role } from '@prisma/client'
+import { saasEnforcement } from '@/lib/saas/server'
+
+function hostedRegistrationDisabled() {
+  return NextResponse.json({ error: 'Not found' }, { status: 404 })
+}
 
 const acceptInviteSchema = z.object({
   token: z.string().min(1, 'Token is required'),
@@ -12,6 +17,7 @@ const acceptInviteSchema = z.object({
 
 // Accept an invite and create user account
 export async function POST(request: Request) {
+  if (saasEnforcement() === 'hosted') return hostedRegistrationDisabled()
   try {
     const body = await request.json()
     const validated = acceptInviteSchema.safeParse(body)
@@ -133,6 +139,7 @@ export async function POST(request: Request) {
 
 // GET endpoint to validate token and get invite details
 export async function GET(request: Request) {
+  if (saasEnforcement() === 'hosted') return hostedRegistrationDisabled()
   try {
     const { searchParams } = new URL(request.url)
     const token = searchParams.get('token')

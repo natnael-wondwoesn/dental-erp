@@ -24,7 +24,6 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
-  Plus,
   Search,
   ChevronLeft,
   ChevronRight,
@@ -229,12 +228,6 @@ export default function StaffPage() {
               Leaves
             </Button>
           </Link>
-          <Link href="/staff/new">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Staff
-            </Button>
-          </Link>
         </div>
       </div>
 
@@ -293,7 +286,7 @@ export default function StaffPage() {
                 <TableHead>Specialization</TableHead>
                 <TableHead>Joined</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="sticky right-0 bg-background text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -332,12 +325,6 @@ export default function StaffPage() {
                     <div className="flex flex-col items-center gap-2">
                       <UserCog className="h-8 w-8 text-muted-foreground" />
                       <p className="text-muted-foreground">No staff members found</p>
-                      <Link href="/staff/new">
-                        <Button variant="outline" size="sm">
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Staff
-                        </Button>
-                      </Link>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -389,10 +376,14 @@ export default function StaffPage() {
                         {member.isActive ? 'Active' : 'Inactive'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="sticky right-0 bg-background text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label={`Actions for ${member.firstName} ${member.lastName}`}
+                          >
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>

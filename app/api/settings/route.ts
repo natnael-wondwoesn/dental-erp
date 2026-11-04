@@ -10,6 +10,12 @@ const updateSettingSchema = z.object({
   description: z.string().optional(),
 })
 
+const SECRET_KEY = /(password|secret|api[._-]?key|auth[._-]?key|token)/i
+
+function redactSetting<T extends { key: string; value: string }>(setting: T): T {
+  return SECRET_KEY.test(setting.key) ? { ...setting, value: '' } : setting
+}
+
 // GET /api/settings - Get all settings or by category
 export async function GET(req: NextRequest) {
   const { error, hospitalId } = await requireAuthAndRole()
@@ -24,10 +30,11 @@ export async function GET(req: NextRequest) {
     const where: any = { hospitalId }
     if (category) where.category = category
 
-    const settings = await prisma.setting.findMany({
+    const storedSettings = await prisma.setting.findMany({
       where,
       orderBy: [{ category: 'asc' }, { key: 'asc' }],
     })
+    const settings = storedSettings.map(redactSetting)
 
     // Group by category
     const grouped = settings.reduce(

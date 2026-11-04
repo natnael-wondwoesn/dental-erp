@@ -60,7 +60,15 @@ const CONTROL_PLANE_PREFIXES = [
   '/owner/',
   '/api/saas-admin/',
 ]
-const CONTROL_MANAGED_ACCOUNT_CREATION = new Set(['/signup', '/api/public/signup'])
+const CONTROL_MANAGED_ACCOUNT_CREATION = new Set([
+  '/signup',
+  '/api/public/signup',
+  '/staff/new',
+  '/staff/invites',
+  '/invite/accept',
+  '/api/staff-invites',
+  '/api/public/invite/accept',
+])
 
 function isAllowedInControlPlane(pathname: string): boolean {
   return (

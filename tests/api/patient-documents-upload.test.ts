@@ -31,6 +31,9 @@ vi.mock('crypto', async (importOriginal) => {
 
 const mod = await import('@/app/api/patients/[id]/documents/route')
 
+const pdfBytes = () => new TextEncoder().encode('%PDF-1.7 test').buffer
+const pngBytes = () => Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).buffer
+
 function makeMockFormDataRequest(fields: Record<string, any>) {
   const formData = new Map<string, any>()
   for (const [k, v] of Object.entries(fields)) formData.set(k, v)
@@ -64,7 +67,7 @@ describe('POST /api/patients/[id]/documents', () => {
       name: 'report.pdf',
       type: 'application/pdf',
       size: 102400,
-      arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(8)),
+      arrayBuffer: vi.fn().mockResolvedValue(pdfBytes()),
     }
 
     const req = makeMockFormDataRequest({
@@ -97,7 +100,7 @@ describe('POST /api/patients/[id]/documents', () => {
       name: 'report.pdf',
       type: 'application/pdf',
       size: 1024,
-      arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(8)),
+      arrayBuffer: vi.fn().mockResolvedValue(pdfBytes()),
     }
 
     await mod.POST(makeMockFormDataRequest({ file: mockFile, documentType: 'REPORT' }), {
@@ -122,7 +125,7 @@ describe('POST /api/patients/[id]/documents', () => {
       name: '../../../etc/passwd.png',
       type: 'image/png',
       size: 1024,
-      arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(8)),
+      arrayBuffer: vi.fn().mockResolvedValue(pngBytes()),
     }
 
     await mod.POST(makeMockFormDataRequest({ file: mockFile, documentType: 'XRAY' }), {
@@ -146,7 +149,7 @@ describe('POST /api/patients/[id]/documents', () => {
       name: 'report.pdf',
       type: 'application/pdf',
       size: 1024,
-      arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(8)),
+      arrayBuffer: vi.fn().mockResolvedValue(pdfBytes()),
     }
 
     const res = await mod.POST(
@@ -168,7 +171,7 @@ describe('POST /api/patients/[id]/documents', () => {
       name: 'report.pdf',
       type: 'application/pdf',
       size: 1024,
-      arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(8)),
+      arrayBuffer: vi.fn().mockResolvedValue(pdfBytes()),
     }
 
     const res = await mod.POST(

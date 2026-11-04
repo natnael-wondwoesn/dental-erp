@@ -111,6 +111,14 @@ export function ContactDetails() {
             referrerPolicy="no-referrer-when-downgrade"
             className="h-full min-h-[420px] w-full rounded-[22px] border-0"
           />
+          <a
+            href={location.mapEmbedUrl.replace('&output=embed', '')}
+            target="_blank"
+            rel="noreferrer"
+            className="block px-4 py-3 text-center font-medium text-teal-700 underline-offset-4 hover:underline"
+          >
+            {t('Open location in Google Maps')}
+          </a>
         </div>
       )}
     </div>

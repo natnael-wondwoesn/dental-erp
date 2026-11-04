@@ -5,6 +5,7 @@ import { jwtVerify } from 'jose'
 import { auth } from './auth'
 import { prisma } from './prisma'
 import { evaluateApiLicenseGate } from './licensing/api-gate'
+import { randomInt } from 'crypto'
 
 async function verifiedContext(candidate: any) {
   if (!process.env.SAAS_ENFORCEMENT || process.env.SAAS_ENFORCEMENT === 'disabled') {
@@ -280,10 +281,6 @@ export async function generateUniqueSlug(name: string): Promise<string> {
  * Generate a random token for email verification or password reset
  */
 export function generateToken(length = 32): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-  let token = ''
-  for (let i = 0; i < length; i++) {
-    token += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return token
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  return Array.from({ length }, () => alphabet[randomInt(alphabet.length)]).join('')
 }

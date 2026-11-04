@@ -46,6 +46,8 @@ describe('Settings Communications API', () => {
       expect(res.status).toBe(200)
       const body = await res.json()
       expect(body.sms.gateway).toBe('twilio')
+      expect(body.sms.apiKey).toBeUndefined()
+      expect(body.sms.apiKeyConfigured).toBe(true)
       expect(body.email.smtp_host).toBe('smtp.test.com')
       expect(body.reviews.google_review_url).toBe('https://g.co/review')
     })
@@ -81,6 +83,7 @@ describe('Settings Communications API', () => {
   describe('POST /api/settings/communications', () => {
     it('saves SMS settings with upsert', async () => {
       ;(prisma.setting.upsert as any).mockResolvedValue({})
+      ;(prisma.setting.findUnique as any).mockResolvedValue(null)
 
       const res = await mod.POST(
         makePostRequest({
@@ -98,6 +101,7 @@ describe('Settings Communications API', () => {
 
     it('saves email settings', async () => {
       ;(prisma.setting.upsert as any).mockResolvedValue({})
+      ;(prisma.setting.findUnique as any).mockResolvedValue(null)
 
       const res = await mod.POST(
         makePostRequest({
@@ -112,6 +116,7 @@ describe('Settings Communications API', () => {
 
     it('saves reviews settings', async () => {
       ;(prisma.setting.upsert as any).mockResolvedValue({})
+      ;(prisma.setting.findUnique as any).mockResolvedValue(null)
 
       const res = await mod.POST(
         makePostRequest({
@@ -143,6 +148,17 @@ describe('Settings Communications API', () => {
       })
       const res = await mod.POST(makePostRequest({ type: 'sms', settings: {} }))
       expect(res.status).toBe(401)
+    })
+
+    it('requires the ADMIN role for reads and writes', async () => {
+      mockAuth.requireAuthAndRole.mockResolvedValue({
+        error: Response.json({ error: 'Forbidden' }, { status: 403 }),
+        hospitalId: null,
+      })
+
+      expect((await mod.GET(makeGetRequest())).status).toBe(403)
+      expect((await mod.POST(makePostRequest({ type: 'sms', settings: {} }))).status).toBe(403)
+      expect(mockAuth.requireAuthAndRole).toHaveBeenCalledWith(['ADMIN'])
     })
   })
 })

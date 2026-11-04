@@ -25,6 +25,14 @@ export default function SuppliersPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [showAddModal, setShowAddModal] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [newSupplier, setNewSupplier] = useState({
+    code: '',
+    name: '',
+    phone: '',
+    email: '',
+    contactPerson: '',
+  })
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 50,
@@ -82,6 +90,27 @@ export default function SuppliersPage() {
       currency: 'ETB',
       minimumFractionDigits: 0,
     }).format(amount)
+  }
+
+  const createSupplier = async () => {
+    if (!newSupplier.code || !newSupplier.name || !newSupplier.phone) return
+    setSaving(true)
+    try {
+      const response = await fetch('/api/inventory/suppliers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newSupplier),
+      })
+      if (!response.ok)
+        throw new Error((await response.json()).error || 'Failed to create supplier')
+      setShowAddModal(false)
+      setNewSupplier({ code: '', name: '', phone: '', email: '', contactPerson: '' })
+      await fetchSuppliers()
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'Failed to create supplier')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -204,7 +233,7 @@ export default function SuppliersPage() {
                           View
                         </Link>
                         <Link
-                          href={`/inventory/suppliers/${supplier.id}/edit`}
+                          href={`/inventory/suppliers/${supplier.id}?edit=1`}
                           className="text-indigo-600 hover:text-indigo-900"
                         >
                           Edit
@@ -250,21 +279,46 @@ export default function SuppliersPage() {
         )}
       </div>
 
-      {/* Add Supplier Modal - Placeholder */}
+      {/* Add Supplier Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-background rounded-lg p-6 max-w-2xl w-full max-h-screen overflow-y-auto">
             <h2 className="text-2xl font-bold mb-4">Add New Supplier</h2>
-            <p className="text-muted-foreground mb-4">
-              Supplier form will be implemented here. For now, please use the API directly or create
-              a dedicated page.
-            </p>
-            <button
-              onClick={() => setShowAddModal(false)}
-              className="px-4 py-2 bg-muted-foreground text-background rounded-lg hover:bg-muted-foreground/80"
-            >
-              Close
-            </button>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {[
+                ['code', 'Supplier code *'],
+                ['name', 'Supplier name *'],
+                ['phone', 'Phone *'],
+                ['email', 'Email'],
+                ['contactPerson', 'Contact person'],
+              ].map(([key, label]) => (
+                <label key={key} className="grid gap-1 text-sm">
+                  <span>{label}</span>
+                  <input
+                    value={newSupplier[key as keyof typeof newSupplier]}
+                    onChange={(event) =>
+                      setNewSupplier((current) => ({ ...current, [key]: event.target.value }))
+                    }
+                    className="rounded-md border px-3 py-2"
+                  />
+                </label>
+              ))}
+            </div>
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="rounded-lg border px-4 py-2"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={createSupplier}
+                disabled={saving || !newSupplier.code || !newSupplier.name || !newSupplier.phone}
+                className="rounded-lg bg-green-600 px-4 py-2 text-white disabled:opacity-50"
+              >
+                {saving ? 'Saving…' : 'Create supplier'}
+              </button>
+            </div>
           </div>
         </div>
       )}

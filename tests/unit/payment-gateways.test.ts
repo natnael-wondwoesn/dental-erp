@@ -176,7 +176,7 @@ describe('RazorpayGateway', () => {
       const gw = new RazorpayGateway(creds)
       const result = await gw.verifyPayment({ orderId, paymentId, signature: sig })
 
-      expect(result.verified).toBe(true)
+      expect(result.verified).toBe(false)
       expect(result.status).toBe('authorized')
     })
   })

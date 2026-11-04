@@ -82,7 +82,7 @@ export class RazorpayGateway implements PaymentGateway {
     const payment = await this.request(`/payments/${params.paymentId}`)
 
     return {
-      verified: true,
+      verified: payment.status === 'captured',
       transactionId: params.paymentId as string,
       status: payment.status === 'captured' ? 'COMPLETED' : payment.status,
       amount: payment.amount / 100, // Convert back from paise to INR

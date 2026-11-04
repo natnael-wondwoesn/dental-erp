@@ -2,9 +2,22 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAuthAndRole } from '@/lib/api-helpers'
 
+const SECRET_FIELDS = new Set(['apiKey', 'authKey', 'smtp_password'])
+
+function redactSecrets(settings: Record<string, unknown>) {
+  const redacted = { ...settings }
+  for (const key of SECRET_FIELDS) {
+    if (key in redacted) {
+      redacted[`${key}Configured`] = Boolean(redacted[key])
+      delete redacted[key]
+    }
+  }
+  return redacted
+}
+
 // GET - Retrieve SMS and email settings
 export async function GET(request: NextRequest) {
-  const { error, hospitalId } = await requireAuthAndRole()
+  const { error, hospitalId } = await requireAuthAndRole(['ADMIN'])
   if (error || !hospitalId) {
     return error || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -48,8 +61,8 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json({
-      sms: smsSettingsJson ? JSON.parse(smsSettingsJson.value) : smsSettings,
-      email: emailSettingsJson ? JSON.parse(emailSettingsJson.value) : emailSettings,
+      sms: redactSecrets(smsSettingsJson ? JSON.parse(smsSettingsJson.value) : smsSettings),
+      email: redactSecrets(emailSettingsJson ? JSON.parse(emailSettingsJson.value) : emailSettings),
       reviews: reviewSettingsJson ? JSON.parse(reviewSettingsJson.value) : {},
     })
   } catch (error) {
@@ -60,16 +73,16 @@ export async function GET(request: NextRequest) {
 
 // POST - Save SMS or email settings
 export async function POST(request: NextRequest) {
-  const { error, hospitalId } = await requireAuthAndRole()
+  const { error, hospitalId } = await requireAuthAndRole(['ADMIN'])
   if (error || !hospitalId) {
     return error || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
     const body = await request.json()
-    const { type, settings } = body
+    const { type, settings: submittedSettings } = body
 
-    if (!type || !settings) {
+    if (!type || !submittedSettings) {
       return NextResponse.json({ error: 'Type and settings are required' }, { status: 400 })
     }
 
@@ -82,6 +95,18 @@ export async function POST(request: NextRequest) {
 
     // Store settings as JSON in a single setting record
     const settingKey = `${type}_settings`
+    const existing = await prisma.setting.findUnique({
+      where: { hospitalId_key: { key: settingKey, hospitalId } },
+    })
+    const existingSettings = existing ? JSON.parse(existing.value) : {}
+    const settings = { ...existingSettings, ...submittedSettings }
+    for (const key of SECRET_FIELDS) {
+      if (submittedSettings[key] === '' || submittedSettings[key] == null) {
+        if (existingSettings[key]) settings[key] = existingSettings[key]
+        else delete settings[key]
+      }
+      delete settings[`${key}Configured`]
+    }
 
     await prisma.setting.upsert({
       where: { hospitalId_key: { key: settingKey, hospitalId } },
@@ -107,10 +132,14 @@ export async function POST(request: NextRequest) {
     if (type === 'sms') {
       settingsArray.push(
         { key: 'sms.gateway', value: settings.gateway || '', category: 'sms' },
-        { key: 'sms.apiKey', value: settings.apiKey || '', category: 'sms' },
+        ...(settings.apiKey
+          ? [{ key: 'sms.apiKey', value: settings.apiKey, category: 'sms' }]
+          : []),
         { key: 'sms.senderId', value: settings.senderId || '', category: 'sms' },
         { key: 'sms.route', value: settings.route || '4', category: 'sms' },
-        { key: 'sms.authKey', value: settings.authKey || '', category: 'sms' },
+        ...(settings.authKey
+          ? [{ key: 'sms.authKey', value: settings.authKey, category: 'sms' }]
+          : []),
         { key: 'sms.webhookUrl', value: settings.webhookUrl || '', category: 'sms' },
         {
           key: 'sms.timezone',
@@ -143,7 +172,15 @@ export async function POST(request: NextRequest) {
           category: 'email',
         },
         { key: 'email.smtp.user', value: settings.smtp_user || '', category: 'email' },
-        { key: 'email.smtp.password', value: settings.smtp_password || '', category: 'email' },
+        ...(settings.smtp_password
+          ? [
+              {
+                key: 'email.smtp.password',
+                value: settings.smtp_password,
+                category: 'email',
+              },
+            ]
+          : []),
         { key: 'email.from.name', value: settings.from_name || '', category: 'email' },
         { key: 'email.from.email', value: settings.from_email || '', category: 'email' },
         { key: 'email.replyTo', value: settings.replyTo || '', category: 'email' },

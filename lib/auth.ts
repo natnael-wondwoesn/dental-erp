@@ -6,6 +6,12 @@ import { prisma } from './prisma'
 import { ethiopianPhoneAliases, normalizeEthiopianPhone } from './public-booking'
 import { isPlatformControlPlane } from './platform-mode'
 import { z } from 'zod'
+import {
+  clearLoginFailures,
+  isLoginBlocked,
+  loginClientIp,
+  recordLoginFailure,
+} from './login-throttle'
 
 const loginSchema = z
   .object({
@@ -19,13 +25,15 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
   ...authConfig,
   providers: [
     Credentials({
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         const validated = loginSchema.safeParse(credentials)
 
         if (!validated.success) return null
 
         const { password } = validated.data
         const identifier = (validated.data.identifier || validated.data.email || '').trim()
+        const clientIp = loginClientIp(request?.headers || new Headers())
+        if (isLoginBlocked(identifier, clientIp)) return null
         const normalizedEmail = z.string().email().safeParse(identifier.toLowerCase())
         const normalizedPhone = normalizeEthiopianPhone(identifier)
 
@@ -39,13 +47,24 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
               include,
             })
 
-        if (!user || !user.isActive) return null
+        if (!user || !user.isActive) {
+          recordLoginFailure(identifier, clientIp)
+          return null
+        }
 
         // Check if the user's hospital is active
-        if (!user.hospital || !user.hospital.isActive) return null
+        if (!user.hospital || !user.hospital.isActive) {
+          recordLoginFailure(identifier, clientIp)
+          return null
+        }
 
         const passwordMatch = await bcrypt.compare(password, user.password)
-        if (!passwordMatch) return null
+        if (!passwordMatch) {
+          recordLoginFailure(identifier, clientIp)
+          return null
+        }
+
+        clearLoginFailures(identifier, clientIp)
 
         return {
           id: user.id,

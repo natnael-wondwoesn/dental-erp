@@ -31,6 +31,15 @@ export async function POST(req: NextRequest) {
     if (!link) {
       return NextResponse.json({ error: 'Invalid payment link' }, { status: 404 })
     }
+    if (link.usedAt) {
+      return NextResponse.json(
+        { error: 'This payment link has already been used' },
+        { status: 409 }
+      )
+    }
+    if (new Date() > new Date(link.expiresAt)) {
+      return NextResponse.json({ error: 'This payment link has expired' }, { status: 400 })
+    }
 
     const hospitalId = link.hospitalId
 
@@ -41,6 +50,20 @@ export async function POST(req: NextRequest) {
     }
 
     const { gateway } = gatewayResult
+    const provider = gatewayResult.credentials.provider.toLowerCase()
+    const paymentOrder = await prisma.paymentOrder.findUnique({
+      where: { provider_orderId: { provider, orderId } },
+    })
+    if (
+      !paymentOrder ||
+      paymentOrder.hospitalId !== hospitalId ||
+      paymentOrder.invoiceId !== link.invoice.id ||
+      paymentOrder.paymentLinkId !== link.id ||
+      paymentOrder.consumedAt ||
+      paymentOrder.expiresAt < new Date()
+    ) {
+      return NextResponse.json({ error: 'Invalid or expired payment order' }, { status: 400 })
+    }
 
     // Verify with gateway
     const result = await gateway.verifyPayment({
@@ -50,12 +73,18 @@ export async function POST(req: NextRequest) {
       ...extra,
     })
 
-    if (!result.verified) {
+    if (!result.verified || result.status !== 'COMPLETED') {
       return NextResponse.json({ error: 'Payment verification failed' }, { status: 400 })
     }
 
     // Create Payment record and update Invoice
-    const paymentAmount = result.amount || Number(link.amount)
+    const paymentAmount = result.amount ?? Number(paymentOrder.amount)
+    if (Math.abs(paymentAmount - Number(paymentOrder.amount)) > 0.001) {
+      return NextResponse.json(
+        { error: 'Payment amount does not match the order' },
+        { status: 400 }
+      )
+    }
     const newPaidAmount = Number(link.invoice.paidAmount) + paymentAmount
     const newBalance = Number(link.invoice.totalAmount) - newPaidAmount
 
@@ -68,8 +97,18 @@ export async function POST(req: NextRequest) {
     const lastNum = lastPayment ? parseInt(lastPayment.paymentNo.replace(/\D/g, '')) || 0 : 0
     const paymentNo = `PAY${String(lastNum + 1).padStart(5, '0')}`
 
-    await prisma.$transaction([
-      prisma.payment.create({
+    await prisma.$transaction(async (tx) => {
+      const consumed = await tx.paymentOrder.updateMany({
+        where: { id: paymentOrder.id, consumedAt: null },
+        data: { consumedAt: new Date() },
+      })
+      const used = await tx.paymentLink.updateMany({
+        where: { id: link.id, usedAt: null },
+        data: { usedAt: new Date() },
+      })
+      if (consumed.count !== 1 || used.count !== 1) throw new Error('PAYMENT_ALREADY_PROCESSED')
+
+      await tx.payment.create({
         data: {
           hospitalId,
           paymentNo,
@@ -79,27 +118,22 @@ export async function POST(req: NextRequest) {
           paymentDate: new Date(),
           transactionId: result.transactionId,
           status: 'COMPLETED',
-          gateway: gatewayResult.credentials.provider.toLowerCase(),
+          gateway: provider,
           gatewayOrderId: orderId,
           gatewayPaymentId: paymentId,
           gatewayStatus: result.status,
           notes: `Online payment via payment link`,
         },
-      }),
-      prisma.invoice.update({
+      })
+      await tx.invoice.update({
         where: { id: link.invoice.id },
         data: {
           paidAmount: newPaidAmount,
           balanceAmount: Math.max(0, newBalance),
           status: newBalance <= 0 ? 'PAID' : 'PARTIALLY_PAID',
         },
-      }),
-      // Mark link as used
-      prisma.paymentLink.update({
-        where: { id: link.id },
-        data: { usedAt: new Date() },
-      }),
-    ])
+      })
+    })
 
     return NextResponse.json({
       success: true,
@@ -111,6 +145,9 @@ export async function POST(req: NextRequest) {
     })
   } catch (err: unknown) {
     console.error('Public verify error:', err)
+    if (err instanceof Error && err.message === 'PAYMENT_ALREADY_PROCESSED') {
+      return NextResponse.json({ error: 'Payment already processed' }, { status: 409 })
+    }
     const message = err instanceof Error ? err.message : 'Verification failed'
     return NextResponse.json({ error: message }, { status: 500 })
   }

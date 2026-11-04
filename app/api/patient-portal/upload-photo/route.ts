@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requirePatientAuth } from '@/lib/patient-auth'
-import path from 'path'
 import { randomUUID } from 'crypto'
 import { buildStorageKey, getStorage } from '@/lib/storage'
+import { extensionForMime, hasExpectedSignature } from '@/lib/uploads/file-validation'
 
 /**
  * POST /api/patient-portal/upload-photo
@@ -43,15 +43,19 @@ export async function POST(req: NextRequest) {
     // that the rest of the app now understands that shape. Downloading or
     // permanently deleting one of these previously failed, because both of
     // those paths assumed the `/uploads` prefix that only staff uploads had.
-    const ext =
-      path
-        .extname(file.name)
-        .toLowerCase()
-        .replace(/[^.a-z0-9]/g, '') || '.jpg'
+    const bytes = Buffer.from(await file.arrayBuffer())
+    if (!hasExpectedSignature(bytes, file.type)) {
+      return NextResponse.json(
+        { error: 'File content does not match its image type' },
+        { status: 400 }
+      )
+    }
+
+    const ext = extensionForMime(file.type)!
     const fileName = `${randomUUID()}${ext}`
     const key = buildStorageKey(patient!.hospitalId, 'patients', patient!.id, 'triage', fileName)
 
-    await getStorage().put(key, Buffer.from(await file.arrayBuffer()), {
+    await getStorage().put(key, bytes, {
       contentType: file.type,
     })
 
@@ -79,9 +83,7 @@ export async function POST(req: NextRequest) {
         },
       })
     } catch (err) {
-      await getStorage()
-        .delete(key)
-        .catch(() => {})
+      await Promise.resolve(getStorage().delete(key)).catch(() => {})
       throw err
     }
 
