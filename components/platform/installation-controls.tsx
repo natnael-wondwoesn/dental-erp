@@ -20,6 +20,7 @@ type Operation = {
     message?: string
     users?: User[]
     user?: User
+    deleted?: string
     databaseRunning?: boolean
     databaseHealth?: string
     seeded?: boolean
@@ -37,13 +38,19 @@ export function InstallationControls({
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const [users, setUsers] = useState<User[] | null>(null)
-  const [password, setPassword] = useState<{ email: string; password: string } | null>(null)
+  const [password, setPassword] = useState<{
+    email: string
+    password: string
+    reset?: boolean
+  } | null>(null)
   const [database, setDatabase] = useState<boolean | undefined>(
     installation.status === 'DATABASE_STOPPED' ? false : undefined
   )
   const [reason, setReason] = useState('')
   const [confirmation, setConfirmation] = useState('')
   const [roles, setRoles] = useState<Record<string, string>>({})
+  const [edits, setEdits] = useState<Record<string, { name?: string; email?: string }>>({})
+  const [filter, setFilter] = useState('')
   const availableRoles = productUserRoles[installation.productKey] || []
   const endpoint = `/api/platform/installations/${installation.id}/operations`
   const initialized = useRef(false)
@@ -74,6 +81,8 @@ export function InstallationControls({
         throw new Error('Operation still running. Check history before retrying.')
       const result = operation.result || {}
       if (result.users) setUsers(result.users)
+      if (result.deleted)
+        setUsers((previous) => previous && previous.filter((user) => user.id !== result.deleted))
       if (result.user) {
         setUsers((previous) =>
           previous
@@ -81,7 +90,11 @@ export function InstallationControls({
             : [result.user!]
         )
         if (queued.temporaryPassword)
-          setPassword({ email: String(input.email), password: queued.temporaryPassword })
+          setPassword({
+            email: result.user.email,
+            password: queued.temporaryPassword,
+            reset: input.action === 'USER_RESET_PASSWORD',
+          })
       }
       if (typeof result.databaseRunning === 'boolean') setDatabase(result.databaseRunning)
       setMessage(result.message || 'Operation completed')
@@ -200,59 +213,165 @@ export function InstallationControls({
           </Button>
         </div>
         {users?.length === 0 && <p className="text-sm">No clinic users found.</p>}
-        {users?.map((user) => (
-          <div className="rounded-lg border p-3 space-y-2" key={user.id}>
-            <p className="font-medium">
-              {user.name} · {user.isActive ? 'Active' : 'Disabled'}
-            </p>
-            <p className="text-sm text-slate-600">
-              {user.email} · {user.roles?.join(', ') || user.role}
-            </p>
-            <div className="flex flex-wrap gap-2 items-center">
-              <select
-                aria-label={`New role for ${user.email}`}
-                className={field + ' sm:w-auto'}
-                value={roles[user.id] || ''}
-                onChange={(event) =>
-                  setRoles((previous) => ({ ...previous, [user.id]: event.target.value }))
-                }
-              >
-                <option value="">Choose new role</option>
-                {availableRoles.map((role) => (
-                  <option key={role}>{role}</option>
-                ))}
-              </select>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={busy || reason.trim().length < 3 || !roles[user.id] || database === false}
-                onClick={() =>
-                  void run({ action: 'USER_UPDATE', userId: user.id, role: roles[user.id], reason })
-                }
-              >
-                Apply role
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={busy || reason.trim().length < 3 || database === false}
-                onClick={() =>
-                  void run({
-                    action: 'USER_UPDATE',
-                    userId: user.id,
-                    isActive: !user.isActive,
-                    reason,
-                  })
-                }
-              >
-                {user.isActive ? 'Disable user' : 'Enable user'}
-              </Button>
+        {users && users.length > 0 && (
+          <input
+            aria-label="Search users"
+            className={field}
+            placeholder="Search users by name, email or role"
+            value={filter}
+            onChange={(event) => setFilter(event.target.value)}
+          />
+        )}
+        {users
+          ?.filter((user) =>
+            `${user.name} ${user.email} ${user.role}`.toLowerCase().includes(filter.toLowerCase())
+          )
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((user) => (
+            <div className="rounded-lg border p-3 space-y-2" key={user.id}>
+              <p className="font-medium">
+                {user.name} · {user.isActive ? 'Active' : 'Disabled'}
+              </p>
+              <p className="text-sm text-slate-600">
+                {user.email} · {user.roles?.join(', ') || user.role}
+              </p>
+              <div className="flex flex-wrap gap-2 items-center">
+                <select
+                  aria-label={`New role for ${user.email}`}
+                  className={field + ' sm:w-auto'}
+                  value={roles[user.id] || ''}
+                  onChange={(event) =>
+                    setRoles((previous) => ({ ...previous, [user.id]: event.target.value }))
+                  }
+                >
+                  <option value="">Choose new role</option>
+                  {availableRoles.map((role) => (
+                    <option key={role}>{role}</option>
+                  ))}
+                </select>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={
+                    busy || reason.trim().length < 3 || !roles[user.id] || database === false
+                  }
+                  onClick={() =>
+                    void run({
+                      action: 'USER_UPDATE',
+                      userId: user.id,
+                      role: roles[user.id],
+                      reason,
+                    })
+                  }
+                >
+                  Apply role
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={busy || reason.trim().length < 3 || database === false}
+                  onClick={() =>
+                    void run({
+                      action: 'USER_UPDATE',
+                      userId: user.id,
+                      isActive: !user.isActive,
+                      reason,
+                    })
+                  }
+                >
+                  {user.isActive ? 'Disable user' : 'Enable user'}
+                </Button>
+              </div>
+              {installation.productKey === 'dental-erp' && (
+                <div className="flex flex-wrap gap-2 items-center">
+                  <input
+                    aria-label={`Name for ${user.email}`}
+                    className={field + ' sm:w-48'}
+                    defaultValue={user.name}
+                    onChange={(event) =>
+                      setEdits((previous) => ({
+                        ...previous,
+                        [user.id]: { ...previous[user.id], name: event.target.value },
+                      }))
+                    }
+                  />
+                  <input
+                    aria-label={`Email for ${user.email}`}
+                    className={field + ' sm:w-64'}
+                    type="email"
+                    defaultValue={user.email}
+                    onChange={(event) =>
+                      setEdits((previous) => ({
+                        ...previous,
+                        [user.id]: { ...previous[user.id], email: event.target.value },
+                      }))
+                    }
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={
+                      busy ||
+                      reason.trim().length < 3 ||
+                      database === false ||
+                      !(
+                        (edits[user.id]?.name && edits[user.id]?.name !== user.name) ||
+                        (edits[user.id]?.email && edits[user.id]?.email !== user.email)
+                      )
+                    }
+                    onClick={() =>
+                      void run({
+                        action: 'USER_UPDATE',
+                        userId: user.id,
+                        ...(edits[user.id]?.name && edits[user.id]?.name !== user.name
+                          ? { name: edits[user.id]!.name }
+                          : {}),
+                        ...(edits[user.id]?.email && edits[user.id]?.email !== user.email
+                          ? { email: edits[user.id]!.email }
+                          : {}),
+                        reason,
+                      })
+                    }
+                  >
+                    Save name / email
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={busy || reason.trim().length < 3 || database === false}
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          `Reset the password for ${user.email}? They must change it at next sign-in.`
+                        )
+                      )
+                        void run({ action: 'USER_RESET_PASSWORD', userId: user.id, reason })
+                    }}
+                  >
+                    Reset password
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    disabled={busy || reason.trim().length < 3 || database === false}
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          `Delete ${user.email}? This cannot be undone. Accounts with clinical records cannot be deleted; disable them instead.`
+                        )
+                      )
+                        void run({ action: 'USER_DELETE', userId: user.id, reason })
+                    }}
+                  >
+                    Delete user
+                  </Button>
+                </div>
+              )}
+              <p className="text-xs text-slate-500">
+                Every change here uses the audit reason above.
+              </p>
             </div>
-            <p className="text-xs text-slate-500">
-              Role and enable/disable changes use audit reason above.
-            </p>
-          </div>
-        ))}
+          ))}
         <form onSubmit={create} className="grid gap-3 sm:grid-cols-2 rounded-lg border p-4">
           <h4 className="sm:col-span-2 font-medium">Create clinic account</h4>
           <input
@@ -290,7 +409,9 @@ export function InstallationControls({
         </form>
         {password && (
           <div className="rounded-lg border border-blue-300 bg-blue-50 p-4 space-y-2">
-            <p className="font-semibold">Account created — copy temporary password now</p>
+            <p className="font-semibold">
+              {password.reset ? 'Password reset' : 'Account created'} — copy temporary password now
+            </p>
             <p>{password.email}</p>
             <code className="break-all select-all">{password.password}</code>
             <p className="text-xs">

@@ -168,4 +168,67 @@ describe('owner installation operations', () => {
       ).status
     ).toBe(400)
   })
+  it('resets a password: encrypts a temporary credential and never stores plaintext', async () => {
+    const { publicKey, privateKey } = generateKeyPairSync('rsa', {
+      modulusLength: 2048,
+      publicKeyEncoding: { type: 'spki', format: 'pem' },
+      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+    })
+    process.env.PLATFORM_USER_PUBLIC_KEY_BASE64 = Buffer.from(publicKey).toString('base64')
+    const response = await POST(
+      request({ action: 'USER_RESET_PASSWORD', userId: 'user-1', reason: 'Forgot password' }),
+      context
+    )
+    const body = await response.json()
+    expect(response.status).toBe(202)
+    expect(body.temporaryPassword).toBeTruthy()
+    const stored = mock.create.mock.calls[0]![0].data.request
+    expect(JSON.stringify(stored)).not.toContain(body.temporaryPassword)
+    const plain = privateDecrypt(
+      { key: privateKey, padding: constants.RSA_PKCS1_OAEP_PADDING, oaepHash: 'sha256' },
+      Buffer.from(stored.encryptedPassword, 'base64')
+    ).toString()
+    expect(await bcrypt.compare(body.temporaryPassword, plain)).toBe(true)
+  })
+  it('queues user delete and name/email edits, and requires an audit reason', async () => {
+    expect(
+      (
+        await POST(
+          request({ action: 'USER_DELETE', userId: 'user-1', reason: 'Left clinic' }),
+          context
+        )
+      ).status
+    ).toBe(202)
+    expect(
+      (
+        await POST(
+          request({
+            action: 'USER_UPDATE',
+            userId: 'user-1',
+            name: 'New Name',
+            reason: 'Typo fix',
+          }),
+          context
+        )
+      ).status
+    ).toBe(202)
+    expect((await POST(request({ action: 'USER_DELETE', userId: 'user-1' }), context)).status).toBe(
+      400
+    )
+  })
+  it('keeps new user actions off non Dental ERP products', async () => {
+    mock.installation.mockResolvedValue({
+      id: 'install-a',
+      hostname: 'clinic.example.com',
+      product: { key: 'clinic-cms' },
+    })
+    expect(
+      (
+        await POST(
+          request({ action: 'USER_DELETE', userId: 'user-1', reason: 'Left clinic' }),
+          context
+        )
+      ).status
+    ).toBe(400)
+  })
 })
