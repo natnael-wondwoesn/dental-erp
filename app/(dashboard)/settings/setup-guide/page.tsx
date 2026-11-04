@@ -160,22 +160,6 @@ const setupSections: SetupSection[] = [
         ],
         link: { label: 'Go to Staff Management', href: '/staff' },
       },
-      {
-        title: 'Invite Staff via Email',
-        description: 'Send an invitation email so staff can set up their own accounts.',
-        steps: [
-          'Go to Staff → Invites tab',
-          'Click "+ Send Invite"',
-          "Enter the staff member's email address and select their role",
-          'Click "Send Invite" — they\'ll receive an email with a signup link',
-          'The invite appears as "Pending" until they accept',
-        ],
-        tips: [
-          'Email invites require your SMTP/email to be configured first (see Email Setup below)',
-          'Invites expire after 7 days — you can resend if needed',
-        ],
-        link: { label: 'Go to Staff Invites', href: '/staff/invites' },
-      },
     ],
   },
   {
@@ -550,63 +534,6 @@ const setupSections: SetupSection[] = [
     ],
   },
   {
-    id: 'ai',
-    title: 'AI Assistant Setup',
-    description:
-      'Enable AI-powered features like chat, scheduling suggestions, and billing assistance',
-    icon: Sparkles,
-    color: 'text-amber-600 bg-amber-50',
-    priority: 'optional',
-    estimatedTime: '10 min',
-    guides: [
-      {
-        title: 'Get an OpenRouter API Key',
-        description: "DentalERP uses OpenRouter to power its AI features. You'll need an API key.",
-        steps: [
-          'Go to openrouter.ai and create a free account',
-          'Click on your profile icon → "Keys" (or go to openrouter.ai/keys)',
-          'Click "Create Key" and give it a name like "DentalERP"',
-          'Copy the API key (starts with "sk-or-")',
-          'Add this key to your DentalERP environment configuration:',
-          "  — In your server's .env file, add: OPENROUTER_API_KEY=sk-or-your-key-here",
-          '  — Restart the application after adding the key',
-          'In DentalERP, go to Settings → AI Features and toggle "Enable AI" ON',
-        ],
-        tips: [
-          'OpenRouter provides access to multiple AI models at competitive prices',
-          'AI usage cost depends on the configured provider and selected model.',
-          'You can set a monthly budget limit in AI Settings to control spending',
-          'Start with "Economy" model and upgrade to "Quality" if needed',
-        ],
-        link: { label: 'Go to AI Settings', href: '/settings/ai' },
-        externalLinks: [{ label: 'Create OpenRouter Account', url: 'https://openrouter.ai' }],
-      },
-      {
-        title: 'Configure AI Features',
-        description: 'Choose which AI features to enable and set spending limits.',
-        steps: [
-          'Go to Settings → AI Features',
-          'Toggle the master "Enable AI" switch ON',
-          'Enable/disable individual features:',
-          '  — AI Chat Widget: Floating assistant on every page',
-          '  — Command Bar (Ctrl+K): Quick natural-language commands',
-          '  — Auto Reminders: AI-triggered appointment reminders',
-          '  — Morning Briefing: Daily summary for clinic admins',
-          '  — Patient Risk Scoring: Automatic risk assessment',
-          'Set your Model Preference: Economy (cheapest), Balanced, or Quality',
-          'Set your Monthly AI Budget limit in ETB.',
-          'Click "Save Settings"',
-        ],
-        tips: [
-          'Start with Economy model — it handles most tasks well',
-          'The chat widget can answer questions about patients, appointments, and billing',
-          'Use Ctrl+K command bar for quick actions like "schedule appointment for Selamawit tomorrow"',
-        ],
-        link: { label: 'Go to AI Settings', href: '/settings/ai' },
-      },
-    ],
-  },
-  {
     id: 'devices',
     title: 'IoT Devices',
     description: 'Connect dental chairs, sensors, and other IoT devices',
@@ -636,37 +563,6 @@ const setupSections: SetupSection[] = [
           'You can deactivate a device without deleting its historical data',
         ],
         link: { label: 'Go to Devices', href: '/devices' },
-      },
-    ],
-  },
-  {
-    id: 'video',
-    title: 'Video Consultations (Tele-Dentistry)',
-    description: 'Enable online video appointments with patients',
-    icon: Video,
-    color: 'text-rose-600 bg-rose-50',
-    priority: 'optional',
-    estimatedTime: '2 min',
-    guides: [
-      {
-        title: 'Enable Video Consultations',
-        description: 'Allow patients to have video appointments with doctors from home.',
-        steps: [
-          'Video consultations work out of the box with no external setup needed',
-          'Go to Appointments and create a new appointment',
-          'Set the appointment Type to "VIDEO" or "TELEDENTISTRY"',
-          'A unique video link will be generated automatically',
-          'The patient receives the video link via SMS/Email (if configured)',
-          'At the appointment time, both doctor and patient click the link to join',
-          'Go to Video Consults in the sidebar to manage all video appointments',
-        ],
-        tips: [
-          'Video calls use peer-to-peer technology (WebRTC) — no additional software needed',
-          'Both doctor and patient need a device with a camera and microphone',
-          'A stable internet connection (at least 2 Mbps) is recommended',
-          'Doctors can take notes during the video call just like in-person appointments',
-        ],
-        link: { label: 'Go to Video Consults', href: '/video' },
       },
     ],
   },
@@ -1021,17 +917,8 @@ export default function SetupGuidePage() {
           <div className="text-center">
             <h3 className="font-semibold mb-1">Need More Help?</h3>
             <p className="text-sm text-muted-foreground mb-3">
-              If you&apos;re stuck on any step, feel free to use the AI Chat Assistant (bottom-right
-              corner) for instant help, or contact our support team.
+              If you&apos;re stuck on any step, please contact our support team.
             </p>
-            <div className="flex flex-wrap justify-center gap-2">
-              <Link href="/chat">
-                <Button variant="default" size="sm">
-                  <MessageSquare className="w-4 h-4 mr-1" />
-                  Ask AI Assistant
-                </Button>
-              </Link>
-            </div>
           </div>
         </CardContent>
       </Card>

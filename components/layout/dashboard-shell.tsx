@@ -5,8 +5,6 @@ import { MobileSidebar } from './mobile-sidebar'
 import { Header } from './header'
 import { SidebarProvider } from './sidebar-context'
 import { AIProvider } from '@/components/ai/ai-provider'
-import { CommandBar } from '@/components/ai/command-bar'
-import { ChatWidget } from '@/components/ai/chat-widget'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { KeyboardShortcutHelp } from '@/components/layout/keyboard-shortcut-help'
 import { useTenantAccess } from '@/components/saas/tenant-access'
@@ -76,8 +74,6 @@ export function DashboardShell({
       </SidebarProvider>
       {!isPlatformControlPlane && (!access || access.modules.includes('ai')) && (
         <>
-          <CommandBar />
-          <ChatWidget />
           <KeyboardShortcutHelp />
         </>
       )}

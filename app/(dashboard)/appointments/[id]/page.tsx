@@ -25,7 +25,6 @@ import {
   Stethoscope,
   FileText,
   History,
-  Video,
 } from 'lucide-react'
 import {
   Dialog,
@@ -285,27 +284,11 @@ export default function AppointmentDetailsPage({ params }: { params: Promise<{ i
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold tracking-tight">{appointment.appointmentNo}</h1>
               {getStatusBadge(appointment.status)}
-              {appointment.isVirtual && (
-                <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">
-                  <Video className="h-3 w-3 mr-1" />
-                  Virtual
-                </Badge>
-              )}
             </div>
             <p className="text-muted-foreground">Created on {formatDate(appointment.createdAt)}</p>
           </div>
         </div>
         <div className="flex gap-2">
-          {appointment.isVirtual &&
-            appointment.videoConsultationId &&
-            ['SCHEDULED', 'CONFIRMED', 'IN_PROGRESS'].includes(appointment.status) && (
-              <Link href={`/video/${appointment.videoConsultationId}`}>
-                <Button className="bg-green-600 hover:bg-green-700">
-                  <Video className="h-4 w-4 mr-2" />
-                  Join Video Call
-                </Button>
-              </Link>
-            )}
           {['SCHEDULED', 'CONFIRMED'].includes(appointment.status) && (
             <Button onClick={handleCheckIn} disabled={actionLoading}>
               <LogIn className="h-4 w-4 mr-2" />

@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 import { Shield, Lock, Clock, UserX, AlertTriangle } from 'lucide-react'
-import { AuditMonitor } from '@/components/ai/audit-monitor'
 import { useToast } from '@/hooks/use-toast'
 import { Textarea } from '@/components/ui/textarea'
 
@@ -386,13 +385,6 @@ export default function SecuritySettingsPage() {
                 Enter one IP address or CIDR range per line. These IPs will be denied access.
               </p>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Audit Log Intelligence */}
-        <Card>
-          <CardContent className="pt-6">
-            <AuditMonitor />
           </CardContent>
         </Card>
 

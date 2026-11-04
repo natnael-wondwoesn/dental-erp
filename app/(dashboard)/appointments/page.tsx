@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { CalendarView } from '@/components/appointments/calendar-view'
 import {
   Calendar,
   Plus,
@@ -407,228 +408,234 @@ export default function AppointmentsPage() {
         </Card>
 
         {/* Appointments Table */}
-        <Card>
-          <CardContent className="p-0 overflow-x-auto">
-            <Table className="min-w-[900px]">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('Appointment')}</TableHead>
-                  <TableHead>{t('Patient')}</TableHead>
-                  <TableHead>{t('Doctor')}</TableHead>
-                  <TableHead>{t('Date & Time')}</TableHead>
-                  <TableHead>{t('Type')}</TableHead>
-                  <TableHead>{t('Status')}</TableHead>
-                  {showRisk && <TableHead>{t('Risk')}</TableHead>}
-                  <TableHead className="text-right">{t('Actions')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  Array.from({ length: 5 }).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell>
-                        <Skeleton className="h-4 w-24" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-32" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-28" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-36" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-20" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-20" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-8" />
+        {viewMode === 'calendar' ? (
+          <CalendarView />
+        ) : (
+          <Card>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table className="min-w-[900px]">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('Appointment')}</TableHead>
+                    <TableHead>{t('Patient')}</TableHead>
+                    <TableHead>{t('Doctor')}</TableHead>
+                    <TableHead>{t('Date & Time')}</TableHead>
+                    <TableHead>{t('Type')}</TableHead>
+                    <TableHead>{t('Status')}</TableHead>
+                    {showRisk && <TableHead>{t('Risk')}</TableHead>}
+                    <TableHead className="text-right">{t('Actions')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell>
+                          <Skeleton className="h-4 w-24" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-32" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-28" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-36" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-20" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-20" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-8" />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : appointments.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="h-24 text-center">
+                        <div className="flex flex-col items-center gap-2">
+                          <Calendar className="h-8 w-8 text-muted-foreground" />
+                          <p className="text-muted-foreground">{t('No appointments found')}</p>
+                          <Link href="/appointments/new">
+                            <Button variant="outline" size="sm">
+                              <Plus className="h-4 w-4 mr-2" />
+                              Book New Appointment
+                            </Button>
+                          </Link>
+                        </div>
                       </TableCell>
                     </TableRow>
-                  ))
-                ) : appointments.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center">
-                      <div className="flex flex-col items-center gap-2">
-                        <Calendar className="h-8 w-8 text-muted-foreground" />
-                        <p className="text-muted-foreground">{t('No appointments found')}</p>
-                        <Link href="/appointments/new">
-                          <Button variant="outline" size="sm">
-                            <Plus className="h-4 w-4 mr-2" />
-                            Book New Appointment
-                          </Button>
-                        </Link>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  appointments.map((appointment) => (
-                    <TableRow key={appointment.id}>
-                      <TableCell>
-                        <div className="font-medium">{appointment.appointmentNo}</div>
-                        {appointment.chairNumber && (
-                          <div className="text-sm text-muted-foreground">
-                            Chair {appointment.chairNumber}
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                            <User className="h-4 w-4 text-primary" />
-                          </div>
-                          <div>
-                            <div className="font-medium">{getPatientName(appointment.patient)}</div>
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                              <Phone className="h-3 w-3" />
-                              {appointment.patient.phone}
-                            </div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-medium">{getDoctorName(appointment.doctor)}</div>
-                        {appointment.doctor.specialization && (
-                          <div className="text-sm text-muted-foreground">
-                            {appointment.doctor.specialization}
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <div className="font-medium">
-                              {formatDate(appointment.scheduledDate)}
-                            </div>
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                              <Clock className="h-3 w-3" />
-                              {formatTime(appointment.scheduledTime)}
-                              <span className="text-xs">({appointment.duration} min)</span>
-                            </div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{getTypeBadge(appointment.appointmentType)}</TableCell>
-                      <TableCell>{getStatusBadge(appointment.status)}</TableCell>
-                      {showRisk && (
+                  ) : (
+                    appointments.map((appointment) => (
+                      <TableRow key={appointment.id}>
                         <TableCell>
-                          {['SCHEDULED', 'CONFIRMED'].includes(appointment.status) ? (
-                            getRiskBadge(appointment.id)
-                          ) : (
-                            <span className="text-xs text-muted-foreground">N/A</span>
+                          <div className="font-medium">{appointment.appointmentNo}</div>
+                          {appointment.chairNumber && (
+                            <div className="text-sm text-muted-foreground">
+                              Chair {appointment.chairNumber}
+                            </div>
                           )}
                         </TableCell>
-                      )}
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => router.push(`/appointments/${appointment.id}`)}
-                            >
-                              <Eye className="h-4 w-4 mr-2" />
-                              View Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => router.push(`/appointments/${appointment.id}/edit`)}
-                            >
-                              <Edit className="h-4 w-4 mr-2" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            {['SCHEDULED', 'CONFIRMED'].includes(appointment.status) && (
-                              <DropdownMenuItem onClick={() => handleCheckIn(appointment.id)}>
-                                <LogIn className="h-4 w-4 mr-2" />
-                                Check In
-                              </DropdownMenuItem>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                              <User className="h-4 w-4 text-primary" />
+                            </div>
+                            <div>
+                              <div className="font-medium">
+                                {getPatientName(appointment.patient)}
+                              </div>
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <Phone className="h-3 w-3" />
+                                {appointment.patient.phone}
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">{getDoctorName(appointment.doctor)}</div>
+                          {appointment.doctor.specialization && (
+                            <div className="text-sm text-muted-foreground">
+                              {appointment.doctor.specialization}
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                              <div className="font-medium">
+                                {formatDate(appointment.scheduledDate)}
+                              </div>
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <Clock className="h-3 w-3" />
+                                {formatTime(appointment.scheduledTime)}
+                                <span className="text-xs">({appointment.duration} min)</span>
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>{getTypeBadge(appointment.appointmentType)}</TableCell>
+                        <TableCell>{getStatusBadge(appointment.status)}</TableCell>
+                        {showRisk && (
+                          <TableCell>
+                            {['SCHEDULED', 'CONFIRMED'].includes(appointment.status) ? (
+                              getRiskBadge(appointment.id)
+                            ) : (
+                              <span className="text-xs text-muted-foreground">N/A</span>
                             )}
-                            {['CHECKED_IN', 'IN_PROGRESS'].includes(appointment.status) && (
-                              <DropdownMenuItem onClick={() => handleCheckOut(appointment.id)}>
-                                <LogOut className="h-4 w-4 mr-2" />
-                                Check Out
-                              </DropdownMenuItem>
-                            )}
-                            {appointment.status === 'SCHEDULED' && (
+                          </TableCell>
+                        )}
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
                               <DropdownMenuItem
-                                onClick={() => handleStatusChange(appointment.id, 'CONFIRMED')}
+                                onClick={() => router.push(`/appointments/${appointment.id}`)}
                               >
-                                <CheckCircle className="h-4 w-4 mr-2" />
-                                Confirm
+                                <Eye className="h-4 w-4 mr-2" />
+                                View Details
                               </DropdownMenuItem>
-                            )}
-                            {!['COMPLETED', 'CANCELLED', 'NO_SHOW'].includes(
-                              appointment.status
-                            ) && (
-                              <>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  onClick={() => handleStatusChange(appointment.id, 'NO_SHOW')}
-                                  className="text-amber-600"
-                                >
-                                  <XCircle className="h-4 w-4 mr-2" />
-                                  Mark No Show
+                              <DropdownMenuItem
+                                onClick={() => router.push(`/appointments/${appointment.id}/edit`)}
+                              >
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              {['SCHEDULED', 'CONFIRMED'].includes(appointment.status) && (
+                                <DropdownMenuItem onClick={() => handleCheckIn(appointment.id)}>
+                                  <LogIn className="h-4 w-4 mr-2" />
+                                  Check In
                                 </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleStatusChange(appointment.id, 'CANCELLED')}
-                                  className="text-red-600"
-                                >
-                                  <XCircle className="h-4 w-4 mr-2" />
-                                  Cancel
+                              )}
+                              {['CHECKED_IN', 'IN_PROGRESS'].includes(appointment.status) && (
+                                <DropdownMenuItem onClick={() => handleCheckOut(appointment.id)}>
+                                  <LogOut className="h-4 w-4 mr-2" />
+                                  Check Out
                                 </DropdownMenuItem>
-                              </>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                              )}
+                              {appointment.status === 'SCHEDULED' && (
+                                <DropdownMenuItem
+                                  onClick={() => handleStatusChange(appointment.id, 'CONFIRMED')}
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  Confirm
+                                </DropdownMenuItem>
+                              )}
+                              {!['COMPLETED', 'CANCELLED', 'NO_SHOW'].includes(
+                                appointment.status
+                              ) && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={() => handleStatusChange(appointment.id, 'NO_SHOW')}
+                                    className="text-amber-600"
+                                  >
+                                    <XCircle className="h-4 w-4 mr-2" />
+                                    Mark No Show
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => handleStatusChange(appointment.id, 'CANCELLED')}
+                                    className="text-red-600"
+                                  >
+                                    <XCircle className="h-4 w-4 mr-2" />
+                                    Cancel
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
 
-            {/* Pagination */}
-            {!loading && pagination.totalPages > 1 && (
-              <div className="flex items-center justify-between border-t px-4 py-4">
-                <div className="text-sm text-muted-foreground">
-                  Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
-                  {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                  {pagination.total} appointments
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPagination((p) => ({ ...p, page: p.page - 1 }))}
-                    disabled={pagination.page <= 1}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    Previous
-                  </Button>
-                  <div className="text-sm">
-                    Page {pagination.page} of {pagination.totalPages}
+              {/* Pagination */}
+              {!loading && pagination.totalPages > 1 && (
+                <div className="flex items-center justify-between border-t px-4 py-4">
+                  <div className="text-sm text-muted-foreground">
+                    Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
+                    {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
+                    {pagination.total} appointments
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPagination((p) => ({ ...p, page: p.page + 1 }))}
-                    disabled={pagination.page >= pagination.totalPages}
-                  >
-                    Next
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPagination((p) => ({ ...p, page: p.page - 1 }))}
+                      disabled={pagination.page <= 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </Button>
+                    <div className="text-sm">
+                      Page {pagination.page} of {pagination.totalPages}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPagination((p) => ({ ...p, page: p.page + 1 }))}
+                      disabled={pagination.page >= pagination.totalPages}
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </TooltipProvider>
   )
