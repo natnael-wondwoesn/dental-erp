@@ -46,7 +46,7 @@ const FIELD_LIMITS: Record<keyof TreatmentClinicalSheet, number> = {
   assessment: 4000,
   prescriptionPlan: 4000,
   nextAppointment: 40,
-  doctorSignature: 191,
+  doctorSignature: 60000,
 }
 
 export function normalizeTreatmentClinicalSheet(value: unknown): TreatmentClinicalSheet | null {
@@ -57,7 +57,13 @@ export function normalizeTreatmentClinicalSheet(value: unknown): TreatmentClinic
     const raw = source[key]
     if (raw === undefined || raw === null) continue
     if (typeof raw !== 'string' && typeof raw !== 'number') continue
-    sheet[key] = String(raw).trim().slice(0, FIELD_LIMITS[key])
+    const text = String(raw).trim()
+    // A drawn signature is a PNG data URL; truncating it would corrupt it.
+    if (key === 'doctorSignature' && text.startsWith('data:image/png;base64,')) {
+      sheet[key] = text.length <= FIELD_LIMITS[key] ? text : ''
+      continue
+    }
+    sheet[key] = text.slice(0, key === 'doctorSignature' ? 191 : FIELD_LIMITS[key])
   }
 
   if (sheet.treatmentDate && !/^\d{4}-\d{2}-\d{2}$/.test(sheet.treatmentDate)) {

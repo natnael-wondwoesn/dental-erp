@@ -424,7 +424,6 @@ export default function TreatmentDetailPage({ params }: { params: Promise<{ id: 
                       ['SpO₂', clinicalSheet.spo2],
                       ['PR', clinicalSheet.pulseRate],
                       ['Dr.', `Dr. ${treatment.doctor.firstName} ${treatment.doctor.lastName}`],
-                      ['Sign', clinicalSheet.doctorSignature],
                     ].map(([label, value]) =>
                       value ? (
                         <div key={label}>
@@ -434,6 +433,23 @@ export default function TreatmentDetailPage({ params }: { params: Promise<{ id: 
                       ) : null
                     )}
                   </div>
+                  {clinicalSheet.doctorSignature && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">
+                        Doctor Signature
+                      </div>
+                      {clinicalSheet.doctorSignature.startsWith('data:image/') ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={clinicalSheet.doctorSignature}
+                          alt="Doctor signature"
+                          className="mt-1 h-20 rounded border bg-white"
+                        />
+                      ) : (
+                        <div className="mt-1">{clinicalSheet.doctorSignature}</div>
+                      )}
+                    </div>
+                  )}
                   <div className="space-y-3">
                     {[
                       ['C/C — Chief Complaint', treatment.chiefComplaint],
