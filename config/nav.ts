@@ -14,8 +14,6 @@ import {
   Shield,
   TrendingUp,
   MessageSquare,
-  BotMessageSquare,
-  Sparkles,
   Pill,
   ClipboardList,
   ClipboardCheck,
@@ -28,7 +26,6 @@ import {
   Clock,
   Link2,
   CalendarClock,
-  Video,
   Zap,
   Star,
   Cpu,
@@ -67,11 +64,6 @@ export const navigation: NavSection[] = [
         href: '/dashboard',
         icon: LayoutDashboard,
       },
-      {
-        title: 'AI Chat',
-        href: '/chat',
-        icon: BotMessageSquare,
-      },
     ],
   },
   {
@@ -105,12 +97,6 @@ export const navigation: NavSection[] = [
             roles: ['ADMIN', 'RECEPTIONIST'],
           },
         ],
-      },
-      {
-        title: 'Video Consults',
-        href: '/video',
-        icon: Video,
-        roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'],
       },
       {
         title: 'Assessment & Treatment',
@@ -362,11 +348,6 @@ export const navigation: NavSection[] = [
             icon: UserCog,
           },
           {
-            title: 'Invites',
-            href: '/staff/invites',
-            icon: UserCog,
-          },
-          {
             title: 'Attendance',
             href: '/staff/attendance',
             icon: Calendar,
@@ -412,11 +393,6 @@ export const navigation: NavSection[] = [
             title: 'Setup Guide',
             href: '/settings/setup-guide',
             icon: BookOpen,
-          },
-          {
-            title: 'AI Features',
-            href: '/settings/ai',
-            icon: Sparkles,
           },
           {
             title: 'Forms',

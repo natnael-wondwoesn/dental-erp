@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { LogOut, User, Settings } from 'lucide-react'
+import { LogOut, User, Settings, KeyRound } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -75,6 +75,10 @@ export function UserMenu({ user, isPlatformControlPlane = false }: UserMenuProps
             <DropdownMenuItem onClick={() => router.push('/settings')}>
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push('/settings/password')}>
+              <KeyRound className="mr-2 h-4 w-4" />
+              <span>Change password</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
           </>
