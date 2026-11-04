@@ -37,6 +37,23 @@ export default function NewInventoryItemPage() {
     fetchSuppliers()
   }, [])
 
+  const [newCategory, setNewCategory] = useState('')
+  const addCategory = async () => {
+    const name = newCategory.trim()
+    if (!name) return
+    const res = await fetch('/api/inventory/categories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    })
+    const data = await res.json().catch(() => null)
+    if (res.ok && data?.data) {
+      setCategories((prev) => [...prev.filter((c) => c.id !== data.data.id), data.data])
+      setFormData((prev) => ({ ...prev, categoryId: data.data.id }))
+      setNewCategory('')
+    }
+  }
+
   const fetchCategories = async () => {
     try {
       const response = await fetch('/api/inventory/categories')
@@ -167,6 +184,22 @@ export default function NewInventoryItemPage() {
                 </option>
               ))}
             </select>
+            <div className="mt-2 flex gap-2">
+              <input
+                type="text"
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+                placeholder="Add a new category"
+                className="flex-1 px-3 py-1.5 border border-border rounded-lg text-sm"
+              />
+              <button
+                type="button"
+                onClick={addCategory}
+                className="px-3 py-1.5 rounded-lg border border-border text-sm hover:bg-muted"
+              >
+                Add
+              </button>
+            </div>
           </div>
 
           {/* Item Type */}
@@ -333,6 +366,14 @@ export default function NewInventoryItemPage() {
                 </option>
               ))}
             </select>
+            {suppliers.length === 0 && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                No suppliers yet.{' '}
+                <a href="/inventory/suppliers" className="underline">
+                  Add a supplier
+                </a>
+              </p>
+            )}
           </div>
 
           {/* Storage Location */}

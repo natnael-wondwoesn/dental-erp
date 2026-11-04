@@ -102,6 +102,7 @@ export function modulesForPath(rawPath: string): ModuleId[] | null {
     is('/treatment-plans') ||
     is('/prescriptions') ||
     is('/dental-chart') ||
+    is('/dental-examinations') ||
     /\/patients\/[^/]+\/(dental-chart|prescriptions|clinical-chart|images)/.test(path)
   )
     return ['clinical']

@@ -1,5 +1,6 @@
 'use client'
 
+import { SignaturePad } from '@/components/ui/signature-pad'
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -641,14 +642,12 @@ export default function NewTreatmentPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="doctorSignature">Sign — Doctor Signature / Initials</Label>
-                <Input
-                  id="doctorSignature"
+                <Label>Doctor Signature</Label>
+                <SignaturePad
                   value={clinicalSheet.doctorSignature}
-                  onChange={(e) =>
-                    setClinicalSheet({ ...clinicalSheet, doctorSignature: e.target.value })
+                  onChange={(doctorSignature) =>
+                    setClinicalSheet({ ...clinicalSheet, doctorSignature })
                   }
-                  placeholder="Doctor signature or initials"
                 />
               </div>
             </div>
