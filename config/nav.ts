@@ -299,6 +299,10 @@ export const navigation: NavSection[] = [
         href: '/lab',
         icon: FlaskConical,
         roles: ['ADMIN', 'DOCTOR', 'LAB_TECH'],
+        subItems: [
+          { title: 'Lab Orders', href: '/lab', icon: FlaskConical },
+          { title: 'Lab Vendors', href: '/lab/vendors', icon: FlaskConical },
+        ],
       },
       {
         title: 'Communications',

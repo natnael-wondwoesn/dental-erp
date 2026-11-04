@@ -314,6 +314,14 @@ export default function NewLabOrderPage() {
                     ))}
                   </SelectContent>
                 </Select>
+                {vendors.length === 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    No lab vendors yet.{' '}
+                    <a href="/lab/vendors" className="underline">
+                      Add a lab vendor
+                    </a>
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
