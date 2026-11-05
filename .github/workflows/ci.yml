@@ -58,7 +58,6 @@ jobs:
     name: Unit & Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: lint-and-type-check
     steps:
       - uses: actions/checkout@v4
 
@@ -98,7 +97,6 @@ jobs:
     name: Production Build
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: lint-and-type-check
     steps:
       - uses: actions/checkout@v4
 
