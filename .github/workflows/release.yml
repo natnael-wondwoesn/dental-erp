@@ -37,10 +37,10 @@ jobs:
   verify:
     name: Verify
     uses: ./.github/workflows/ci.yml
+    # Runs in parallel with the builds below; `publish` waits for it.
 
   build:
     name: Build ${{ matrix.platform }}
-    needs: verify
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
     permissions:
@@ -122,8 +122,11 @@ jobs:
 
   publish:
     name: Publish manifest
-    needs: build
-    if: needs.build.result == 'success' && github.event_name == 'push'
+    # Verify runs alongside the image builds (they take about as long) instead of
+    # before them. Nothing is tagged or deployed until both have passed: the
+    # builds push untagged digests only, and this job is what attaches the tags.
+    needs: [build, verify]
+    if: needs.build.result == 'success' && needs.verify.result == 'success' && github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -201,7 +204,6 @@ jobs:
 
   windows-license-agent:
     name: Build Windows license agent
-    needs: verify
     if: github.event_name == 'push'
     runs-on: windows-latest
     timeout-minutes: 30
@@ -296,7 +298,6 @@ jobs:
 
   backend-image:
     name: Build SaaS backend image
-    needs: verify
     runs-on: ubuntu-latest
     permissions:
       contents: read
