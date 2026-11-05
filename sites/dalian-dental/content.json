@@ -3,12 +3,11 @@
   "clinic": {
     "name": "Dalian Dental Clinic",
     "tagline": "Changing lives, one smile at a time.",
-    "domain": "",
+    "domain": "dalian.dental.clinic-cms.cc",
     "primaryColor": "#8A1629",
     "backgroundColor": "#FAFAFA",
     "phone": "",
     "phone2": "",
-    "whatsapp": "",
     "email": "",
     "telegram": "",
     "address": "",
@@ -19,7 +18,7 @@
     "facebook": "",
     "instagram": "",
     "tiktok": "",
-    "todo": "TODO: phone, WhatsApp, email, address, map link, opening hours, social links, domain, logo"
+    "todo": "TODO: phone, Telegram username, email, address, map link, opening hours, social links, domain, logo"
   },
   "seo": {
     "title": "Dalian Dental Clinic | Professional Dental Clinic in Addis Ababa",
@@ -162,7 +161,7 @@
   "faq": [
     {
       "q": "How do I book an appointment?",
-      "a": "Use the appointment form on the Contact page, call the clinic, or message us on WhatsApp. We will confirm your time with you."
+      "a": "Use the appointment form on the Contact page, call the clinic, or message us on Telegram. We will confirm your time with you."
     },
     {
       "q": "Do you treat children?",

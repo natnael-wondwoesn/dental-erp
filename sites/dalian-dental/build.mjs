@@ -31,7 +31,12 @@ const esc = (s) =>
     .replace(/"/g, '&quot;')
 
 const digits = (s) => String(s).replace(/[^\d+]/g, '')
-const waNumber = digits(clinic.whatsapp).replace(/^\+/, '')
+// Telegram username without the @ or a t.me/ prefix.
+const tg = String(clinic.telegram || '')
+  .trim()
+  .replace(/^https?:\/\/t\.me\//i, '')
+  .replace(/^@/, '')
+  .replace(/[^A-Za-z0-9_]/g, '')
 const doctorById = Object.fromEntries(c.doctors.map((d) => [d.id, d]))
 const base = clinic.domain ? `https://${clinic.domain}` : ''
 
@@ -61,8 +66,8 @@ function contactLinks() {
 
 function bookButtons(depth, extraClass = '') {
   const r = rel(depth)
-  const wa = waNumber
-    ? `<a class="btn btn-light ${extraClass}" href="https://wa.me/${esc(waNumber)}" data-track="whatsapp" rel="noopener">WhatsApp us</a>`
+  const wa = tg
+    ? `<a class="btn btn-light ${extraClass}" href="https://t.me/${esc(tg)}" data-track="telegram" rel="noopener">Message us on Telegram</a>`
     : ''
   return `<a class="btn ${extraClass}" href="${r}contact/#book" data-track="book">Book an appointment</a>${wa}`
 }
@@ -86,7 +91,7 @@ function layout({ title, description, depth, body, path = '' }) {
     ['Facebook', clinic.facebook],
     ['Instagram', clinic.instagram],
     ['TikTok', clinic.tiktok],
-    ['Telegram', clinic.telegram],
+    ['Telegram', tg ? `https://t.me/${tg}` : ''],
   ]
     .filter(([, url]) => url)
     .map(([n, url]) => `<a href="${esc(url)}" rel="noopener">${n}</a>`)
@@ -419,7 +424,7 @@ page('contact/', {
   description: `Book an appointment or contact ${clinic.name} in ${clinic.city}.`,
   body: `${hero({ eyebrow: 'Contact', h1: 'Book an appointment', text: 'Tell us what you need and when suits you. We will confirm your time with you.', depth: 1 })}
 <section class="section" id="book"><div class="wrap split">
-  <form id="appointment" class="card form" novalidate data-whatsapp="${esc(waNumber)}" data-clinic="${esc(clinic.name)}">
+  <form id="appointment" class="card form" novalidate data-telegram="${esc(tg)}" data-clinic="${esc(clinic.name)}">
     <h2>Appointment request</h2>
     <label>Full name<input name="name" required autocomplete="name"></label>
     <label>Phone number<input name="phone" required inputmode="tel" autocomplete="tel"></label>
@@ -431,7 +436,7 @@ page('contact/', {
     <label>Service needed<select name="service"><option value="">Not sure yet</option>${serviceOptions}</select></label>
     <label>Message<textarea name="message" rows="4"></textarea></label>
     <p class="honeypot"><label>Leave this empty<input name="website" tabindex="-1" autocomplete="off"></label></p>
-    <button class="btn" type="submit">${waNumber ? 'Send request on WhatsApp' : 'Prepare my request'}</button>
+    <button class="btn" type="submit">${tg ? 'Send request on Telegram' : 'Prepare my request'}</button>
     <p class="form-msg" role="status" aria-live="polite"></p>
   </form>
   <div>
@@ -440,7 +445,7 @@ page('contact/', {
       <li><strong>Location</strong> ${esc(clinic.city)}${clinic.address ? `, ${esc(clinic.address)}` : ''}</li>
       ${clinic.hours ? `<li><strong>Hours</strong> ${esc(clinic.hours)}</li>` : ''}
       ${contactLinks() ? `<li><strong>Phone</strong> ${contactLinks()}</li>` : ''}
-      ${waNumber ? `<li><strong>WhatsApp</strong> <a href="https://wa.me/${esc(waNumber)}" data-track="whatsapp" rel="noopener">Message us</a></li>` : ''}
+      ${tg ? `<li><strong>Telegram</strong> <a href="https://t.me/${esc(tg)}" data-track="telegram" rel="noopener">@${esc(tg)}</a></li>` : ''}
       ${clinic.email ? `<li><strong>Email</strong> <a href="mailto:${esc(clinic.email)}">${esc(clinic.email)}</a></li>` : ''}
     </ul>
     ${clinic.mapEmbedUrl ? `<iframe class="map" title="Map" src="${esc(clinic.mapEmbedUrl)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>` : ''}

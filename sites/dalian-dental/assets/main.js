@@ -1,6 +1,6 @@
 // Small, dependency-free behaviour: mobile menu, fade-in on scroll, and the
-// appointment form. The form does not store anything: it opens a WhatsApp
-// message pre-filled with the visitor's request.
+// appointment form. The form does not store anything: it copies the visitor's
+// request and opens a Telegram chat with the clinic, where they paste it.
 ;(function () {
   var btn = document.querySelector('.menu-btn')
   var nav = document.getElementById('nav')
@@ -63,16 +63,28 @@
         f.get('time') ? 'Preferred time: ' + f.get('time') : '',
         f.get('message') ? 'Message: ' + f.get('message') : '',
       ].filter(Boolean)
-      var number = form.dataset.whatsapp
-      if (number) {
-        window.open(
-          'https://wa.me/' + number + '?text=' + encodeURIComponent(lines.join('\n')),
-          '_blank',
-          'noopener'
-        )
-        msg.className = 'form-msg ok'
-        msg.textContent =
-          'Your request is ready in WhatsApp. Press send there and we will confirm your time.'
+      var user = form.dataset.telegram
+      if (user) {
+        var text = lines.join('\n')
+        var done = function (copied) {
+          window.open('https://t.me/' + user, '_blank', 'noopener')
+          msg.className = 'form-msg ok'
+          msg.textContent = copied
+            ? 'Your request is copied. Paste it into the Telegram chat and press send; we will confirm your time.'
+            : 'Telegram is opening. Please type your request there and we will confirm your time.'
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(
+            function () {
+              done(true)
+            },
+            function () {
+              done(false)
+            }
+          )
+        } else {
+          done(false)
+        }
       } else {
         msg.className = 'form-msg error'
         msg.textContent = 'Online requests are not available yet. Please call the clinic to book.'
