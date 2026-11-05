@@ -119,6 +119,7 @@ function layout({ title, description, depth, body, path = '' }) {
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:type" content="website">
+${base ? `<meta property="og:image" content="${base}/images/doctors-team.jpg">` : ''}
 ${base ? `<link rel="canonical" href="${base}/${esc(path === 'index.html' ? '' : path)}">` : ''}
 <link rel="preload" href="${r}assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="${r}assets/fonts/poppins-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
@@ -167,7 +168,7 @@ ${body}
 `
 }
 
-function doctorCard(d) {
+function doctorCard(d, depth = 0) {
   const initials = d.name
     .replace(/^Dr\.?\s*/, '')
     .split(' ')
@@ -175,7 +176,7 @@ function doctorCard(d) {
     .join('')
     .slice(0, 2)
   const photo = d.photo
-    ? `<img src="${esc(d.photo)}" alt="${esc(d.name)}" loading="lazy" width="320" height="320">`
+    ? `<img src="${rel(depth)}${esc(d.photo)}" alt="${esc(d.name)}, ${esc(d.title)}" loading="lazy" width="320" height="320">`
     : `<span class="avatar" aria-hidden="true">${esc(initials)}</span>`
   return `<article class="card doctor">
   <div class="doctor-photo">${photo}</div>
@@ -213,7 +214,7 @@ function cta(
 </div></section>`
 }
 
-function hero({ eyebrow, h1, text, depth, image }) {
+function hero({ eyebrow, h1, text, depth, image, alt = '', position = 'center' }) {
   return `<section class="hero"><div class="wrap hero-grid">
   <div>
     ${eyebrow ? `<p class="eyebrow">${esc(eyebrow)}</p>` : ''}
@@ -221,7 +222,7 @@ function hero({ eyebrow, h1, text, depth, image }) {
     <p class="lead">${esc(text)}</p>
     <div class="btn-row">${bookButtons(depth)}</div>
   </div>
-  <div class="hero-art">${image ? `<img src="${esc(image)}" alt="" loading="eager">` : `<div class="art-ph" aria-hidden="true">${toothIcon}</div>`}</div>
+  <div class="hero-art">${image ? `<img src="${rel(depth)}${esc(image)}" alt="${esc(alt)}" width="1000" height="800" style="object-position:${esc(position)}" fetchpriority="high">` : `<div class="art-ph" aria-hidden="true">${toothIcon}</div>`}</div>
 </div></section>`
 }
 
@@ -240,6 +241,9 @@ page('index.html', {
     h1: `Gentle, specialist dental care in ${clinic.city}`,
     text: `${clinic.name} brings orthodontists, dental surgeons and oral and maxillofacial surgeons together under one roof, so the whole family can be treated in one place.`,
     depth: 0,
+    image: 'images/doctors-team.jpg',
+    alt: `Doctors at ${clinic.name} in front of the clinic sign`,
+    position: 'center 35%',
   })}
 <section class="stats"><div class="wrap stat-row">
   <div><strong>${c.services.length}</strong><span>Treatment areas</span></div>
@@ -265,7 +269,7 @@ page('index.html', {
 <section class="section"><div class="wrap">
   <p class="eyebrow">Our team</p>
   <h2>Specialists you can talk to</h2>
-  <div class="grid grid-doctors">${c.doctors.map(doctorCard).join('')}</div>
+  <div class="grid grid-doctors">${c.doctors.map((d) => doctorCard(d, 0)).join('')}</div>
 </div></section>
 ${
   c.testimonials.length
@@ -288,7 +292,7 @@ ${cta(0)}`,
 page('services/', {
   title: `Dental Services in Addis Ababa | ${clinic.name}`,
   description: `Braces, implants, root canal, crowns, cosmetic dentistry, hygiene, emergency and children's dental care at ${clinic.name}.`,
-  body: `${hero({ eyebrow: 'Services and treatments', h1: `Our ${c.services.length} dental treatment areas`, text: 'Choose a treatment to see what it includes and which doctors provide it.', depth: 1 })}
+  body: `${hero({ eyebrow: 'Services and treatments', h1: `Our ${c.services.length} dental treatment areas`, text: 'Choose a treatment to see what it includes and which doctors provide it.', depth: 1, image: 'images/doctor-gloves.jpg', alt: 'A dentist putting on gloves before treatment', position: 'center 30%' })}
 <section class="section"><div class="wrap"><div class="grid">${c.services.map((s) => serviceCard(s, 1)).join('')}</div></div></section>
 ${cta(1)}`,
 })
@@ -307,7 +311,7 @@ for (const s of c.services) {
   </div>
   <div>
     <h2>Your specialists</h2>
-    <div class="grid grid-doctors">${docs.map(doctorCard).join('')}</div>
+    <div class="grid grid-doctors">${docs.map((d) => doctorCard(d, 2)).join('')}</div>
   </div>
 </div></section>
 <section class="section alt"><div class="wrap">
@@ -385,6 +389,7 @@ page('about/', {
   description: `Meet the doctors and learn about the story, mission and values of ${clinic.name} in Addis Ababa.`,
   body: `${hero({ eyebrow: 'About us', h1: `About ${clinic.name}`, text: clinic.tagline, depth: 1 })}
 <section class="section"><div class="wrap narrow"><h2>Our story</h2><p>${esc(c.story.replace(/\s*TODO:.*$/, ''))}</p></div></section>
+<section class="section tight"><div class="wrap"><figure class="feature"><img src="../images/clinic-team.jpg" alt="The ${esc(clinic.name)} team in front of the clinic sign" width="1600" height="1067" loading="lazy"><figcaption>The ${esc(clinic.name)} team</figcaption></figure></div></section>
 <section class="section alt"><div class="wrap">
   <div class="grid">
     <article class="card"><h3>Our mission</h3><p>${esc(c.mission)}</p></article>
@@ -393,7 +398,7 @@ page('about/', {
   </div>
 </div></section>
 <section class="section"><div class="wrap"><p class="eyebrow">Meet our team</p><h2>The doctors who will treat you</h2>
-  <div class="grid grid-doctors">${c.doctors.map(doctorCard).join('')}</div></div></section>
+  <div class="grid grid-doctors">${c.doctors.map((d) => doctorCard(d, 1)).join('')}</div></div></section>
 <section class="section alt"><div class="wrap narrow"><h2>Your visit, step by step</h2>
   <ol class="steps">
     <li><strong>Consultation.</strong> We listen to your concern and examine your teeth.</li>
@@ -444,6 +449,7 @@ page('contact/', {
   </form>
   <div>
     <h2>Find us</h2>
+    <figure class="feature small-feature"><img src="../images/clinic-building.jpg" alt="The building where ${esc(clinic.name)} is located" width="1200" height="1800" loading="lazy"><figcaption>Our building in ${esc(clinic.city)}</figcaption></figure>
     <ul class="contact-list">
       <li><strong>Location</strong> ${esc(clinic.city)}${clinic.address ? `, ${esc(clinic.address)}` : ''}</li>
       ${clinic.hours ? `<li><strong>Hours</strong> ${esc(clinic.hours)}</li>` : ''}
@@ -494,6 +500,8 @@ for (const f of ['style.css', 'main.js']) cpSync(join(here, 'assets', f), join(o
 // House fonts shared by every landing site: Inter (primary) and Poppins (secondary).
 cpSync(join(here, '..', '_shared', 'fonts.css'), join(out, 'assets', 'fonts.css'))
 cpSync(join(here, '..', '_shared', 'fonts'), join(out, 'assets', 'fonts'), { recursive: true })
+if (existsSync(join(here, 'images')))
+  cpSync(join(here, 'images'), join(out, 'images'), { recursive: true })
 if (existsSync(join(here, 'photos')))
   cpSync(join(here, 'photos'), join(out, 'photos'), { recursive: true })
 if (existsSync(join(here, 'public'))) cpSync(join(here, 'public'), out, { recursive: true })
