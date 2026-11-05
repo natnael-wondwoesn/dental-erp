@@ -1,0 +1,193 @@
+{
+  "_note": "Everything shown on the Dalian Dental Clinic site comes from this file. Empty strings are details the clinic has not given us yet: the page hides them rather than showing made-up values. Search this file for \"TODO\" to see what is still needed.",
+  "clinic": {
+    "name": "Dalian Dental Clinic",
+    "tagline": "Changing lives, one smile at a time.",
+    "domain": "dalian.dental.clinic-cms.cc",
+    "primaryColor": "#8A1629",
+    "backgroundColor": "#FAFAFA",
+    "phone": "",
+    "phone2": "",
+    "email": "",
+    "telegram": "",
+    "address": "",
+    "city": "Addis Ababa",
+    "mapUrl": "",
+    "mapEmbedUrl": "",
+    "hours": "",
+    "facebook": "",
+    "instagram": "",
+    "tiktok": "",
+    "todo": "TODO: phone, Telegram username, email, address, map link, opening hours, social links, domain, logo"
+  },
+  "seo": {
+    "title": "Dalian Dental Clinic | Professional Dental Clinic in Addis Ababa",
+    "description": "Looking for professional dental care in Addis Ababa? Visit Dalian Dental Clinic for braces, implants, root canal, cosmetic dentistry and family care from experienced dental professionals. Book your appointment today."
+  },
+  "doctors": [
+    {
+      "id": "fithalew-lijindi",
+      "name": "Dr. Fithalew Lijindi",
+      "title": "Orthodontist",
+      "bio": "",
+      "photo": ""
+    },
+    {
+      "id": "ferhana-adem",
+      "name": "Dr. Ferhana Adem",
+      "title": "Founder / Expert Dental Surgeon",
+      "bio": "",
+      "photo": ""
+    },
+    {
+      "id": "abyalew-zewdu",
+      "name": "Dr. Abyalew Zewdu",
+      "title": "Senior Dental Surgeon",
+      "bio": "",
+      "photo": ""
+    },
+    {
+      "id": "shimelis-megersa",
+      "name": "Dr. Shimelis Megersa",
+      "title": "Oral & Maxillofacial Surgeon",
+      "bio": "",
+      "photo": ""
+    },
+    {
+      "id": "melese-tabor",
+      "name": "Dr. Melese Tabor",
+      "title": "Oral & Maxillofacial Surgeon",
+      "bio": "",
+      "photo": ""
+    }
+  ],
+  "services": [
+    {
+      "slug": "orthodontics",
+      "name": "Orthodontic Treatment (Braces)",
+      "short": "Braces and aligners to straighten teeth and correct the bite, for children and adults.",
+      "icon": "braces",
+      "includes": ["Kids braces", "Myofunctional appliance", "Invisible aligners"],
+      "doctors": ["fithalew-lijindi"],
+      "keywords": "braces in Addis Ababa, kids braces, orthodontist, invisible aligners"
+    },
+    {
+      "slug": "prosthodontics",
+      "name": "Prosthodontics",
+      "short": "Crowns, bridges and dentures that restore the look and function of your teeth.",
+      "icon": "crown",
+      "includes": [
+        "Crowns and bridges (zirconia or ceramic)",
+        "Jacket crowns",
+        "Dentures (full or partial)"
+      ],
+      "doctors": ["ferhana-adem", "abyalew-zewdu"],
+      "keywords": "dental crowns, bridges, dentures, zirconia crown Addis Ababa"
+    },
+    {
+      "slug": "dental-implants",
+      "name": "Dental Implants",
+      "short": "A fixed replacement for missing teeth, placed by oral and maxillofacial surgeons.",
+      "icon": "implant",
+      "includes": ["Dental implants"],
+      "doctors": ["shimelis-megersa", "melese-tabor"],
+      "keywords": "dental implants in Addis Ababa"
+    },
+    {
+      "slug": "oral-surgery",
+      "name": "Oral Surgery",
+      "short": "Surgical dental care, from tooth extraction to jaw surgery.",
+      "icon": "surgery",
+      "includes": [
+        "Orthognathic surgery",
+        "Tooth extraction",
+        "Disinfection",
+        "Apicoectomy",
+        "Gingivectomy"
+      ],
+      "doctors": ["shimelis-megersa", "melese-tabor"],
+      "keywords": "tooth extraction, oral surgery, apicoectomy, gingivectomy"
+    },
+    {
+      "slug": "root-canal",
+      "name": "Root Canal Treatment",
+      "short": "Treatment of the inside of the tooth to relieve pain and save the tooth.",
+      "icon": "root",
+      "includes": ["Root canal treatment"],
+      "doctors": ["ferhana-adem", "abyalew-zewdu"],
+      "keywords": "root canal treatment in Addis Ababa"
+    },
+    {
+      "slug": "cosmetic-dentistry",
+      "name": "Cosmetic Dentistry",
+      "short": "Veneers, Hollywood smile and whitening for a brighter, more confident smile.",
+      "icon": "smile",
+      "includes": [
+        "Hollywood smile",
+        "Veneers: porcelain laminate, E.max and zirconia",
+        "Teeth whitening"
+      ],
+      "doctors": ["ferhana-adem", "abyalew-zewdu"],
+      "keywords": "Hollywood smile, veneers, teeth whitening Addis Ababa"
+    },
+    {
+      "slug": "dental-hygiene",
+      "name": "Dental Hygiene",
+      "short": "Professional cleaning and guidance to keep your teeth and gums healthy.",
+      "icon": "clean",
+      "includes": ["Stain removal", "Scaling and tooth cleaning", "Mouth hygiene guidance"],
+      "doctors": ["ferhana-adem", "abyalew-zewdu"],
+      "keywords": "teeth cleaning and whitening in Addis Ababa, scaling"
+    },
+    {
+      "slug": "emergency-care",
+      "name": "Emergency Dental Care",
+      "short": "Urgent help for toothache, knocked-out teeth and jaw injuries.",
+      "icon": "emergency",
+      "includes": ["Knocked-out teeth", "Toothache", "Mandibular fracture"],
+      "doctors": ["shimelis-megersa", "melese-tabor", "ferhana-adem"],
+      "keywords": "emergency dentist Addis Ababa, toothache"
+    },
+    {
+      "slug": "pediatric-dentistry",
+      "name": "Pediatric Dentistry",
+      "short": "Gentle dental care for babies, children and teenagers.",
+      "icon": "kids",
+      "includes": ["Treatment and fillings", "Dental cleanings", "Baby tooth extraction"],
+      "doctors": ["ferhana-adem", "fithalew-lijindi"],
+      "keywords": "pediatric dentist Addis Ababa, kids dentist"
+    }
+  ],
+  "faq": [
+    {
+      "q": "How do I book an appointment?",
+      "a": "Use the appointment form on the Contact page, call the clinic, or message us on Telegram. We will confirm your time with you."
+    },
+    {
+      "q": "Do you treat children?",
+      "a": "Yes. Our pediatric service covers fillings, cleanings and baby tooth extraction, and kids braces are available."
+    },
+    {
+      "q": "What should I do in a dental emergency?",
+      "a": "Call the clinic straight away. For a knocked-out tooth, keep the tooth moist and get to the clinic as quickly as you can."
+    },
+    {
+      "q": "Do you offer braces for adults?",
+      "a": "Yes, braces and invisible aligners are available. An orthodontist will examine you and explain the options."
+    }
+  ],
+  "story": "Dalian Dental Clinic was founded by Dr. Ferhana Adem, an expert dental surgeon, and works with a team of specialists in orthodontics, prosthodontics, implants and oral surgery. TODO: year established and the clinic's own story.",
+  "mission": "To give every patient safe, honest and comfortable dental care.",
+  "vision": "To be a dental clinic in Addis Ababa that patients trust for the whole family.",
+  "values": [
+    { "title": "Care", "text": "We treat every patient with respect and listen first." },
+    {
+      "title": "Clarity",
+      "text": "We explain the diagnosis, the options and the cost before we begin."
+    },
+    { "title": "Safety", "text": "Clean instruments and careful sterilization at every visit." },
+    { "title": "Quality", "text": "Specialist doctors and careful, lasting work." }
+  ],
+  "testimonials": [],
+  "articles": []
+}

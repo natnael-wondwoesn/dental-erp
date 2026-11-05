@@ -1,0 +1,77 @@
+name: Deploy landing site
+
+# Publishes one landing-page-only site (sites/<site>/) to the VPS. Landing sites are
+# plain static files, so this does not use Docker and a version tag does not trigger it.
+# Run it from the Actions tab: choose the site folder name and its server slug.
+
+on:
+  workflow_dispatch:
+    inputs:
+      site:
+        description: Folder under sites/ (for example dalian-dental)
+        required: true
+        type: string
+      slug:
+        description: Server slug for the site (for example dalian-dental)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-vps
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and upload
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate inputs
+        run: |
+          [[ "$SITE" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ && -f "sites/$SITE/build.mjs" ]]
+          [[ "$SLUG" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]]
+        env:
+          SITE: ${{ inputs.site }}
+          SLUG: ${{ inputs.slug }}
+
+      - name: Build
+        run: node "sites/$SITE/build.mjs"
+        env:
+          SITE: ${{ inputs.site }}
+
+      - name: Configure SSH
+        run: |
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$PRIVATE_KEY" > "$HOME/.ssh/deploy_key"
+          printf '%s\n' "$HOST_KEY" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/deploy_key" "$HOME/.ssh/known_hosts"
+        env:
+          PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          HOST_KEY: ${{ secrets.VPS_SSH_HOST_KEY }}
+
+      - name: Upload and switch
+        run: |
+          set -euo pipefail
+          SSH="ssh -i $HOME/.ssh/deploy_key -p ${VPS_PORT:-22} -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes $VPS_USER@$VPS_HOST"
+          STAMP="$(date +%Y%m%d%H%M%S)"
+          DEST="/opt/landing-sites/$SLUG"
+          $SSH "mkdir -p '$DEST/releases/$STAMP'"
+          tar -C "sites/$SITE/dist" -c . | $SSH "tar -x -C '$DEST/releases/$STAMP'"
+          # The link is relative so it also resolves inside the Caddy container.
+          # Switch atomically, then keep the five newest builds for rollback.
+          $SSH "ln -sfn 'releases/$STAMP' '$DEST/current.new' && mv -T '$DEST/current.new' '$DEST/current' && cd '$DEST/releases' && ls -1t | tail -n +6 | xargs -r rm -rf"
+        env:
+          SITE: ${{ inputs.site }}
+          SLUG: ${{ inputs.slug }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}

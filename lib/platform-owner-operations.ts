@@ -11,6 +11,9 @@ export const ownerOperationActions = [
   'DB_START',
   'DEMO_SEED',
   'DEMO_RESET',
+  // Landing-page-only sites: pause/restore the public page (see ops/platform-worker/landing_sites.py).
+  'SITE_SUSPEND',
+  'SITE_RESTORE',
 ] as const
 export const productUserRoles: Record<string, readonly string[]> = {
   'dental-erp': ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'LAB_TECH', 'ACCOUNTANT'],
