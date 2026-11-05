@@ -40,10 +40,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           // Account reads/edits must not mark a stopped installation as running.
           ...(operation.action === 'DB_STOP'
             ? { status: 'DATABASE_STOPPED' }
-            : operation.action === 'DB_START' ||
-                ['PROVISION', 'DEPLOY', 'RESTART'].includes(operation.action)
-              ? { status: 'RUNNING' }
-              : {}),
+            : operation.action === 'SITE_SUSPEND'
+              ? { status: 'SUSPENDED' }
+              : operation.action === 'DB_START' ||
+                  operation.action === 'SITE_RESTORE' ||
+                  ['PROVISION', 'DEPLOY', 'RESTART'].includes(operation.action)
+                ? { status: 'RUNNING' }
+                : {}),
           version: input.version,
           lastBackupAt: input.backupCompleted ? new Date() : undefined,
         },

@@ -22,6 +22,7 @@ import {
   deployInstallationVersion,
   queueOperation,
   setHandwritingEntitlement,
+  setSiteSuspended,
 } from './actions'
 
 const fieldClass = 'h-10 w-full rounded-md border border-input bg-background px-3 text-sm'
@@ -303,6 +304,44 @@ export default async function OwnerConsolePage() {
                       <Button size="sm" type="submit">
                         <Rocket className="mr-1 h-4 w-4" />
                         Deploy release
+                      </Button>
+                    </form>
+                  )}
+                  {installation.product.key === 'landing-site' && (
+                    <form
+                      action={setSiteSuspended}
+                      className="mt-4 flex flex-col gap-2 rounded-lg border bg-background p-3 sm:flex-row sm:items-end"
+                    >
+                      <input type="hidden" name="installationId" value={installation.id} />
+                      <input
+                        type="hidden"
+                        name="suspend"
+                        value={installation.status === 'SUSPENDED' ? 'false' : 'true'}
+                      />
+                      <div className="flex-1 text-xs font-medium text-muted-foreground">
+                        Paid through:{' '}
+                        {installation.licenseExpiresAt
+                          ? installation.licenseExpiresAt.toLocaleDateString()
+                          : 'not set'}
+                        <input
+                          className={`${fieldClass} mt-1`}
+                          name="reason"
+                          placeholder={
+                            installation.status === 'SUSPENDED'
+                              ? 'Reason for restoring (e.g. payment received)'
+                              : 'Reason for pausing (e.g. unpaid since 5 Dec)'
+                          }
+                          required
+                          minLength={3}
+                          maxLength={500}
+                        />
+                      </div>
+                      <Button
+                        size="sm"
+                        type="submit"
+                        variant={installation.status === 'SUSPENDED' ? 'default' : 'destructive'}
+                      >
+                        {installation.status === 'SUSPENDED' ? 'Restore site' : 'Pause site'}
                       </Button>
                     </form>
                   )}

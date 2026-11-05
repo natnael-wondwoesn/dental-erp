@@ -21,6 +21,8 @@ it.each([
   ['USER_LIST', undefined],
   ['USER_CREATE', undefined],
   ['STATUS', undefined],
+  ['SITE_SUSPEND', 'SUSPENDED'],
+  ['SITE_RESTORE', 'RUNNING'],
 ])('reports %s without losing deliberate database state', async (action, status) => {
   mock.find.mockResolvedValue({
     id: 'job-a',

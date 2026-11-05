@@ -9,6 +9,7 @@ four explicit operations against managed client directories.
 from __future__ import annotations
 
 import owner_operations
+import landing_sites
 
 import gzip
 import hashlib
@@ -84,6 +85,8 @@ def validate_job(job: dict[str, Any]) -> dict[str, Any]:
     action = job.get("action")
     if action in owner_operations.ACTIONS:
         return owner_operations.validate(job)
+    if action in landing_sites.ACTIONS:
+        return landing_sites.validate(job)
     install = job.get("installation")
     if action not in ACTIONS or not isinstance(install, dict):
         raise JobError("Unsupported operation payload")
@@ -320,6 +323,8 @@ def file_sha256(path: Path) -> str:
 def execute(job: dict[str, Any]) -> dict[str, Any]:
     if job.get("action") in owner_operations.ACTIONS:
         return owner_operations.execute(job)
+    if job.get("action") in landing_sites.ACTIONS:
+        return landing_sites.execute(job)
     install = job["installation"]
     return {
         "PROVISION": provision,
