@@ -97,7 +97,7 @@ jobs:
               $SSHN "/opt/deploy/deploy.sh '$client' '$IMAGE'" >>"$out" 2>&1
               status=$?
             fi
-            echo "::group::$client"; cat "$out"; echo "::endgroup::"
+            { echo "::group::$client"; cat "$out"; echo "::endgroup::"; } >"$LOG_DIR/$client.log"
             local previous
             previous="$(sed -n 's/.*previous: \([^,)]*\).*/\1/p' "$out" | tail -1)"
             if [[ $status -eq 0 ]]; then
@@ -110,6 +110,7 @@ jobs:
           }
 
           FAILED_FILE="$(mktemp)"
+          LOG_DIR="$(mktemp -d)"
           selected=()
           while read -r client backend; do
             if [[ -n "$CLIENTS" && " $CLIENTS " != *" $client "* ]]; then continue; fi
@@ -123,6 +124,7 @@ jobs:
           for entry in "${selected[@]}"; do
             if [[ "${entry#*:}" == "true" ]]; then
               deploy_site "${entry%%:*}" "true" || true
+              cat "$LOG_DIR/${entry%%:*}.log"
               if [[ -s "$FAILED_FILE" ]]; then break; fi
             else
               rest+=("$entry")
@@ -135,6 +137,7 @@ jobs:
               pids+=($!)
             done
             for pid in "${pids[@]}"; do wait "$pid" || true; done
+            for entry in "${rest[@]}"; do cat "$LOG_DIR/${entry%%:*}.log"; done
           fi
           failed="$(paste -sd' ' "$FAILED_FILE")"
 
