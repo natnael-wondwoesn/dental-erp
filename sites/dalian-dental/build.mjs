@@ -168,7 +168,7 @@ ${body}
 `
 }
 
-function doctorCard(d) {
+function doctorCard(d, depth = 0) {
   const initials = d.name
     .replace(/^Dr\.?\s*/, '')
     .split(' ')
@@ -176,7 +176,7 @@ function doctorCard(d) {
     .join('')
     .slice(0, 2)
   const photo = d.photo
-    ? `<img src="${esc(d.photo)}" alt="${esc(d.name)}" loading="lazy" width="320" height="320">`
+    ? `<img src="${rel(depth)}${esc(d.photo)}" alt="${esc(d.name)}, ${esc(d.title)}" loading="lazy" width="320" height="320">`
     : `<span class="avatar" aria-hidden="true">${esc(initials)}</span>`
   return `<article class="card doctor">
   <div class="doctor-photo">${photo}</div>
@@ -269,7 +269,7 @@ page('index.html', {
 <section class="section"><div class="wrap">
   <p class="eyebrow">Our team</p>
   <h2>Specialists you can talk to</h2>
-  <div class="grid grid-doctors">${c.doctors.map(doctorCard).join('')}</div>
+  <div class="grid grid-doctors">${c.doctors.map((d) => doctorCard(d, 0)).join('')}</div>
 </div></section>
 ${
   c.testimonials.length
@@ -311,7 +311,7 @@ for (const s of c.services) {
   </div>
   <div>
     <h2>Your specialists</h2>
-    <div class="grid grid-doctors">${docs.map(doctorCard).join('')}</div>
+    <div class="grid grid-doctors">${docs.map((d) => doctorCard(d, 2)).join('')}</div>
   </div>
 </div></section>
 <section class="section alt"><div class="wrap">
@@ -398,7 +398,7 @@ page('about/', {
   </div>
 </div></section>
 <section class="section"><div class="wrap"><p class="eyebrow">Meet our team</p><h2>The doctors who will treat you</h2>
-  <div class="grid grid-doctors">${c.doctors.map(doctorCard).join('')}</div></div></section>
+  <div class="grid grid-doctors">${c.doctors.map((d) => doctorCard(d, 1)).join('')}</div></div></section>
 <section class="section alt"><div class="wrap narrow"><h2>Your visit, step by step</h2>
   <ol class="steps">
     <li><strong>Consultation.</strong> We listen to your concern and examine your teeth.</li>

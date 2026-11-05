@@ -49,9 +49,9 @@
     {
       "id": "shimelis-megersa",
       "name": "Dr. Shimelis Megersa",
-      "title": "Oral & Maxillofacial Surgeon",
+      "title": "Senior Oral & Maxillofacial Surgeon",
       "bio": "",
-      "photo": ""
+      "photo": "images/doctors/shimelis-megersa.jpg"
     },
     {
       "id": "melese-tabor",
@@ -180,13 +180,22 @@
   "mission": "To give every patient safe, honest and comfortable dental care.",
   "vision": "To be a dental clinic in Addis Ababa that patients trust for the whole family.",
   "values": [
-    { "title": "Care", "text": "We treat every patient with respect and listen first." },
+    {
+      "title": "Care",
+      "text": "We treat every patient with respect and listen first."
+    },
     {
       "title": "Clarity",
       "text": "We explain the diagnosis, the options and the cost before we begin."
     },
-    { "title": "Safety", "text": "Clean instruments and careful sterilization at every visit." },
-    { "title": "Quality", "text": "Specialist doctors and careful, lasting work." }
+    {
+      "title": "Safety",
+      "text": "Clean instruments and careful sterilization at every visit."
+    },
+    {
+      "title": "Quality",
+      "text": "Specialist doctors and careful, lasting work."
+    }
   ],
   "testimonials": [],
   "articles": []
