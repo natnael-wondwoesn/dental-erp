@@ -84,34 +84,66 @@ jobs:
 
           record() { $SSHN "/opt/deploy/record.sh '$1' '$VERSION' '$2' '$3' '$4' '$RUN_URL'" || true; }
 
-          failed=""
-          while read -r client backend; do
-            if [[ -n "$CLIENTS" && " $CLIENTS " != *" $client "* ]]; then continue; fi
-            echo "::group::$client"
+          # One site: deploy, then record the result. Writes its outcome to a file so
+          # sites that run side by side can be checked afterwards.
+          deploy_site() {
+            local client="$1" backend="$2" out status=0
             out="$(mktemp)"
-            status=0
             if [[ "$backend" == "true" ]]; then
-              $SSHN "/opt/deploy/deploy-backend.sh '$client' '$BACKEND_IMAGE'" 2>&1 | tee "$out"
-              status=${PIPESTATUS[0]}
+              $SSHN "/opt/deploy/deploy-backend.sh '$client' '$BACKEND_IMAGE'" >"$out" 2>&1
+              status=$?
             fi
             if [[ $status -eq 0 ]]; then
-              $SSHN "/opt/deploy/deploy.sh '$client' '$IMAGE'" 2>&1 | tee -a "$out"
-              status=${PIPESTATUS[0]}
+              $SSHN "/opt/deploy/deploy.sh '$client' '$IMAGE'" >>"$out" 2>&1
+              status=$?
             fi
+            { echo "::group::$client"; cat "$out"; echo "::endgroup::"; } >"$LOG_DIR/$client.log"
+            local previous
             previous="$(sed -n 's/.*previous: \([^,)]*\).*/\1/p' "$out" | tail -1)"
-            echo "::endgroup::"
             if [[ $status -eq 0 ]]; then
               record "$client" SUCCEEDED "$previous" ""
             else
               record "$client" ROLLED_BACK "$previous" "Rollout failed and the previous version was restored. See the run log."
-              failed="$client"
-              break
+              echo "$client" >> "$FAILED_FILE"
             fi
+            return $status
+          }
+
+          FAILED_FILE="$(mktemp)"
+          LOG_DIR="$(mktemp -d)"
+          selected=()
+          while read -r client backend; do
+            if [[ -n "$CLIENTS" && " $CLIENTS " != *" $client "* ]]; then continue; fi
+            selected+=("$client:$backend")
           done < <(jq -r '.sites[] | "\(.client) \(.backend // false)"' ops/deploy/fleet.json)
+
+          # The control site (the one with a backend) goes first, alone: clinics keep
+          # calling its API during a rollout, so it must be healthy before they change.
+          # Everything after it is independent, so those sites roll out at the same time.
+          rest=()
+          for entry in "${selected[@]}"; do
+            if [[ "${entry#*:}" == "true" ]]; then
+              deploy_site "${entry%%:*}" "true" || true
+              cat "$LOG_DIR/${entry%%:*}.log"
+              if [[ -s "$FAILED_FILE" ]]; then break; fi
+            else
+              rest+=("$entry")
+            fi
+          done
+          if [[ ! -s "$FAILED_FILE" ]]; then
+            pids=()
+            for entry in "${rest[@]}"; do
+              deploy_site "${entry%%:*}" "false" &
+              pids+=($!)
+            done
+            for pid in "${pids[@]}"; do wait "$pid" || true; done
+            for entry in "${rest[@]}"; do cat "$LOG_DIR/${entry%%:*}.log"; done
+          fi
+          failed="$(paste -sd' ' "$FAILED_FILE")"
 
           $SSH 'docker logout ghcr.io >/dev/null' || true
           if [[ -n "$failed" ]]; then
-            echo "::error::Rollout stopped at $failed; later sites were not touched."
+            echo "::error::Rollout failed at: $failed. Each failed site restored its previous version; a failure at the control site stops the clinics from being touched."
             exit 1
           fi
         env:
