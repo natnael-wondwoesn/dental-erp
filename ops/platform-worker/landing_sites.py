@@ -16,8 +16,9 @@ import subprocess
 ACTIONS = {'SITE_STATUS', 'SITE_SUSPEND', 'SITE_RESTORE'}
 REGISTRY = Path(os.environ.get('LANDING_SITES_PATH', '/etc/sunny-smile/landing-sites.json'))
 CADDY_SITES = Path(os.environ.get('CADDY_SITES_DIR', '/opt/kora/sites'))
-# Where the Caddy container sees the site folders (see ops/landing/README.md).
-SERVE_ROOT = os.environ.get('LANDING_SERVE_ROOT', '/srv/landing')
+# Site folders live under the Caddy sites directory (already mounted into the Caddy
+# container as /etc/caddy/sites), so no extra mount or container restart is needed.
+SERVE_ROOT = os.environ.get('LANDING_SERVE_ROOT', '/etc/caddy/sites/_landing')
 SLUG = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*$')
 HOST = re.compile(r'^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$')
 IDENT = re.compile(r'^[A-Za-z0-9_-]{1,64}$')

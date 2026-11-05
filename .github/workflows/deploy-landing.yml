@@ -1,6 +1,6 @@
 name: Deploy landing site
 
-# Publishes one landing-page-only site (sites/<site>/) to the VPS. Landing sites are
+# Publishes one landing-page-only site (sites/<site>/) to the VPS under /opt/kora/sites/_landing/<slug>/. Landing sites are
 # plain static files, so this does not use Docker and a version tag does not trigger it.
 # Run it from the Actions tab: choose the site folder name and its server slug.
 
@@ -63,7 +63,7 @@ jobs:
           set -euo pipefail
           SSH="ssh -i $HOME/.ssh/deploy_key -p ${VPS_PORT:-22} -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes $VPS_USER@$VPS_HOST"
           STAMP="$(date +%Y%m%d%H%M%S)"
-          DEST="/opt/landing-sites/$SLUG"
+          DEST="/opt/kora/sites/_landing/$SLUG"
           $SSH "mkdir -p '$DEST/releases/$STAMP'"
           tar -C "sites/$SITE/dist" -c . | $SSH "tar -x -C '$DEST/releases/$STAMP'"
           # The link is relative so it also resolves inside the Caddy container.
