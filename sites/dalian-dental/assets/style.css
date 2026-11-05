@@ -865,3 +865,42 @@ html,
 body {
   overflow-x: clip;
 }
+
+.ba-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin: 24px 0;
+}
+.shots .ba,
+.ba-grid .ba {
+  grid-column: auto;
+  margin: 0;
+}
+.shots:has(.ba) {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+.ba .ba-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 14px 34px rgba(31, 26, 28, 0.12);
+}
+.ba .ba-pair img {
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  object-position: center 25%;
+}
+.ba figcaption {
+  margin-top: 10px;
+  text-align: center;
+  font-weight: 500;
+  color: var(--muted);
+}
+.ba {
+  display: block;
+  grid-template-columns: none;
+  gap: 0;
+}
