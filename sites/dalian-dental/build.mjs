@@ -232,6 +232,35 @@ function page(path, opts) {
   writes.push([path.endsWith('/') ? `${path}index.html` : path, layout({ ...opts, depth, path })])
 }
 
+const imageExt = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif'])
+function photosIn(section) {
+  const dir = join(here, 'photos', section)
+  return existsSync(dir)
+    ? readdirSync(dir)
+        .filter((f) => imageExt.has(extname(f).toLowerCase()))
+        .sort()
+    : []
+}
+// Before/after photos are matched by file name: <case>-before.jpg and <case>-after.jpg.
+function beforeAfterPairs() {
+  const pairs = {}
+  for (const f of photosIn('before-after')) {
+    const m = f.match(/^(.*)-(before|after)\./i)
+    if (m) (pairs[m[1]] ??= {})[m[2].toLowerCase()] = f
+  }
+  return Object.entries(pairs)
+    .filter(([, p]) => p.before && p.after)
+    .map(([name, p]) => ({
+      name,
+      label: name.replace(/-/g, ' ').replace(/^./, (ch) => ch.toUpperCase()),
+      ...p,
+    }))
+}
+function baFigure(pair, prefix) {
+  const src = (f) => `${prefix}photos/before-after/${esc(f)}`
+  return `<figure class="ba"><div class="ba-pair"><div><img src="${src(pair.before)}" alt="Before treatment: ${esc(pair.label.toLowerCase())}" loading="lazy" width="800" height="1000"><span>Before</span></div><div><img src="${src(pair.after)}" alt="After treatment: ${esc(pair.label.toLowerCase())}" loading="lazy" width="800" height="1000"><span>After</span></div></div><figcaption>${esc(pair.label)}</figcaption></figure>`
+}
+
 // Home
 page('index.html', {
   title: c.seo.title,
@@ -255,6 +284,16 @@ page('index.html', {
   <h2>Care for every stage of your smile</h2>
   <div class="grid">${c.services.map((s) => serviceCard(s, 0)).join('')}</div>
 </div></section>
+${
+  beforeAfterPairs().length
+    ? `<section class="section"><div class="wrap"><p class="eyebrow">Real results</p><h2>Before and after</h2><p class="muted">Photographs of real patients treated at ${esc(clinic.name)}.</p><div class="ba-grid">${beforeAfterPairs()
+        .slice(0, 2)
+        .map((pair) => baFigure(pair, './'))
+        .join(
+          ''
+        )}</div><p><a class="btn btn-outline" href="./gallery/#before-after">See more results</a></p></div></section>`
+    : ''
+}
 <section class="section alt"><div class="wrap split">
   <div>
     <p class="eyebrow">About us</p>
@@ -338,30 +377,12 @@ const gallerySections = [
   ['treatments', 'Treatments', 'Our doctors at work.'],
   ['activities', 'Our activities', 'Team, training and events.'],
 ]
-const imageExt = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif'])
-function photosIn(section) {
-  const dir = join(here, 'photos', section)
-  return existsSync(dir)
-    ? readdirSync(dir)
-        .filter((f) => imageExt.has(extname(f).toLowerCase()))
-        .sort()
-    : []
-}
 function gallerySection([key, title, blurb]) {
   const files = photosIn(key)
   let items
   if (key === 'before-after') {
-    const pairs = {}
-    for (const f of files) {
-      const m = f.match(/^(.*)-(before|after)\./i)
-      if (m) (pairs[m[1]] ??= {})[m[2].toLowerCase()] = f
-    }
-    items = Object.entries(pairs)
-      .filter(([, p]) => p.before && p.after)
-      .map(
-        ([name, p]) =>
-          `<figure class="ba"><div><img src="../photos/${key}/${esc(p.before)}" alt="Before: ${esc(name)}" loading="lazy"><span>Before</span></div><div><img src="../photos/${key}/${esc(p.after)}" alt="After: ${esc(name)}" loading="lazy"><span>After</span></div></figure>`
-      )
+    items = beforeAfterPairs()
+      .map((pair) => baFigure(pair, '../'))
       .join('')
   } else {
     items = files
