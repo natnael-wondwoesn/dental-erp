@@ -84,29 +84,41 @@ jobs:
 
           record() { $SSHN "/opt/deploy/record.sh '$1' '$VERSION' '$2' '$3' '$4' '$RUN_URL'" || true; }
 
-          # One site: deploy, then record the result. Writes its outcome to a file so
-          # sites that run side by side can be checked afterwards.
+          # One site: deploy, then record the result. The outcome goes to files so sites
+          # that run side by side can be reported in order and checked afterwards.
           deploy_site() {
-            local client="$1" backend="$2" out status=0
-            out="$(mktemp)"
+            local client="$1" backend="$2" out status=0 previous
+            out="$LOG_DIR/$client.log"
+            : >"$out"
             if [[ "$backend" == "true" ]]; then
-              $SSHN "/opt/deploy/deploy-backend.sh '$client' '$BACKEND_IMAGE'" >"$out" 2>&1
+              $SSHN "/opt/deploy/deploy-backend.sh '$client' '$BACKEND_IMAGE'" >>"$out" 2>&1
               status=$?
             fi
             if [[ $status -eq 0 ]]; then
               $SSHN "/opt/deploy/deploy.sh '$client' '$IMAGE'" >>"$out" 2>&1
               status=$?
             fi
-            { echo "::group::$client"; cat "$out"; echo "::endgroup::"; } >"$LOG_DIR/$client.log"
-            local previous
             previous="$(sed -n 's/.*previous: \([^,)]*\).*/\1/p' "$out" | tail -1)"
             if [[ $status -eq 0 ]]; then
-              record "$client" SUCCEEDED "$previous" ""
+              record "$client" SUCCEEDED "$previous" "" >>"$out" 2>&1
             else
-              record "$client" ROLLED_BACK "$previous" "Rollout failed and the previous version was restored. See the run log."
-              echo "$client" >> "$FAILED_FILE"
+              record "$client" ROLLED_BACK "$previous" "Rollout failed and the previous version was restored. See the run log." >>"$out" 2>&1
+              echo "$client" >>"$FAILED_FILE"
             fi
+            echo "$status" >"$LOG_DIR/$client.status"
             return $status
+          }
+
+          # Print a site's log as one block, and treat a site that never reported as failed.
+          show_site() {
+            local client="$1"
+            echo "::group::$client"
+            if [[ -f "$LOG_DIR/$client.log" ]]; then cat "$LOG_DIR/$client.log"; else echo "(no output)"; fi
+            echo "::endgroup::"
+            if [[ ! -f "$LOG_DIR/$client.status" ]]; then
+              echo "$client" >>"$FAILED_FILE"
+              echo "::error::$client did not report a result"
+            fi
           }
 
           FAILED_FILE="$(mktemp)"
@@ -124,20 +136,20 @@ jobs:
           for entry in "${selected[@]}"; do
             if [[ "${entry#*:}" == "true" ]]; then
               deploy_site "${entry%%:*}" "true" || true
-              cat "$LOG_DIR/${entry%%:*}.log"
+              show_site "${entry%%:*}"
               if [[ -s "$FAILED_FILE" ]]; then break; fi
             else
               rest+=("$entry")
             fi
           done
-          if [[ ! -s "$FAILED_FILE" ]]; then
+          if [[ ! -s "$FAILED_FILE" && ${#rest[@]} -gt 0 ]]; then
             pids=()
             for entry in "${rest[@]}"; do
               deploy_site "${entry%%:*}" "false" &
               pids+=($!)
             done
             for pid in "${pids[@]}"; do wait "$pid" || true; done
-            for entry in "${rest[@]}"; do cat "$LOG_DIR/${entry%%:*}.log"; done
+            for entry in "${rest[@]}"; do show_site "${entry%%:*}"; done
           fi
           failed="$(paste -sd' ' "$FAILED_FILE")"
 
