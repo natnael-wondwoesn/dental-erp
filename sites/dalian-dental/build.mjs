@@ -120,6 +120,9 @@ function layout({ title, description, depth, body, path = '' }) {
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:type" content="website">
 ${base ? `<link rel="canonical" href="${base}/${esc(path === 'index.html' ? '' : path)}">` : ''}
+<link rel="preload" href="${r}assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="${r}assets/fonts/poppins-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="${r}assets/fonts.css">
 <link rel="stylesheet" href="${r}assets/style.css">
 <script type="application/ld+json">${JSON.stringify(ld)}</script>
 </head>
@@ -488,6 +491,9 @@ for (const [path, html] of writes) {
 }
 mkdirSync(join(out, 'assets'), { recursive: true })
 for (const f of ['style.css', 'main.js']) cpSync(join(here, 'assets', f), join(out, 'assets', f))
+// House fonts shared by every landing site: Inter (primary) and Poppins (secondary).
+cpSync(join(here, '..', '_shared', 'fonts.css'), join(out, 'assets', 'fonts.css'))
+cpSync(join(here, '..', '_shared', 'fonts'), join(out, 'assets', 'fonts'), { recursive: true })
 if (existsSync(join(here, 'photos')))
   cpSync(join(here, 'photos'), join(out, 'photos'), { recursive: true })
 if (existsSync(join(here, 'public'))) cpSync(join(here, 'public'), out, { recursive: true })

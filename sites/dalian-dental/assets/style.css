@@ -17,13 +17,7 @@ html {
 }
 body {
   margin: 0;
-  font:
-    16px/1.65 system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    'Noto Sans Ethiopic',
-    sans-serif;
+  font: 16px/1.65 var(--font-primary);
   color: var(--ink);
   background: var(--bg);
 }
@@ -40,7 +34,9 @@ h2,
 h3 {
   line-height: 1.2;
   margin: 0 0 0.6em;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-secondary);
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 h1 {
   font-size: clamp(2rem, 5vw, 3.2rem);
@@ -113,9 +109,7 @@ p {
   display: flex;
   align-items: center;
   gap: 10px;
-  font:
-    700 1.15rem Georgia,
-    serif;
+  font: 600 1.15rem var(--font-secondary);
   color: var(--brand);
   text-decoration: none;
 }
@@ -163,6 +157,7 @@ p {
 }
 
 .btn {
+  font-family: var(--font-secondary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -171,7 +166,7 @@ p {
   border-radius: 999px;
   background: var(--brand);
   color: #fff;
-  font-weight: 600;
+  font-weight: 500;
   text-decoration: none;
   border: 2px solid var(--brand);
   cursor: pointer;
@@ -273,9 +268,7 @@ p {
 }
 .stat-row strong {
   display: block;
-  font:
-    700 1.9rem Georgia,
-    serif;
+  font: 600 1.9rem var(--font-secondary);
 }
 .stat-row span {
   opacity: 0.9;
@@ -370,9 +363,7 @@ p {
   height: 100%;
   display: grid;
   place-items: center;
-  font:
-    700 2rem Georgia,
-    serif;
+  font: 600 2rem var(--font-secondary);
   color: var(--brand);
 }
 
@@ -582,16 +573,195 @@ summary:focus-visible,
   color: #b9a9ad;
 }
 
+/* ---- Motion ------------------------------------------------------------
+   Elements slide and fade into place as they scroll into view. The classes are
+   added by main.js, so with JavaScript off (or reduced motion on) everything is
+   simply visible. */
+:root {
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
 .reveal {
   opacity: 0;
-  transform: translateY(14px);
+  transform: translate3d(0, 32px, 0);
   transition:
-    opacity 0.5s ease,
-    transform 0.5s ease;
+    opacity 0.8s var(--ease),
+    transform 0.8s var(--ease);
+  transition-delay: var(--d, 0ms);
+  will-change: transform, opacity;
+}
+.reveal.from-left {
+  transform: translate3d(-56px, 0, 0);
+}
+.reveal.from-right {
+  transform: translate3d(56px, 0, 0);
+}
+.reveal.zoom {
+  transform: scale(0.94);
 }
 .reveal.in {
   opacity: 1;
   transform: none;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 28px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translate3d(72px, 0, 0) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+body {
+  animation: page-in 0.5s ease both;
+}
+.hero-grid > div:first-child > * {
+  animation: rise 0.9s var(--ease) both;
+}
+.hero-grid > div:first-child > :nth-child(1) {
+  animation-delay: 0.05s;
+}
+.hero-grid > div:first-child > :nth-child(2) {
+  animation-delay: 0.15s;
+}
+.hero-grid > div:first-child > :nth-child(3) {
+  animation-delay: 0.27s;
+}
+.hero-grid > div:first-child > :nth-child(4) {
+  animation-delay: 0.4s;
+}
+.hero-art {
+  animation: slide-in-right 1s var(--ease) 0.2s both;
+}
+.hero-art .art-ph {
+  animation: float 6s ease-in-out 1.4s infinite;
+}
+
+.site-header {
+  transition:
+    box-shadow 0.3s ease,
+    background 0.3s ease;
+}
+.site-header.scrolled {
+  box-shadow: 0 8px 24px rgba(31, 26, 28, 0.08);
+}
+.nav a:not(.btn) {
+  position: relative;
+}
+.nav a:not(.btn)::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 2px;
+  height: 2px;
+  background: var(--brand);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s var(--ease);
+}
+.nav a:not(.btn):hover::after,
+.nav a[aria-current='page']::after {
+  transform: scaleX(1);
+}
+.nav a[aria-current='page'] {
+  border-bottom: 0;
+}
+
+.btn {
+  background-image: linear-gradient(var(--brand-dark), var(--brand-dark));
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+  transition:
+    background-size 0.4s var(--ease),
+    transform 0.25s var(--ease),
+    box-shadow 0.25s ease,
+    color 0.25s ease;
+}
+.btn:hover {
+  background-size: 100% 100%;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(138, 22, 41, 0.25);
+}
+.btn-outline,
+.btn-light,
+.btn-on-dark {
+  background-image: linear-gradient(var(--brand), var(--brand));
+}
+.btn-light:hover,
+.btn-on-dark:hover {
+  color: #fff;
+}
+.service .icon {
+  transition:
+    transform 0.4s var(--ease),
+    background 0.3s ease,
+    color 0.3s ease;
+}
+.service:hover .icon {
+  transform: rotate(-8deg) scale(1.1);
+  background: var(--brand);
+  color: #fff;
+}
+.more::after {
+  display: inline-block;
+  transition: transform 0.3s var(--ease);
+}
+.more:hover::after {
+  transform: translateX(6px);
+}
+.doctor-photo {
+  transition:
+    transform 0.4s var(--ease),
+    box-shadow 0.4s ease;
+}
+.doctor:hover .doctor-photo {
+  transform: scale(1.06);
+  box-shadow:
+    0 0 0 4px var(--alt),
+    0 0 0 6px var(--brand);
+}
+.shot img {
+  transition: transform 0.6s var(--ease);
+}
+.shot {
+  display: block;
+  overflow: hidden;
+  border-radius: 12px;
+}
+.shot:hover img {
+  transform: scale(1.06);
+}
+.faq p {
+  animation: rise 0.4s var(--ease) both;
 }
 
 @media (max-width: 860px) {
@@ -636,7 +806,9 @@ summary:focus-visible,
   html {
     scroll-behavior: auto;
   }
-  * {
+  *,
+  *::before,
+  *::after {
     transition: none !important;
     animation: none !important;
   }

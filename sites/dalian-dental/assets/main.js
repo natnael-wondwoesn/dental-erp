@@ -1,4 +1,4 @@
-// Small, dependency-free behaviour: mobile menu, fade-in on scroll, and the
+// Small, dependency-free behaviour: mobile menu, slide/fade-in on scroll, count-up statistics and the
 // appointment form. The form does not store anything: it copies the visitor's
 // request and opens a Telegram chat with the clinic, where they paste it.
 ;(function () {
@@ -13,18 +13,77 @@
   }
 
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  var items = document.querySelectorAll('.card, .section h2, .cta .wrap')
+
+  // Header gains a soft shadow once the page scrolls.
+  var header = document.querySelector('.site-header')
+  if (header) {
+    var onScroll = function () {
+      header.classList.toggle('scrolled', window.scrollY > 8)
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+  }
+
+  // Counts a number up when its statistic scrolls into view.
+  function countUp(el) {
+    var target = parseInt(el.textContent, 10)
+    if (isNaN(target) || String(target) !== el.textContent.trim()) return
+    var start = null
+    function step(ts) {
+      if (start === null) start = ts
+      var p = Math.min((ts - start) / 1100, 1)
+      el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)))
+      if (p < 1) requestAnimationFrame(step)
+    }
+    el.textContent = '0'
+    requestAnimationFrame(step)
+  }
+
   if (!reduce && 'IntersectionObserver' in window) {
+    // Items slide in from below; the two halves of a split layout slide in from
+    // opposite sides; siblings in a grid arrive one after another.
+    var selector = [
+      '.card',
+      '.section h2',
+      '.section .eyebrow',
+      '.section .muted',
+      '.section .lead',
+      '.cta .wrap',
+      '.faq',
+      '.ticks li',
+      '.stat-row > div',
+      '.shot',
+      '.ba',
+      '.steps li',
+      '.contact-list li',
+      '.empty',
+      '.map',
+    ].join(',')
+    var items = Array.prototype.slice.call(document.querySelectorAll(selector))
+    document
+      .querySelectorAll('.grid, .shots, .stat-row, .ticks, .steps, .contact-list')
+      .forEach(function (group) {
+        Array.prototype.forEach.call(group.children, function (child, i) {
+          child.style.setProperty('--d', Math.min(i * 90, 540) + 'ms')
+        })
+      })
+    document.querySelectorAll('.split').forEach(function (split) {
+      if (split.children[0]) split.children[0].classList.add('from-left')
+      if (split.children[1]) split.children[1].classList.add('from-right')
+      Array.prototype.forEach.call(split.children, function (child) {
+        if (items.indexOf(child) === -1) items.push(child)
+      })
+    })
     var io = new IntersectionObserver(
       function (entries) {
         entries.forEach(function (e) {
-          if (e.isIntersecting) {
-            e.target.classList.add('in')
-            io.unobserve(e.target)
-          }
+          if (!e.isIntersecting) return
+          e.target.classList.add('in')
+          if (e.target.matches('.stat-row > div')) countUp(e.target.querySelector('strong'))
+          io.unobserve(e.target)
         })
       },
-      { threshold: 0, rootMargin: '0px 0px -5% 0px' }
+      { threshold: 0, rootMargin: '0px 0px -8% 0px' }
     )
     items.forEach(function (el) {
       el.classList.add('reveal')
@@ -35,7 +94,7 @@
       items.forEach(function (el) {
         el.classList.add('in')
       })
-    }, 2500)
+    }, 3000)
   }
 
   var form = document.getElementById('appointment')

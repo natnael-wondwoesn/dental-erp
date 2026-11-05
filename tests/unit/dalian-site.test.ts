@@ -47,6 +47,32 @@ describe('Dalian Dental landing site', () => {
     }
   })
 
+  it('uses the house fonts: Inter (primary) and Poppins (secondary), self-hosted', () => {
+    const css = readFileSync(join(dist, 'assets/style.css'), 'utf8')
+    const fonts = readFileSync(join(dist, 'assets/fonts.css'), 'utf8')
+    expect(css).toContain('var(--font-primary)')
+    expect(css).toContain('var(--font-secondary)')
+    expect(fonts).toMatch(/--font-primary:\s*'Inter'/)
+    expect(fonts).toMatch(/--font-secondary:\s*'Poppins'/)
+    expect(existsSync(join(dist, 'assets/fonts/inter-latin-wght-normal.woff2'))).toBe(true)
+    expect(existsSync(join(dist, 'assets/fonts/poppins-latin-600-normal.woff2'))).toBe(true)
+    for (const file of htmlFiles(dist)) {
+      expect(readFileSync(file, 'utf8'), file).not.toMatch(/fonts\.googleapis|fonts\.gstatic/)
+    }
+  })
+
+  it('has slide/fade animations that switch off for visitors who prefer reduced motion', () => {
+    const css = readFileSync(join(dist, 'assets/style.css'), 'utf8')
+    const js = readFileSync(join(dist, 'assets/main.js'), 'utf8')
+    expect(css).toMatch(/\.reveal\.from-left/)
+    expect(css).toMatch(/\.reveal\.from-right/)
+    expect(css).toMatch(/@keyframes slide-in-right/)
+    expect(css).toMatch(/prefers-reduced-motion: reduce[\s\S]*animation: none/)
+    expect(js).toContain('prefers-reduced-motion: reduce')
+    // Content must stay visible without JavaScript: hiding is only ever added by the script.
+    expect(css).not.toMatch(/^\s*(?:body|main|section)[^{]*\{[^}]*opacity:\s*0/m)
+  })
+
   it('uses Telegram, not WhatsApp, and shows no unfilled placeholders', () => {
     for (const file of htmlFiles(dist)) {
       const html = readFileSync(file, 'utf8')
