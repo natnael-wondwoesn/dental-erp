@@ -1,0 +1,39 @@
+/* House fonts for every landing site: Inter (primary, body text) and Poppins
+   (secondary, headings). Self-hosted, Latin subset, both under the SIL Open Font
+   License (see the LICENSE files in fonts/). Amharic text falls back to the
+   device's Ethiopic font. */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('fonts/inter-latin-wght-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('fonts/poppins-latin-500-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('fonts/poppins-latin-600-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('fonts/poppins-latin-700-normal.woff2') format('woff2');
+}
+:root {
+  --font-primary:
+    'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans Ethiopic', sans-serif;
+  --font-secondary:
+    'Poppins', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans Ethiopic',
+    sans-serif;
+}
