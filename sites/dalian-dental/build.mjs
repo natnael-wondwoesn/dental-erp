@@ -119,6 +119,7 @@ function layout({ title, description, depth, body, path = '' }) {
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:type" content="website">
+${base ? `<meta property="og:image" content="${base}/images/doctors-team.jpg">` : ''}
 ${base ? `<link rel="canonical" href="${base}/${esc(path === 'index.html' ? '' : path)}">` : ''}
 <link rel="preload" href="${r}assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="${r}assets/fonts/poppins-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
@@ -213,7 +214,7 @@ function cta(
 </div></section>`
 }
 
-function hero({ eyebrow, h1, text, depth, image }) {
+function hero({ eyebrow, h1, text, depth, image, alt = '', position = 'center' }) {
   return `<section class="hero"><div class="wrap hero-grid">
   <div>
     ${eyebrow ? `<p class="eyebrow">${esc(eyebrow)}</p>` : ''}
@@ -221,7 +222,7 @@ function hero({ eyebrow, h1, text, depth, image }) {
     <p class="lead">${esc(text)}</p>
     <div class="btn-row">${bookButtons(depth)}</div>
   </div>
-  <div class="hero-art">${image ? `<img src="${esc(image)}" alt="" loading="eager">` : `<div class="art-ph" aria-hidden="true">${toothIcon}</div>`}</div>
+  <div class="hero-art">${image ? `<img src="${rel(depth)}${esc(image)}" alt="${esc(alt)}" width="1000" height="800" style="object-position:${esc(position)}" fetchpriority="high">` : `<div class="art-ph" aria-hidden="true">${toothIcon}</div>`}</div>
 </div></section>`
 }
 
@@ -240,6 +241,9 @@ page('index.html', {
     h1: `Gentle, specialist dental care in ${clinic.city}`,
     text: `${clinic.name} brings orthodontists, dental surgeons and oral and maxillofacial surgeons together under one roof, so the whole family can be treated in one place.`,
     depth: 0,
+    image: 'images/doctors-team.jpg',
+    alt: `Doctors at ${clinic.name} in front of the clinic sign`,
+    position: 'center 35%',
   })}
 <section class="stats"><div class="wrap stat-row">
   <div><strong>${c.services.length}</strong><span>Treatment areas</span></div>
@@ -288,7 +292,7 @@ ${cta(0)}`,
 page('services/', {
   title: `Dental Services in Addis Ababa | ${clinic.name}`,
   description: `Braces, implants, root canal, crowns, cosmetic dentistry, hygiene, emergency and children's dental care at ${clinic.name}.`,
-  body: `${hero({ eyebrow: 'Services and treatments', h1: `Our ${c.services.length} dental treatment areas`, text: 'Choose a treatment to see what it includes and which doctors provide it.', depth: 1 })}
+  body: `${hero({ eyebrow: 'Services and treatments', h1: `Our ${c.services.length} dental treatment areas`, text: 'Choose a treatment to see what it includes and which doctors provide it.', depth: 1, image: 'images/doctor-gloves.jpg', alt: 'A dentist putting on gloves before treatment', position: 'center 30%' })}
 <section class="section"><div class="wrap"><div class="grid">${c.services.map((s) => serviceCard(s, 1)).join('')}</div></div></section>
 ${cta(1)}`,
 })
@@ -385,6 +389,7 @@ page('about/', {
   description: `Meet the doctors and learn about the story, mission and values of ${clinic.name} in Addis Ababa.`,
   body: `${hero({ eyebrow: 'About us', h1: `About ${clinic.name}`, text: clinic.tagline, depth: 1 })}
 <section class="section"><div class="wrap narrow"><h2>Our story</h2><p>${esc(c.story.replace(/\s*TODO:.*$/, ''))}</p></div></section>
+<section class="section tight"><div class="wrap"><figure class="feature"><img src="../images/clinic-team.jpg" alt="The ${esc(clinic.name)} team in front of the clinic sign" width="1600" height="1067" loading="lazy"><figcaption>The ${esc(clinic.name)} team</figcaption></figure></div></section>
 <section class="section alt"><div class="wrap">
   <div class="grid">
     <article class="card"><h3>Our mission</h3><p>${esc(c.mission)}</p></article>
@@ -444,6 +449,7 @@ page('contact/', {
   </form>
   <div>
     <h2>Find us</h2>
+    <figure class="feature small-feature"><img src="../images/clinic-building.jpg" alt="The building where ${esc(clinic.name)} is located" width="1200" height="1800" loading="lazy"><figcaption>Our building in ${esc(clinic.city)}</figcaption></figure>
     <ul class="contact-list">
       <li><strong>Location</strong> ${esc(clinic.city)}${clinic.address ? `, ${esc(clinic.address)}` : ''}</li>
       ${clinic.hours ? `<li><strong>Hours</strong> ${esc(clinic.hours)}</li>` : ''}
@@ -494,6 +500,8 @@ for (const f of ['style.css', 'main.js']) cpSync(join(here, 'assets', f), join(o
 // House fonts shared by every landing site: Inter (primary) and Poppins (secondary).
 cpSync(join(here, '..', '_shared', 'fonts.css'), join(out, 'assets', 'fonts.css'))
 cpSync(join(here, '..', '_shared', 'fonts'), join(out, 'assets', 'fonts'), { recursive: true })
+if (existsSync(join(here, 'images')))
+  cpSync(join(here, 'images'), join(out, 'images'), { recursive: true })
 if (existsSync(join(here, 'photos')))
   cpSync(join(here, 'photos'), join(out, 'photos'), { recursive: true })
 if (existsSync(join(here, 'public'))) cpSync(join(here, 'public'), out, { recursive: true })
