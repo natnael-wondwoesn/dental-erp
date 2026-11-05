@@ -3,6 +3,7 @@
   "sites": [
     { "client": "control", "backend": true },
     { "client": "lemlem" },
-    { "client": "berhanu-dental" }
+    { "client": "berhanu-dental" },
+    { "client": "megenagna" }
   ]
 }
