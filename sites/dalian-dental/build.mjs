@@ -37,6 +37,10 @@ const tg = String(clinic.telegram || '')
   .replace(/^https?:\/\/t\.me\//i, '')
   .replace(/^@/, '')
   .replace(/[^A-Za-z0-9_]/g, '')
+// The founder is always listed first, wherever doctors appear.
+const founderFirst = (a, b) => Number(b === c.founder.doctor) - Number(a === c.founder.doctor)
+c.doctors.sort((x, y) => founderFirst(x.id, y.id))
+for (const s of c.services) s.doctors.sort(founderFirst)
 const doctorById = Object.fromEntries(c.doctors.map((d) => [d.id, d]))
 const base = clinic.domain ? `https://${clinic.domain}` : ''
 const story = c.story.replace(/\s*TODO:.*$/, '')
