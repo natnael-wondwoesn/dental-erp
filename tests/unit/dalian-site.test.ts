@@ -242,7 +242,9 @@ describe('Dalian Dental landing site', () => {
       expect(html.match(/<h1/g)?.length).toBe(1)
       // Every article cites at least one source and says medical review is pending.
       expect(html.match(/<ol class="sources">[\s\S]*?<li>/)).not.toBeNull()
-      expect(html).toContain('Clinical review by a Dalian Dental Clinic dentist is pending')
+      expect(html).toContain(
+        'Clinical review by a Dalian Speciality Dental Clinic dentist is pending'
+      )
     }
     const hub = readFileSync(join(dist, 'learn/index.html'), 'utf8')
     expect(hub).toContain('Your Guide to Better Oral Health')

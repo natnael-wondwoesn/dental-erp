@@ -1,11 +1,11 @@
 {
-  "_note": "Everything shown on the Dalian Dental Clinic site comes from this file. Empty strings are details the clinic has not given us yet: the page hides them rather than showing made-up values. Search this file for \"TODO\" to see what is still needed.",
+  "_note": "Everything shown on the Dalian Speciality Dental Clinic site comes from this file. Empty strings are details the clinic has not given us yet: the page hides them rather than showing made-up values. Search this file for \"TODO\" to see what is still needed.",
   "clinic": {
-    "name": "Dalian Dental Clinic",
+    "name": "Dalian Speciality Dental Clinic",
     "tagline": "Changing Lives One Smile At A Time",
     "domain": "dalian.dental.clinic-cms.cc",
-    "primaryColor": "#8A1629",
-    "backgroundColor": "#FAFAFA",
+    "primaryColor": "#1196E8",
+    "backgroundColor": "#FEFEFE",
     "phone": "+251 91 263 8003",
     "phone2": "+251 94 119 1958",
     "email": "dentaldalian@gmail.com",
@@ -22,18 +22,18 @@
     "hoursShort": "Open Monday to Saturday",
     "area": "Bole Medhanialem",
     "whatsapp": "+251912638003",
-    "whatsappMessage": "Hello Dalian Dental Clinic, I would like to book an appointment."
+    "whatsappMessage": "Hello Dalian Speciality Dental Clinic, I would like to book an appointment."
   },
   "seo": {
-    "title": "Dalian Dental Clinic | Professional Dental Clinic in Addis Ababa",
-    "description": "Looking for professional dental care in Addis Ababa? Visit Dalian Dental Clinic for braces, implants, root canal, cosmetic dentistry and family care from experienced dental professionals. Book your appointment today."
+    "title": "Dalian Speciality Dental Clinic | Professional Dental Clinic in Addis Ababa",
+    "description": "Looking for professional dental care in Addis Ababa? Visit Dalian Speciality Dental Clinic for braces, implants, root canal, cosmetic dentistry and family care from experienced dental professionals. Book your appointment today."
   },
   "doctors": [
     {
       "id": "ferhana-adem",
       "name": "Dr. Ferhana Adem",
       "title": "Founder / Expert Dental Surgeon",
-      "bio": "Founder of Dalian Dental Clinic and an expert dental surgeon. Dr. Ferhana provides prosthodontic and cosmetic dental care, root canal treatment, dental hygiene, emergency care and children's dentistry.",
+      "bio": "Founder of Dalian Speciality Dental Clinic and an expert dental surgeon. Dr. Ferhana provides prosthodontic and cosmetic dental care, root canal treatment, dental hygiene, emergency care and children's dentistry.",
       "photo": "images/doctors/ferhana-adem.jpg"
     },
     {
@@ -47,7 +47,7 @@
       "id": "abyalew-zewdu",
       "name": "Dr. Abyalew Zewdu",
       "title": "Senior Dental Surgeon",
-      "bio": "Senior dental surgeon at Dalian Dental Clinic. Dr. Abyalew provides prosthodontic and cosmetic dental care, root canal treatment and dental hygiene.",
+      "bio": "Senior dental surgeon at Dalian Speciality Dental Clinic. Dr. Abyalew provides prosthodontic and cosmetic dental care, root canal treatment and dental hygiene.",
       "photo": ""
     },
     {
@@ -61,14 +61,14 @@
       "id": "melese-tabor",
       "name": "Dr. Melese Tabor",
       "title": "Oral & Maxillofacial Surgeon",
-      "bio": "Oral and maxillofacial surgeon at Dalian Dental Clinic. Dr. Melese places dental implants, performs oral surgery and treats dental and jaw emergencies.",
+      "bio": "Oral and maxillofacial surgeon at Dalian Speciality Dental Clinic. Dr. Melese places dental implants, performs oral surgery and treats dental and jaw emergencies.",
       "photo": ""
     },
     {
       "id": "merhawit-zerabiruk",
       "name": "Dr. Merhawit Zerabiruk",
       "title": "Expert Dental Surgeon",
-      "bio": "Expert dental surgeon at Dalian Dental Clinic.",
+      "bio": "Expert dental surgeon at Dalian Speciality Dental Clinic.",
       "photo": "images/team/dr-merhawit-zerabiruk.jpg"
     }
   ],
@@ -87,7 +87,7 @@
       "image": "photos/before-after/braces-after.jpg",
       "imageAlt": "Teeth with metal braces after orthodontic treatment",
       "detail": {
-        "metaTitle": "Orthodontic Treatment & Braces in Addis Ababa | Dalian Dental Clinic",
+        "metaTitle": "Orthodontic Treatment & Braces in Addis Ababa | Dalian Speciality Dental Clinic",
         "metaDescription": "Braces, kids' braces, myofunctional appliances and invisible aligners for children and adults in Bole, Addis Ababa. Meet our orthodontist and book your consultation.",
         "bookLabel": "Book an orthodontic consultation",
         "subcategories": [
@@ -155,7 +155,7 @@
       "image": "images/treatments/prosthodontics.jpg",
       "imageAlt": "Ceramic crowns and a bridge",
       "detail": {
-        "metaTitle": "Crowns, Bridges & Dentures in Addis Ababa | Dalian Dental Clinic",
+        "metaTitle": "Crowns, Bridges & Dentures in Addis Ababa | Dalian Speciality Dental Clinic",
         "metaDescription": "Zirconia and ceramic crowns, bridges, jacket crowns and full or partial dentures in Bole, Addis Ababa. Meet our dental surgeons and book your visit.",
         "bookLabel": "Book a crown, bridge or denture visit",
         "subcategories": [
@@ -216,7 +216,7 @@
       "doctors": ["shimelis-megersa", "melese-tabor"],
       "keywords": "dental implants in Addis Ababa",
       "detail": {
-        "metaTitle": "Dental Implants in Addis Ababa | Dalian Dental Clinic",
+        "metaTitle": "Dental Implants in Addis Ababa | Dalian Speciality Dental Clinic",
         "metaDescription": "Single-tooth dental implants and implant-supported bridges placed by oral and maxillofacial surgeons in Bole, Addis Ababa. Book an implant consultation.",
         "bookLabel": "Book an implant consultation",
         "subcategories": [
@@ -280,7 +280,7 @@
       "image": "images/treatments/oral-surgery.jpg",
       "imageAlt": "A dentist examining a patient's mouth",
       "detail": {
-        "metaTitle": "Oral & Maxillofacial Surgery in Addis Ababa | Dalian Dental Clinic",
+        "metaTitle": "Oral & Maxillofacial Surgery in Addis Ababa | Dalian Speciality Dental Clinic",
         "metaDescription": "Tooth extraction, apicoectomy, gingivectomy and orthognathic (jaw) surgery by oral and maxillofacial surgeons in Bole, Addis Ababa. Book a surgical consultation.",
         "bookLabel": "Book a surgical consultation",
         "subcategories": [
@@ -348,7 +348,7 @@
       "image": "images/treatments/root-canal.jpg",
       "imageAlt": "Illustration of root canal treatment inside a tooth",
       "detail": {
-        "metaTitle": "Root Canal Treatment in Addis Ababa | Dalian Dental Clinic",
+        "metaTitle": "Root Canal Treatment in Addis Ababa | Dalian Speciality Dental Clinic",
         "metaDescription": "Root canal treatment to relieve tooth pain and save your natural tooth, by experienced dental surgeons in Bole, Addis Ababa. Book your visit.",
         "bookLabel": "Book a root canal visit",
         "subcategories": [
@@ -408,7 +408,7 @@
       "image": "images/treatments/cosmetic-dentistry.jpg",
       "imageAlt": "Example of veneers: before and after",
       "detail": {
-        "metaTitle": "Cosmetic Dentistry, Veneers & Whitening in Addis Ababa | Dalian Dental Clinic",
+        "metaTitle": "Cosmetic Dentistry, Veneers & Whitening in Addis Ababa | Dalian Speciality Dental Clinic",
         "metaDescription": "Hollywood smile design, porcelain, E.max and zirconia veneers, and teeth whitening in Bole, Addis Ababa. Meet our dental surgeons and book your smile consultation.",
         "bookLabel": "Book a smile consultation",
         "subcategories": [
@@ -468,7 +468,7 @@
       "image": "images/treatments/dental-hygiene.jpg",
       "imageAlt": "Everyday oral care products: toothpaste, floss, mouthwash and toothbrush",
       "detail": {
-        "metaTitle": "Teeth Cleaning & Scaling in Addis Ababa | Dalian Dental Clinic",
+        "metaTitle": "Teeth Cleaning & Scaling in Addis Ababa | Dalian Speciality Dental Clinic",
         "metaDescription": "Professional teeth cleaning, scaling, stain removal and mouth hygiene guidance in Bole, Addis Ababa. Book a dental hygiene visit.",
         "bookLabel": "Book a cleaning visit",
         "subcategories": [
@@ -528,7 +528,7 @@
       "image": "images/treatments/emergency-care.jpg",
       "imageAlt": "A person holding their cheek because of toothache",
       "detail": {
-        "metaTitle": "Emergency Dentist in Addis Ababa | Dalian Dental Clinic",
+        "metaTitle": "Emergency Dentist in Addis Ababa | Dalian Speciality Dental Clinic",
         "metaDescription": "Urgent dental care for toothache, knocked-out teeth and jaw fractures in Bole, Addis Ababa. Call the clinic for emergency dental help.",
         "bookLabel": "Call or book urgent care",
         "subcategories": [
@@ -588,7 +588,7 @@
       "image": "images/treatments/pediatric-dentistry.jpg",
       "imageAlt": "A child having a dental check-up",
       "detail": {
-        "metaTitle": "Children's Dentist in Addis Ababa | Dalian Dental Clinic",
+        "metaTitle": "Children's Dentist in Addis Ababa | Dalian Speciality Dental Clinic",
         "metaDescription": "Gentle dental care for babies, children and teenagers: check-ups, cleanings, fillings and baby tooth extraction in Bole, Addis Ababa. Book your child's visit.",
         "bookLabel": "Book a children's dental visit",
         "subcategories": [
@@ -660,7 +660,7 @@
       "a": "Call the clinic straight away. For a knocked-out tooth, keep the tooth moist and get to the clinic as quickly as you can."
     }
   ],
-  "story": "Dr. Ferhana Adem, an expert dental surgeon, founded Dalian Dental Clinic. Over time she has built a team of specialists who share one approach: listen first, explain clearly, and treat every patient with care.",
+  "story": "Dr. Ferhana Adem, an expert dental surgeon, founded Dalian Speciality Dental Clinic. Over time she has built a team of specialists who share one approach: listen first, explain clearly, and treat every patient with care.",
   "mission": "To provide high-quality, patient-centered dental care through modern technology, specialist doctors and unmatched service, while educating patients about better dental health.",
   "vision": "To become a trusted dental care destination known for quality, compassion, innovation and advanced dental specialty clinics in Ethiopia.",
   "values": [

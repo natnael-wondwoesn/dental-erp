@@ -37,8 +37,8 @@
     "bleeding-gums-causes-and-treatment"
   ],
   "published": "2026-11-06",
-  "author": "Dalian Dental Clinic editorial team",
-  "reviewStatus": "Based on peer-reviewed research and guidelines. Clinical review by a Dalian Dental Clinic dentist is pending."
+  "author": "Dalian Speciality Dental Clinic editorial team",
+  "reviewStatus": "Based on peer-reviewed research and guidelines. Clinical review by a Dalian Speciality Dental Clinic dentist is pending."
 }
 ---
 
