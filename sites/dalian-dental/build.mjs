@@ -274,7 +274,7 @@ function serviceCard(s, depth, i = 0) {
       .slice(0, 3)
       .map((x) => `<li>${esc(x)}</li>`)
       .join('')}</ul>
-    ${names.length ? `<p class="muted small">Specialists: ${esc(names.join(', '))}</p>` : ''}
+    ${names.length ? `<p class="muted small">${esc(s.detail?.specialistsLabel || 'Specialists')}: ${esc(names.join(', '))}</p>` : ''}
     <a class="more" href="${r}services/${esc(s.slug)}/">Learn more ${ic('arrow')}</a>
   </div>
 </article>`
@@ -607,7 +607,7 @@ for (const s of c.services) {
     .join('')}</div>
 </div></section>
 <section class="section" id="specialists"><div class="wrap">
-  ${sectionHead('Assigned medical staff', `Meet Your Specialists for ${s.name}`, 'The doctors who provide this treatment at Dalian Speciality Dental Clinic.')}
+  ${sectionHead('Assigned medical staff', dt.specialistsHeading || `Meet Your Specialists for ${s.name}`, 'The doctors who provide this treatment at Dalian Speciality Dental Clinic.')}
   <div class="spec-grid">${docs.map((d, i) => specialistCard(d, 2, i)).join('')}</div>
 </div></section>
 <section class="section tinted" id="faq"><div class="wrap narrow">

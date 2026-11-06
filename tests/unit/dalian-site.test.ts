@@ -175,7 +175,9 @@ describe('Dalian Dental landing site', () => {
       const html = readFileSync(join(dist, 'services', s.slug, 'index.html'), 'utf8')
       expect(html, s.slug).toContain('Available Treatment Subcategories')
       expect(html, s.slug).toContain(`Benefits of ${s.name}`)
-      expect(html, s.slug).toContain(`Meet Your Specialists for ${s.name}`)
+      expect(html, s.slug).toContain(
+        s.detail.specialistsHeading || `Meet Your Specialists for ${s.name}`
+      )
       expect(html, s.slug).toContain(`Frequently Asked Questions About ${s.name}`)
       expect(html, s.slug).toContain(`${s.name}: Before &amp; After`)
       // Subcategories, FAQ accordion and structured data come from this treatment's own content.
@@ -199,6 +201,13 @@ describe('Dalian Dental landing site', () => {
       // The booking button carries the treatment so the form can pre-select it.
       expect(html, s.slug).toContain(`contact/?service=${encodeURIComponent(s.name)}#book`)
     }
+    const emergencyPage = readFileSync(join(dist, 'services/emergency-care/index.html'), 'utf8')
+    expect(emergencyPage).toContain(
+      'Meet Your Dentists, Oral and Maxillofacial Surgeon for Emergency Dental Care'
+    )
+    expect(emergencyPage).not.toContain('Meet Your Specialists for Emergency Dental Care')
+    const servicesPage = readFileSync(join(dist, 'services/index.html'), 'utf8')
+    expect(servicesPage).toContain('Dentists, Oral and Maxillofacial Surgeon: Dr.')
     // Treatments with no matching photographs say so instead of showing unrelated pictures.
     const emergency = readFileSync(join(dist, 'services/emergency-care/index.html'), 'utf8')
     expect(emergency).toContain('will be added here')
