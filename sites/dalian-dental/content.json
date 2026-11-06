@@ -204,7 +204,8 @@
             "q": "Are dentures uncomfortable?",
             "a": "New dentures can feel strange at first. Most people adjust within a few weeks, and your dentist will adjust the fit if any area rubs."
           }
-        ]
+        ],
+        "specialistsHeading": "Meet Your Expert and Senior Dentist for Prosthodontics"
       }
     },
     {
@@ -217,7 +218,7 @@
       "keywords": "dental implants in Addis Ababa",
       "detail": {
         "metaTitle": "Dental Implants in Addis Ababa | Dalian Speciality Dental Clinic",
-        "metaDescription": "Single-tooth dental implants and implant-supported bridges placed by oral and maxillofacial surgeons in Bole, Addis Ababa. Book an implant consultation.",
+        "metaDescription": "Single-tooth dental implants and implants after bone grafts placed by oral and maxillofacial surgeons in Bole, Addis Ababa. Book an implant consultation.",
         "bookLabel": "Book an implant consultation",
         "subcategories": [
           {
@@ -225,8 +226,8 @@
             "text": "A titanium post placed in the jawbone with a crown on top, to replace one missing tooth without involving the teeth next to it."
           },
           {
-            "name": "Implant-Supported Bridges",
-            "text": "Several missing teeth replaced by a bridge that is anchored to implants rather than to natural teeth."
+            "name": "Implants After Bone Grafts",
+            "text": "A dental implant is placed 3 to 9 months after a bone graft."
           }
         ],
         "benefits": [
@@ -260,8 +261,8 @@
         ]
       },
       "results": [],
-      "image": "photos/before-after/fixed-teeth-restoration-after.jpg",
-      "imageAlt": "Damaged teeth restored with fixed prosthetic teeth"
+      "image": "images/treatments/dental-implants.jpg",
+      "imageAlt": "Panoramic dental X-ray showing a dental implant"
     },
     {
       "slug": "oral-surgery",
@@ -271,7 +272,7 @@
       "includes": [
         "Orthognathic surgery",
         "Tooth extraction",
-        "Disinfection",
+        "Disimpaction",
         "Apicoectomy",
         "Gingivectomy"
       ],
@@ -301,37 +302,27 @@
             "text": "Removal of excess or diseased gum tissue to improve gum health and the shape of the gum line."
           },
           {
-            "name": "Disinfection",
-            "text": "Careful cleaning and disinfection of the treatment area to lower the risk of infection."
+            "name": "Disimpaction",
+            "text": "A minor surgical procedure performed to remove a tooth that is trapped (impacted) beneath the gum line or bone and cannot erupt normally."
           }
         ],
         "benefits": [
           "Relief from pain and infection",
-          "Treatment for problems that cannot be solved without surgery",
-          "Healthier gums and a better-fitting bite",
-          "Careful planning and aftercare from specialist surgeons",
-          "A clean, controlled setting for every procedure"
+          "Careful planning and aftercare from Oral and Maxillofacial Surgeons.",
+          "Treatment of Serious Pathologies: Allows for biopsies and the surgical removal of cysts and tumors."
         ],
         "faq": [
           {
-            "q": "Is tooth extraction painful?",
-            "a": "The area is numbed before the tooth is removed, so you should feel pressure but not pain. Some soreness afterwards is normal and can be managed with the pain relief your dentist advises."
-          },
-          {
             "q": "What should I do after an extraction?",
             "a": "Bite gently on the gauze, avoid rinsing hard or using a straw on the first day, keep the area clean as advised and call the clinic if bleeding or pain gets worse."
-          },
-          {
-            "q": "What is an apicoectomy?",
-            "a": "It is a small operation to remove the tip of a tooth root and seal it when an infection does not clear after a root canal treatment. It can help save a tooth that would otherwise be lost."
           },
           {
             "q": "What is orthognathic surgery?",
             "a": "It is surgery on the upper or lower jaw to correct the bite and the way the jaws fit together. It is planned carefully, often together with braces."
           },
           {
-            "q": "How long is the recovery?",
-            "a": "It depends on the procedure. Simple extractions usually settle within days, while jaw surgery needs longer. Your surgeon will explain what to expect for your treatment."
+            "q": "How does an oral surgeon remove a deeply impacted tooth?",
+            "a": "An oral surgeon removes a deeply impacted tooth by making a small incision in the gum, carefully removing surrounding bone if needed, and extracting the tooth in sections. The area is then cleaned and stitched to support healing."
           }
         ]
       },
@@ -340,7 +331,7 @@
     {
       "slug": "root-canal",
       "name": "Root Canal Treatment",
-      "short": "Treatment of the inside of the tooth to relieve pain and save the tooth.",
+      "short": "Treatment to relieve pain and save the tooth.",
       "icon": "root",
       "includes": ["Root canal treatment"],
       "doctors": ["ferhana-adem", "abyalew-zewdu"],
@@ -389,7 +380,8 @@
             "q": "What if I leave an infected tooth untreated?",
             "a": "The infection can spread and cause more pain and swelling, and the tooth may eventually be lost. Early treatment gives the best chance of saving it."
           }
-        ]
+        ],
+        "specialistsHeading": "Meet Your Expert and Senior Dentist for Root Canal Treatment"
       },
       "results": []
     },
@@ -453,7 +445,8 @@
             "q": "Is cosmetic treatment suitable for everyone?",
             "a": "Your teeth and gums need to be healthy first. We will examine you and explain which options are suitable before any treatment starts."
           }
-        ]
+        ],
+        "specialistsHeading": "Meet Your Expert and Senior Dentist for Cosmetic Dentistry"
       },
       "results": ["smile-makeover-1"]
     },
@@ -462,14 +455,14 @@
       "name": "Dental Hygiene",
       "short": "Professional cleaning and guidance to keep your teeth and gums healthy.",
       "icon": "clean",
-      "includes": ["Stain removal", "Scaling and tooth cleaning", "Mouth hygiene guidance"],
+      "includes": ["Stain removal", "Scaling and root planing", "Oral hygiene guidance"],
       "doctors": ["ferhana-adem", "abyalew-zewdu"],
       "keywords": "teeth cleaning and whitening in Addis Ababa, scaling",
       "image": "images/treatments/dental-hygiene.jpg",
       "imageAlt": "Everyday oral care products: toothpaste, floss, mouthwash and toothbrush",
       "detail": {
         "metaTitle": "Teeth Cleaning & Scaling in Addis Ababa | Dalian Speciality Dental Clinic",
-        "metaDescription": "Professional teeth cleaning, scaling, stain removal and mouth hygiene guidance in Bole, Addis Ababa. Book a dental hygiene visit.",
+        "metaDescription": "Professional teeth cleaning, scaling and root planing, stain removal and oral hygiene guidance in Bole, Addis Ababa. Book a dental hygiene visit.",
         "bookLabel": "Book a cleaning visit",
         "subcategories": [
           {
@@ -477,11 +470,11 @@
             "text": "Removal of surface stains from tea, coffee, smoking and food for a cleaner, brighter look."
           },
           {
-            "name": "Scaling and Tooth Cleaning",
+            "name": "Scaling and Root Planing",
             "text": "Professional removal of plaque and tartar that brushing cannot remove, including from below the gum line."
           },
           {
-            "name": "Mouth Hygiene Guidance",
+            "name": "Oral Hygiene Guidance",
             "text": "Clear advice on brushing, flossing and daily care that suits your mouth."
           }
         ],
@@ -510,10 +503,11 @@
             "a": "No. When it is done properly, scaling removes deposits from the surface without harming the enamel."
           },
           {
-            "q": "What does mouth hygiene guidance include?",
+            "q": "What does oral hygiene guidance include?",
             "a": "We show you how to brush and clean between your teeth properly and suggest products and habits that suit your mouth."
           }
-        ]
+        ],
+        "specialistsHeading": "Meet Your Expert and Senior Dentist for Dental Hygiene"
       },
       "results": []
     },
@@ -605,6 +599,10 @@
           {
             "name": "Baby Tooth Extraction",
             "text": "Careful removal of a baby tooth that is badly decayed, infected or loose and not falling out on its own."
+          },
+          {
+            "name": "Baby Root Canal",
+            "text": "A procedure to remove infected tissue from a baby tooth, clean the affected area, and protect the tooth with a suitable filling until it naturally falls out."
           }
         ],
         "benefits": [
@@ -635,7 +633,8 @@
             "q": "How often should my child brush?",
             "a": "Twice a day with a smear or small pea-sized amount of fluoride toothpaste, with a parent helping or checking until the child can brush well alone."
           }
-        ]
+        ],
+        "specialistsHeading": "Meet Your Expert and Senior Dentist for Pediatric Dentistry"
       },
       "results": []
     }
