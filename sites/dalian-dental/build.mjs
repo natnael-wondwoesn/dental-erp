@@ -253,6 +253,8 @@ function doctorCard(d, depth = 0, i = 0) {
 </article>`
 }
 
+// Only these cards name their specialists; every other card just says the care is by an expert and senior dentist.
+const namedSpecialists = new Set(['dental-implants', 'orthodontics', 'oral-surgery'])
 const mediaTones = [
   'linear-gradient(135deg,#0a4a7c,#1196e8)',
   'linear-gradient(135deg,#0b78bf,#5cc4ff)',
@@ -274,7 +276,11 @@ function serviceCard(s, depth, i = 0) {
       .slice(0, 3)
       .map((x) => `<li>${esc(x)}</li>`)
       .join('')}</ul>
-    ${names.length ? `<p class="muted small">${esc(s.detail?.specialistsLabel || 'Specialists')}: ${esc(names.join(', '))}</p>` : ''}
+    ${
+      namedSpecialists.has(s.slug) && names.length
+        ? `<p class="muted small">${esc(s.detail?.specialistsLabel || 'Specialists')}: ${esc(names.join(', '))}</p>`
+        : '<p class="muted small">Expert and senior dentist</p>'
+    }
     <a class="more" href="${r}services/${esc(s.slug)}/">Learn more ${ic('arrow')}</a>
   </div>
 </article>`

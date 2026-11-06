@@ -4,7 +4,7 @@
   "title": "Dental Implants: Success Rates, Risks and Aftercare",
   "category": "Dental Implants",
   "description": "Dental implants replace missing teeth with high five-year survival. Learn what research shows about success, complications and care.",
-  "image": "photos/before-after/smile-makeover-2-after.jpg",
+  "image": "photos/before-after/fixed-teeth-restoration-after.jpg",
   "imageAlt": "Missing front teeth replaced with fixed prosthetic teeth",
   "keywords": "dental implants, missing teeth, implant success rate, peri-implantitis, implants Addis Ababa",
   "intro": "A dental implant is a small post placed in the jaw to support a replacement tooth. Research shows high survival rates, but implants still need care, and complications can happen.",
