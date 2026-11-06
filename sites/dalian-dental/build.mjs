@@ -270,13 +270,14 @@ function serviceCard(s, depth, i = 0) {
 function ctaPanel(
   depth,
   heading = 'Ready for a smile you feel good about?',
-  text = 'Get in touch and our team will help you choose the right first step.'
+  text = 'Get in touch and our team will help you choose the right first step.',
+  label = 'Book / Contact'
 ) {
   const r = rel(depth)
   return `<section class="cta-section"><div class="wrap"><div class="cta-panel"${rv('zoom')}>
   <h2>${esc(heading)}</h2>
   <p>${esc(text)}</p>
-  <div class="btn-row"><a class="btn btn-white" href="${r}contact/#book" data-track="book">Book / Contact</a>${
+  <div class="btn-row"><a class="btn btn-white" href="${r}contact/#book" data-track="book">${esc(label)}</a>${
     clinic.phone
       ? `<a class="btn btn-ghost" href="tel:${esc(digits(clinic.phone))}" data-track="phone">${ic('phone')} Call us</a>`
       : ''
@@ -302,7 +303,7 @@ function heroHome({ pill, kicker, h1, text, depth, image, alt }) {
 }
 
 // Smaller maroon header used on inner pages.
-function pageHero({ crumbs, h1, text, depth, image, alt = '' }) {
+function pageHero({ crumbs, h1, text, depth, image, alt = '', buttons }) {
   const r = rel(depth)
   const trail = [`<a href="${r}index.html">Home</a>`, ...crumbs].join(' / ')
   return `<section class="hero compact">
@@ -313,7 +314,7 @@ function pageHero({ crumbs, h1, text, depth, image, alt = '' }) {
       <p class="kicker">${esc(clinic.name)}</p>
       <h1>${esc(h1)}</h1>
       <p class="lead">${esc(text)}</p>
-      <div class="btn-row">${heroButtons(depth)}</div>
+      <div class="btn-row">${buttons || heroButtons(depth)}</div>
     </div>
     ${image ? `<div class="hero-frame"><img src="${r}${esc(image)}" alt="${esc(alt)}" width="1000" height="800" fetchpriority="high"></div>` : ''}
   </div>
@@ -366,6 +367,11 @@ function jpegSize(file) {
   } catch {}
   return null
 }
+// Real width/height for an image under the site folder (stops layout shift while loading).
+function dims(src) {
+  const size = jpegSize(join(here, src))
+  return size ? ` width="${size.w}" height="${size.h}"` : ''
+}
 const imageExt = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif'])
 function photosIn(section) {
   const dir = join(here, 'photos', section)
@@ -382,22 +388,30 @@ function beforeAfterPairs() {
     const m = f.match(/^(.*)-(before|after)\./i)
     if (m) (pairs[m[1]] ??= {})[m[2].toLowerCase()] = f
   }
+  const meta = Object.fromEntries((c.cases || []).map((x) => [x.id, x]))
+  const order = (c.cases || []).map((x) => x.id)
   return Object.entries(pairs)
     .filter(([, p]) => p.before && p.after)
-    .map(([name, p]) => {
-      const size = jpegSize(join(here, 'photos', 'before-after', p.before))
-      return {
-        name,
-        label: name.replace(/-/g, ' ').replace(/^./, (ch) => ch.toUpperCase()),
-        landscape: Boolean(size && size.w > size.h),
-        ...p,
-      }
+    .map(([name, p]) => ({
+      name,
+      title: meta[name]?.title || name.replace(/-/g, ' ').replace(/^./, (ch) => ch.toUpperCase()),
+      text: meta[name]?.text || '',
+      ...p,
+    }))
+    .sort((x, y) => {
+      const i = order.indexOf(x.name)
+      const j = order.indexOf(y.name)
+      return (i < 0 ? 99 : i) - (j < 0 ? 99 : j)
     })
-    .sort((x, y) => Number(y.landscape) - Number(x.landscape))
 }
-function baFigure(pair, prefix, i = 0) {
-  const src = (f) => `${prefix}photos/before-after/${esc(f)}`
-  return `<figure class="ba${pair.landscape ? ' landscape' : ''}"${rv('up', i)}><div class="ba-pair"><div><img src="${src(pair.before)}" alt="Before treatment: ${esc(pair.label.toLowerCase())}" loading="lazy" width="800" height="1000"><span>Before</span></div><div><img src="${src(pair.after)}" alt="After treatment: ${esc(pair.label.toLowerCase())}" loading="lazy" width="800" height="1000"><span>After</span></div></div><figcaption>${esc(pair.label)}</figcaption></figure>`
+// A treatment result as a case-study card: title, short description, and the
+// BEFORE and AFTER photographs (each opens in the lightbox).
+function baFigure(pair, prefix, i = 0, extra = '') {
+  const half = (file, label) => {
+    const src = `photos/before-after/${file}`
+    return `<a class="lb ba-half" href="${prefix}${esc(src)}" data-caption="${esc(pair.title)} (${label.toLowerCase()})"><img src="${prefix}${esc(src)}" alt="${label} treatment: ${esc(pair.title.toLowerCase())}" loading="lazy"${dims(src)}><span>${label}</span></a>`
+  }
+  return `<figure class="ba case${extra}"${rv('up', i % 3)}><div class="ba-pair">${half(pair.before, 'Before')}${half(pair.after, 'After')}</div><figcaption><strong>${esc(pair.title)}</strong>${pair.text ? `<span>${esc(pair.text)}</span>` : ''}</figcaption></figure>`
 }
 
 const writes = []
@@ -545,44 +559,82 @@ ${ctaPanel(2)}`,
   })
 }
 
-// ---- Gallery: photos are read from the photos/ folder so adding a picture needs no code change.
-const gallerySections = [
-  ['before-after', 'Before and after', 'Real treatment results, shown side by side.'],
-  [
-    'clinic',
-    'Our clinic',
-    'Reception, waiting area, treatment rooms, equipment and sterilization.',
-  ],
-  ['patients', 'Our patients', 'Consultations and happy patients.'],
-  ['doctors', 'Our doctors', 'The doctors who look after you.'],
-  ['treatments', 'Treatments', 'Our doctors at work.'],
-  ['activities', 'Our activities', 'Team, training and events.'],
+// ---- Gallery ----------------------------------------------------------------
+const galleryTabs = [
+  ['all', 'All'],
+  ['doctors', 'Our Doctors'],
+  ['clinic', 'Our Clinic'],
+  ['results', 'Treatment Results'],
 ]
-function gallerySection([key, title, blurb], idx) {
-  const files = photosIn(key)
-  let items
-  if (key === 'before-after') {
-    items = beforeAfterPairs()
-      .map((pair, i) => baFigure(pair, '../', i))
-      .join('')
-  } else {
-    items = files
-      .map(
-        (f, i) =>
-          `<a class="shot"${rv('zoom', i)} href="../photos/${key}/${esc(f)}"><img src="../photos/${key}/${esc(f)}" alt="${esc(title)}" loading="lazy"></a>`
-      )
-      .join('')
+const RESULTS_VISIBLE = 6
+
+function galleryFig(photo, i = 0) {
+  return `<figure class="g-fig"${rv('up', i % 4)}><a class="lb" href="../${esc(photo.src)}" data-caption="${esc(photo.caption)}"><img src="../${esc(photo.src)}" alt="${esc(photo.caption)}" loading="lazy"${dims(photo.src)}></a><figcaption>${esc(photo.caption)}</figcaption></figure>`
+}
+
+function galleryDoctor(d, i) {
+  const initials = d.name
+    .replace(/^Dr\.?\s*/, '')
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+  const media = d.photo
+    ? `<a class="lb g-doc-photo" href="../${esc(d.photo)}" data-caption="${esc(d.name)}, ${esc(d.title)}"><img src="../${esc(d.photo)}" alt="${esc(d.name)}, ${esc(d.title)}" loading="lazy"${dims(d.photo)}></a>`
+    : `<div class="g-doc-photo g-doc-empty" aria-hidden="true"><span>${esc(initials)}</span></div>`
+  return `<article class="card g-doc"${rv('up', i % 3)}>${media}<div class="g-doc-info"><h3>${esc(d.name)}</h3><p>${esc(d.title)}</p></div></article>`
+}
+
+function galleryPage() {
+  const groups = c.gallery.clinic.filter((g) => g.photos.length)
+  const cases = beforeAfterPairs()
+  const buttons = `<a class="btn btn-white" href="../contact/#book" data-track="book">Book an Appointment</a><a class="btn btn-ghost" href="../services/">Explore Treatments</a>`
+  return `${pageHero({
+    crumbs: ['Gallery'],
+    h1: 'See Our Clinic. Meet Our Team. Discover Our Work.',
+    text: 'Explore our dental clinic, meet our team, and discover examples of our dental treatments.',
+    depth: 1,
+    image: 'images/doctors-team.jpg',
+    alt: `Doctors at ${clinic.name} in front of the clinic sign`,
+    buttons,
+  })}
+<nav class="g-nav" aria-label="Gallery categories"><div class="wrap g-nav-in">${galleryTabs
+    .map(
+      ([key, label], i) =>
+        `<a href="#${key === 'all' ? 'gallery' : key}" data-filter="${key}"${i === 0 ? ' aria-current="true"' : ''}>${label}</a>`
+    )
+    .join('')}</div></nav>
+<div id="gallery">
+<section class="section g-section" id="doctors" data-cat="doctors"><div class="wrap">
+  ${sectionHead('Our doctors', 'The doctors who look after you', 'Specialists in orthodontics, prosthodontics, surgery and family dentistry.')}
+  <div class="g-docs">${c.doctors.map(galleryDoctor).join('')}</div>
+  ${
+    c.gallery.team.length
+      ? `<h3 class="g-group-title">Our team at the clinic</h3><div class="g-grid g-grid-3">${c.gallery.team.map(galleryFig).join('')}</div>`
+      : ''
   }
-  return `<section class="section${idx % 2 ? ' tinted' : ''}" id="${key}"><div class="wrap">${sectionHead('Gallery', title, blurb)}
-${items ? `<div class="shots">${items}</div>` : `<p class="empty">Photos for this section are being added.</p>`}
-</div></section>`
+</div></section>
+<section class="section tinted g-section" id="clinic" data-cat="clinic"><div class="wrap">
+  ${sectionHead('Our clinic', 'A look inside Dalian', 'Treatment rooms, equipment and the building you will visit.')}
+  ${groups
+    .map(
+      (g) =>
+        `<div class="g-group" id="clinic-${g.key}"><h3 class="g-group-title">${esc(g.title)}</h3><div class="g-grid g-grid-4">${g.photos.map(galleryFig).join('')}</div></div>`
+    )
+    .join('')}
+</div></section>
+<section class="section g-section" id="results" data-cat="results"><div class="wrap">
+  ${sectionHead('Treatment results', 'Before and after', 'Real results from our patients, shown as before and after photographs.')}
+  <div class="case-grid">${cases.map((pair, i) => baFigure(pair, '../', i, i >= RESULTS_VISIBLE ? ' is-extra' : '')).join('')}</div>
+  ${cases.length > RESULTS_VISIBLE ? `<p class="center" style="margin-top:28px"><button class="btn btn-outline" type="button" data-more-results>View all results</button></p>` : ''}
+</div></section>
+</div>
+${ctaPanel(1, 'Ready to Take Care of Your Smile?', 'Our team is ready to help you take the next step towards better oral health.', 'Book an Appointment')}`
 }
 page('gallery/', {
   title: `Gallery | ${clinic.name}`,
-  description: `See our clinic, our team and real treatment results at ${clinic.name} in Addis Ababa.`,
-  body: `${pageHero({ crumbs: ['Gallery'], h1: 'See our clinic and our work', text: 'Real photographs from the clinic, our patients and our treatments.', depth: 1 })}
-${gallerySections.map(gallerySection).join('')}
-${ctaPanel(1, 'Want results like these?')}`,
+  description: `See our clinic, meet our team and discover examples of our dental treatments at ${clinic.name} in Addis Ababa.`,
+  body: galleryPage(),
 })
 
 // ---- About ------------------------------------------------------------------
