@@ -414,20 +414,6 @@ const mosaic = [
   ['photos/clinic/treatment-room-window.jpg', 'Treatment room', ''],
 ]
 
-function mapSection(depth) {
-  if (!clinic.mapEmbedUrl) return ''
-  return `<section class="section"><div class="wrap split" style="align-items:stretch">
-  <div${rv('left')}>
-    <p class="eyebrow">Visit us</p>
-    <h2>Find the clinic</h2>
-    <p>${esc(clinic.address ? `${clinic.address}, ` : '')}${esc(clinic.city)}</p>
-    ${clinic.hours ? `<p class="muted">${esc(clinic.hours)}</p>` : ''}
-    <div class="btn-row">${clinic.mapUrl ? `<a class="btn" href="${esc(clinic.mapUrl)}" rel="noopener" data-track="directions">${ic('pin')} Get directions</a>` : ''}<a class="btn btn-outline" href="${rel(depth)}contact/#book">Book / Contact</a></div>
-  </div>
-  <div class="map-wrap"${rv('right')}><iframe class="map" title="Map showing ${esc(clinic.name)}" src="${esc(clinic.mapEmbedUrl)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
-</div></section>`
-}
-
 // ---- Home -------------------------------------------------------------------
 page('index.html', {
   title: c.seo.title,
@@ -452,16 +438,6 @@ ${trustRow()}
   <div class="grid">${c.services.map((s, i) => serviceCard(s, 0, i % 3)).join('')}</div>
 </div></section>
 ${founderStory(0)}
-${
-  beforeAfterPairs().length
-    ? `<section class="section"><div class="wrap">${sectionHead('Real results', 'Before and after', `Photographs of real patients treated at ${clinic.name}.`)}<div class="ba-grid">${beforeAfterPairs()
-        .slice(0, 3)
-        .map((pair, i) => baFigure(pair, './', i))
-        .join(
-          ''
-        )}</div><p><a class="btn btn-outline" href="./gallery/#before-after">See more results</a></p></div></section>`
-    : ''
-}
 <section class="section"><div class="wrap">
   ${sectionHead('Our team', 'Specialists you can talk to', 'Doctors working together on your care.')}
   <div class="grid grid-doctors">${c.doctors.map((d, i) => doctorCard(d, 0, i)).join('')}</div>
@@ -482,7 +458,7 @@ ${
 </div></section>
 ${
   c.testimonials.length
-    ? `<section class="section"><div class="wrap">${sectionHead('Patient voices', 'What patients say')}</div><div class="marquee"><div class="marquee-track">${[
+    ? `<section class="section"><div class="wrap">${sectionHead('Patient voices', 'What patients say', c.testimonials.some((t) => t.placeholder) ? 'Placeholder testimonials. Replace with real, consented patient feedback before launch.' : '')}</div><div class="marquee" aria-label="Patient testimonials"><div class="marquee-track">${[
         ...c.testimonials,
         ...c.testimonials,
       ]
@@ -502,7 +478,6 @@ ${
     )
     .join('')}</div>
 </div></section>
-${mapSection(0)}
 <section class="section tinted"><div class="wrap faq-wrap">
   <div${rv('left')}>
     <p class="eyebrow">FAQ</p>
