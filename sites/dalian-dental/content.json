@@ -2,7 +2,7 @@
   "_note": "Everything shown on the Dalian Speciality Dental Clinic site comes from this file. Empty strings are details the clinic has not given us yet: the page hides them rather than showing made-up values. Search this file for \"TODO\" to see what is still needed.",
   "clinic": {
     "name": "Dalian Speciality Dental Clinic",
-    "tagline": "Changing Lives One Smile At A Time",
+    "tagline": "We Care For Your Smile!",
     "domain": "dalian.dental.clinic-cms.cc",
     "primaryColor": "#1196E8",
     "backgroundColor": "#FEFEFE",
@@ -741,7 +741,7 @@
     "image": "images/doctor-gloves.jpg",
     "quote": "We treat you with care."
   },
-  "storyMotto": "The clinic's motto, Changing Lives One Smile At A Time, guides how we work, from the first consultation to the final check-up.",
+  "storyMotto": "The clinic's motto, We Care For Your Smile, guides how we work, from the first consultation to the final check-up.",
   "cases": [
     {
       "id": "braces",
