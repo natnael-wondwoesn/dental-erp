@@ -111,6 +111,45 @@ describe('Dalian Dental landing site', () => {
     expect(gallery).toContain('treatment-room-window.jpg')
   })
 
+  it('gallery follows the redesigned structure: hero, category nav, doctors, clinic, results, CTA', () => {
+    const g = readFileSync(join(dist, 'gallery/index.html'), 'utf8')
+    expect(g).toContain('See Our Clinic. Meet Our Team. Discover Our Work.')
+    expect(g).toContain(
+      'Explore our dental clinic, meet our team, and discover examples of our dental treatments.'
+    )
+    for (const tab of ['All', 'Our Doctors', 'Our Clinic', 'Treatment Results']) {
+      expect(g).toMatch(new RegExp(`data-filter="[a-z]+"[^>]*>${tab}<`))
+    }
+    const order = [
+      'id="doctors"',
+      'id="clinic"',
+      'id="results"',
+      'Ready to Take Care of Your Smile?',
+    ]
+    const at = order.map((s) => g.indexOf(s))
+    expect(at.every((i) => i > 0)).toBe(true)
+    expect([...at].sort((a, b) => a - b)).toEqual(at)
+    expect(g).toContain(
+      'Our team is ready to help you take the next step towards better oral health.'
+    )
+    expect(g).toContain('Book an Appointment')
+    // Clinic photos have captions and every image opens in the lightbox.
+    expect(g).toContain('<figcaption>Chairside view</figcaption>')
+    expect(g).toContain('class="lb')
+    // Case cards have real titles and BEFORE/AFTER labels, not "Smile Makeover 1".
+    expect(g).toContain('<strong>Orthodontic Treatment</strong>')
+    expect(g).toContain('<strong>Smile Restoration</strong>')
+    expect(g).not.toMatch(/Smile makeover \d/i)
+    expect(g).toContain('<span>Before</span>')
+    expect(g).toContain('<span>After</span>')
+    // Below-the-fold images are lazy loaded and have real dimensions.
+    expect(g).toMatch(/loading="lazy" width="\d+" height="\d+"/)
+    const js = readFileSync(join(dist, 'assets/main.js'), 'utf8')
+    for (const word of ['Escape', 'ArrowLeft', 'ArrowRight', 'lb-close', 'data-filter']) {
+      expect(js).toContain(word)
+    }
+  })
+
   it('uses Telegram, not WhatsApp, and shows no unfilled placeholders', () => {
     for (const file of htmlFiles(dist)) {
       const html = readFileSync(file, 'utf8')

@@ -126,4 +126,136 @@
       }
     })
   }
+
+  // ---- Gallery: category filter, "view all results" and the image lightbox ----
+  var gallery = document.getElementById('gallery')
+  if (gallery) {
+    var tabs = Array.prototype.slice.call(document.querySelectorAll('.g-nav a[data-filter]'))
+    var sections = Array.prototype.slice.call(gallery.querySelectorAll('.g-section'))
+    var applyFilter = function (key, scroll) {
+      sections.forEach(function (sec) {
+        sec.hidden = !(key === 'all' || sec.getAttribute('data-cat') === key)
+      })
+      tabs.forEach(function (t) {
+        if (t.getAttribute('data-filter') === key) t.setAttribute('aria-current', 'true')
+        else t.removeAttribute('aria-current')
+      })
+      if (scroll) {
+        var nav = document.querySelector('.g-nav')
+        var top = (nav ? nav.getBoundingClientRect().bottom + window.scrollY : 0) - 8
+        window.scrollTo({ top: top, behavior: reduce ? 'auto' : 'smooth' })
+      }
+    }
+    tabs.forEach(function (t) {
+      t.addEventListener('click', function (e) {
+        e.preventDefault()
+        var key = t.getAttribute('data-filter')
+        applyFilter(key, true)
+        if (history.replaceState)
+          history.replaceState(null, '', key === 'all' ? '#gallery' : '#' + key)
+      })
+    })
+    var fromHash = (location.hash || '').replace('#', '')
+    if (
+      fromHash &&
+      tabs.some(function (t) {
+        return t.getAttribute('data-filter') === fromHash
+      })
+    )
+      applyFilter(fromHash, false)
+
+    var more = document.querySelector('[data-more-results]')
+    if (more) {
+      more.addEventListener('click', function () {
+        document.querySelector('.case-grid').classList.add('show-all')
+        more.parentNode.hidden = true
+      })
+    }
+  }
+
+  var box = null
+  var items = []
+  var index = 0
+  var lastFocus = null
+  function build() {
+    box = document.createElement('div')
+    box.className = 'lightbox'
+    box.setAttribute('role', 'dialog')
+    box.setAttribute('aria-modal', 'true')
+    box.setAttribute('aria-label', 'Image viewer')
+    box.innerHTML =
+      '<button class="lb-btn lb-close" type="button" aria-label="Close">&times;</button>' +
+      '<button class="lb-btn lb-prev" type="button" aria-label="Previous image">&#8249;</button>' +
+      '<figure><img alt=""><figcaption></figcaption></figure>' +
+      '<button class="lb-btn lb-next" type="button" aria-label="Next image">&#8250;</button>'
+    document.body.appendChild(box)
+    box.addEventListener('click', function (e) {
+      if (e.target === box || e.target.closest('.lb-close')) close()
+      else if (e.target.closest('.lb-prev')) show(index - 1)
+      else if (e.target.closest('.lb-next')) show(index + 1)
+    })
+    var startX = null
+    box.addEventListener(
+      'touchstart',
+      function (e) {
+        startX = e.touches[0].clientX
+      },
+      { passive: true }
+    )
+    box.addEventListener('touchend', function (e) {
+      if (startX === null) return
+      var dx = e.changedTouches[0].clientX - startX
+      if (Math.abs(dx) > 50) show(index + (dx < 0 ? 1 : -1))
+      startX = null
+    })
+  }
+  function show(i) {
+    if (!items.length) return
+    index = (i + items.length) % items.length
+    var a = items[index]
+    var img = box.querySelector('img')
+    img.src = a.getAttribute('href')
+    img.alt = a.getAttribute('data-caption') || ''
+    var cap = box.querySelector('figcaption')
+    cap.textContent = a.getAttribute('data-caption') || ''
+    if (items.length > 1) {
+      var small = document.createElement('small')
+      small.textContent = index + 1 + ' / ' + items.length
+      cap.appendChild(small)
+      var next = new Image()
+      next.src = items[(index + 1) % items.length].getAttribute('href')
+    }
+    box.querySelector('.lb-prev').style.display = items.length > 1 ? '' : 'none'
+    box.querySelector('.lb-next').style.display = items.length > 1 ? '' : 'none'
+  }
+  function open(a) {
+    if (!box) build()
+    // Only images that are currently visible take part in previous/next.
+    items = Array.prototype.slice.call(document.querySelectorAll('a.lb')).filter(function (el) {
+      return el.offsetParent !== null
+    })
+    lastFocus = document.activeElement
+    box.classList.add('open')
+    document.body.classList.add('lb-open')
+    show(Math.max(items.indexOf(a), 0))
+    box.querySelector('.lb-close').focus()
+  }
+  function close() {
+    if (!box) return
+    box.classList.remove('open')
+    document.body.classList.remove('lb-open')
+    if (lastFocus && lastFocus.focus) lastFocus.focus()
+  }
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a.lb')
+    if (!a) return
+    e.preventDefault()
+    open(a)
+  })
+  document.addEventListener('keydown', function (e) {
+    if (!box || !box.classList.contains('open')) return
+    if (e.key === 'Escape') close()
+    else if (e.key === 'ArrowLeft') show(index - 1)
+    else if (e.key === 'ArrowRight') show(index + 1)
+  })
 })()

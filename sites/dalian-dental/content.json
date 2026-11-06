@@ -310,5 +310,122 @@
       "bio": "Welcomes and assists patients.",
       "photo": "images/team/seida-surur.jpg"
     }
-  ]
+  ],
+  "cases": [
+    {
+      "id": "braces",
+      "title": "Orthodontic Treatment",
+      "text": "Braces to align crowded teeth and close gaps."
+    },
+    {
+      "id": "smile-makeover-1",
+      "title": "Smile Restoration",
+      "text": "Worn, stained and damaged front teeth restored with fixed crowns."
+    },
+    {
+      "id": "smile-makeover-2",
+      "title": "Missing Front Teeth Replacement",
+      "text": "Missing and damaged upper front teeth replaced with fixed prosthetic teeth."
+    },
+    {
+      "id": "front-view",
+      "title": "Front View Result",
+      "text": "Before and after photographs of the same patient, front view."
+    },
+    {
+      "id": "side-profile",
+      "title": "Side Profile Result",
+      "text": "Before and after photographs of the same patient, side profile."
+    }
+  ],
+  "gallery": {
+    "clinic": [
+      {
+        "key": "reception",
+        "title": "Reception & Waiting Area",
+        "photos": []
+      },
+      {
+        "key": "treatment-rooms",
+        "title": "Treatment Rooms",
+        "photos": [
+          {
+            "src": "photos/clinic/treatment-room-window.jpg",
+            "caption": "Treatment room with a view over Addis Ababa"
+          },
+          {
+            "src": "photos/clinic/treatment-room-chair.jpg",
+            "caption": "Chairside view"
+          },
+          {
+            "src": "photos/treatments/treatment-scene-1.jpg",
+            "caption": "Treatment in progress"
+          },
+          {
+            "src": "photos/treatments/treatment-scene-2.jpg",
+            "caption": "Examination in the treatment room"
+          }
+        ]
+      },
+      {
+        "key": "equipment",
+        "title": "Dental Equipment",
+        "photos": [
+          {
+            "src": "photos/clinic/unit-light-and-monitor.jpg",
+            "caption": "Dental unit with overhead light and monitor"
+          },
+          {
+            "src": "photos/clinic/ultrasonic-scaler-unit.jpg",
+            "caption": "Ultrasonic scaler and handpieces"
+          },
+          {
+            "src": "photos/clinic/instrument-holders.jpg",
+            "caption": "Handpiece holders"
+          }
+        ]
+      },
+      {
+        "key": "sterilization",
+        "title": "Sterilization & Hygiene",
+        "photos": []
+      },
+      {
+        "key": "exterior",
+        "title": "Clinic Exterior",
+        "photos": [
+          {
+            "src": "images/clinic-building.jpg",
+            "caption": "Our building in Bole, Addis Ababa"
+          }
+        ]
+      }
+    ],
+    "team": [
+      {
+        "src": "images/clinic-team.jpg",
+        "caption": "The Dalian team"
+      },
+      {
+        "src": "images/doctors-team.jpg",
+        "caption": "Our doctors"
+      },
+      {
+        "src": "photos/doctors/doctor-and-model.jpg",
+        "caption": "Explaining braces"
+      },
+      {
+        "src": "photos/doctors/doctor-model.jpg",
+        "caption": "Orthodontic care"
+      },
+      {
+        "src": "photos/doctors/doctor-stethoscope.jpg",
+        "caption": "Our doctors at the clinic"
+      },
+      {
+        "src": "images/doctor-gloves.jpg",
+        "caption": "Ready for your care"
+      }
+    ]
+  }
 }
