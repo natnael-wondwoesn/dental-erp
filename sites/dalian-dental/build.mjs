@@ -437,7 +437,7 @@ function baFigure(pair, prefix, i = 0, extra = '') {
 
 // A short, muted, looping clip in the same card style as the before/after photo cases.
 function videoFigure(v, prefix, i = 0) {
-  return `<figure class="ba case video-case"${rv('up', i % 3)}><div class="video-frame"><video controls muted loop playsinline preload="metadata" poster="${prefix}${esc(v.poster)}" aria-label="${esc(v.alt || v.title)}"><source src="${prefix}${esc(v.src)}#t=2" type="video/mp4">Your browser cannot play this video.</video><span class="video-chip">Video</span></div><figcaption><strong>${esc(v.title)}</strong>${v.text ? `<span>${esc(v.text)}</span>` : ''}</figcaption></figure>`
+  return `<figure class="ba case video-case"${rv('up', i % 3)}><div class="video-frame"><video controls muted loop playsinline preload="metadata" poster="${prefix}${esc(v.poster)}" aria-label="${esc(v.alt || v.title)}"><source src="${prefix}${esc(v.src)}" type="video/mp4">Your browser cannot play this video.</video><span class="video-chip">Video</span></div><figcaption><strong>${esc(v.title)}</strong>${v.text ? `<span>${esc(v.text)}</span>` : ''}</figcaption></figure>`
 }
 
 const writes = []
