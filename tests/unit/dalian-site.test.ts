@@ -90,21 +90,13 @@ describe('Dalian Dental landing site', () => {
     expect(home).toContain('images/doctor-gloves.jpg')
   })
 
-  it('shows the map, the logo, the extra staff and the clinic photos', () => {
+  it('shows the map, the logo and the clinic photos', () => {
     const contact = readFileSync(join(dist, 'contact/index.html'), 'utf8')
     expect(contact).toContain('google.com/maps?q=8.9946209,38.790487')
     expect(contact).toContain('maps.app.goo.gl/2UyXoSpZfLedUp3F7')
     const home = readFileSync(join(dist, 'index.html'), 'utf8')
     expect(home).toContain('images/brand/logo-mark.png')
-    for (const name of [
-      'Dr. Merhawit Zerabiruk',
-      'Sister Rahel Gosaye',
-      'Sister Roman Birhanu',
-      'Aregash Teferi',
-      'Seida Surur',
-    ]) {
-      expect(home).toContain(name)
-    }
+    expect(home).toContain('Dr. Merhawit Zerabiruk')
     expect(existsSync(join(dist, 'images/brand/favicon.ico'))).toBe(true)
     const gallery = readFileSync(join(dist, 'gallery/index.html'), 'utf8')
     expect(gallery).toContain('smile-makeover-1')
@@ -268,11 +260,11 @@ describe('Dalian Dental landing site', () => {
       return names[0]?.name
     }
     const home = readFileSync(join(dist, 'index.html'), 'utf8')
-    expect(firstDoctor(home, 'Specialists you can talk to', 'Behind the scenes')).toBe(founder.name)
+    expect(firstDoctor(home, 'Specialists you can talk to', 'Our core values')).toBe(founder.name)
     const gallery = readFileSync(join(dist, 'gallery/index.html'), 'utf8')
     expect(firstDoctor(gallery, 'id="doctors"', 'id="clinic"')).toBe(founder.name)
     const about = readFileSync(join(dist, 'about/index.html'), 'utf8')
-    expect(firstDoctor(about, 'id="team"', 'Nurses and staff')).toBe(founder.name)
+    expect(firstDoctor(about, 'id="team"', 'Your visit')).toBe(founder.name)
     for (const s of content.services) {
       if (!s.doctors.includes(founder.id)) continue
       const html = readFileSync(join(dist, 'services', s.slug, 'index.html'), 'utf8')

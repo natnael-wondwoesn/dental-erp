@@ -479,10 +479,6 @@ ${founderStory(0)}
   <div class="grid grid-doctors">${c.doctors.map((d, i) => doctorCard(d, 0, i)).join('')}</div>
   <p style="margin-top:28px"><a class="btn btn-outline" href="./about/#team">Meet the team</a></p>
 </div></section>
-<section class="section tight"><div class="wrap">
-  ${sectionHead('Behind the scenes', 'The people who look after you', 'Nurses and staff who make every visit smooth.')}
-  <div class="grid grid-doctors">${c.staff.map((d, i) => doctorCard(d, 0, i)).join('')}</div>
-</div></section>
 <section class="section dark"><div class="wrap">
   ${sectionHead('Our core values', 'What we stand for', 'The principles behind every visit.')}
   <div class="grid values-grid">${c.values
@@ -738,10 +734,6 @@ ${founderStory(1)}
 <section class="section tinted" id="team"><div class="wrap">
   ${sectionHead('Meet our team', 'The doctors who will treat you')}
   <div class="grid grid-doctors">${c.doctors.map((d, i) => doctorCard(d, 1, i)).join('')}</div>
-</div></section>
-<section class="section"><div class="wrap">
-  ${sectionHead('Nurses and staff', 'The people behind every visit')}
-  <div class="grid grid-doctors">${c.staff.map((d, i) => doctorCard(d, 1, i)).join('')}</div>
 </div></section>
 <section class="section dark"><div class="wrap">
   ${sectionHead('Your visit', 'Step by step')}

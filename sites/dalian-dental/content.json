@@ -69,7 +69,7 @@
       "name": "Dr. Merhawit Zerabiruk",
       "title": "Expert Dental Surgeon",
       "bio": "Expert dental surgeon at Dalian Speciality Dental Clinic.",
-      "photo": "images/team/dr-merhawit-zerabiruk.jpg"
+      "photo": ""
     }
   ],
   "services": [
@@ -740,36 +740,6 @@
     "quote": "We treat you with care."
   },
   "storyMotto": "The clinic's motto, Changing Lives One Smile At A Time, guides how we work, from the first consultation to the final check-up.",
-  "staff": [
-    {
-      "id": "rahel-gosaye",
-      "name": "Sister Rahel Gosaye",
-      "title": "Nurse",
-      "bio": "Supports patients and doctors during treatment.",
-      "photo": "images/team/rahel-gosaye.jpg"
-    },
-    {
-      "id": "roman-birhanu",
-      "name": "Sister Roman Birhanu",
-      "title": "Nurse",
-      "bio": "Supports patients and doctors during treatment.",
-      "photo": "images/team/roman-birhanu.jpg"
-    },
-    {
-      "id": "aregash-teferi",
-      "name": "Aregash Teferi",
-      "title": "Manager",
-      "bio": "Manages the clinic's day-to-day operations.",
-      "photo": "images/team/aregash-teferi.jpg"
-    },
-    {
-      "id": "seida-surur",
-      "name": "Seida Surur",
-      "title": "Front Desk",
-      "bio": "Welcomes and assists patients.",
-      "photo": "images/team/seida-surur.jpg"
-    }
-  ],
   "cases": [
     {
       "id": "braces",
