@@ -60,7 +60,9 @@ class LandingSiteTests(unittest.TestCase):
             self.assertIn('/_paused', (self.sites / 'demo-clinic.caddy').read_text())
             restore = ls.validate(self.job('SITE_RESTORE'))
             self.assertFalse(ls.execute(restore)['sitePaused'])
-            self.assertIn('/demo-clinic/current', (self.sites / 'demo-clinic.caddy').read_text())
+            live = (self.sites / 'demo-clinic.caddy').read_text()
+            self.assertIn('/demo-clinic/current', live)
+            self.assertIn('Cache-Control', live)
             self.assertEqual(run.call_count, 4)  # validate + reload, twice
 
     def test_failed_reload_restores_previous_snippet(self):
