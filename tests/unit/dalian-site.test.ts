@@ -282,10 +282,27 @@ describe('Dalian Dental landing site', () => {
     }
   })
 
-  it('uses Telegram, not WhatsApp, and shows no unfilled placeholders', () => {
+  it('every page has the floating WhatsApp button linking to the clinic number', () => {
     for (const file of htmlFiles(dist)) {
       const html = readFileSync(file, 'utf8')
-      expect(html, file).not.toMatch(/whatsapp|wa\.me/i)
+      if (html.includes('http-equiv="refresh"')) continue // a redirect, never shown to visitors
+      expect(html, file).toContain('class="wa-float"')
+      expect(html, file).toContain('https://wa.me/251912638003?text=')
+      expect(html.match(/class="wa-float"/g)?.length, file).toBe(1)
+      expect(html, file).toContain('target="_blank" rel="noopener"')
+    }
+    const css = readFileSync(join(dist, 'assets/style.css'), 'utf8')
+    expect(css).toMatch(
+      /\.wa-float\s*\{[^}]*position:\s*fixed[^}]*right:\s*20px[^}]*bottom:\s*20px/
+    )
+  })
+
+  it('uses Telegram in the appointment form (WhatsApp is only the floating button), and shows no unfilled placeholders', () => {
+    for (const file of htmlFiles(dist)) {
+      const html = readFileSync(file, 'utf8')
+      expect(html.replace(/<a class="wa-float"[\s\S]*?<\/a>/, ''), file).not.toMatch(
+        /whatsapp|wa\.me/i
+      )
       expect(html, file).not.toContain('TODO')
     }
     const contact = readFileSync(join(dist, 'contact/index.html'), 'utf8')
