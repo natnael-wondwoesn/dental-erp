@@ -2472,3 +2472,24 @@ body.lb-open .wa-float {
     animation: none;
   }
 }
+
+.values-grid {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+.glass.compact {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+}
+.glass.compact .tile {
+  margin: 0;
+  flex: none;
+}
+.glass.compact h3 {
+  margin: 0;
+  font-size: 1.02rem;
+}
+.about-card .values-list li {
+  font-size: 1rem;
+}

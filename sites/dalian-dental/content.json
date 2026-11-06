@@ -661,24 +661,32 @@
     }
   ],
   "story": "Dr. Ferhana Adem, an expert dental surgeon, founded Dalian Dental Clinic. Over time she has built a team of specialists who share one approach: listen first, explain clearly, and treat every patient with care.",
-  "mission": "To give every patient safe, honest and comfortable dental care.",
-  "vision": "To be a dental clinic in Addis Ababa that patients trust for the whole family.",
+  "mission": "To provide high-quality, patient-centered dental care through modern technology, specialist doctors and unmatched service, while educating patients about better dental health.",
+  "vision": "To become a trusted dental care destination known for quality, compassion, innovation and advanced dental specialty clinics in Ethiopia.",
   "values": [
     {
-      "title": "Care",
-      "text": "We treat every patient with respect and listen first."
+      "title": "Professionalism"
     },
     {
-      "title": "Clarity",
-      "text": "We explain the diagnosis, the options and the cost before we begin."
+      "title": "Integrity"
     },
     {
-      "title": "Safety",
-      "text": "Clean instruments and careful sterilization at every visit."
+      "title": "Patient Safety"
     },
     {
-      "title": "Quality",
-      "text": "Specialist doctors and careful, lasting work."
+      "title": "Compassion"
+    },
+    {
+      "title": "Teamwork"
+    },
+    {
+      "title": "Continuous Improvement"
+    },
+    {
+      "title": "Trust"
+    },
+    {
+      "title": "Innovation"
     }
   ],
   "testimonials": [

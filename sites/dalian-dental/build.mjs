@@ -433,7 +433,16 @@ function page(path, opts) {
   writes.push([path.endsWith('/') ? `${path}index.html` : path, layout({ ...opts, depth, path })])
 }
 
-const whyIcons = ['heart', 'sparkle', 'shield', 'tooth']
+const valueIcons = {
+  Professionalism: 'check',
+  Integrity: 'shield',
+  'Patient Safety': 'shield',
+  Compassion: 'heart',
+  Teamwork: 'family',
+  'Continuous Improvement': 'sparkle',
+  Trust: 'check',
+  Innovation: 'tooth',
+}
 const mosaic = [
   ['images/clinic-building.jpg', 'Our clinic building', ''],
   ['images/clinic-team.jpg', 'The Dalian team', 'wide'],
@@ -475,11 +484,11 @@ ${founderStory(0)}
   <div class="grid grid-doctors">${c.staff.map((d, i) => doctorCard(d, 0, i)).join('')}</div>
 </div></section>
 <section class="section dark"><div class="wrap">
-  ${sectionHead('Why Dalian', 'Care you can feel good about', 'The way we work, at every visit.')}
-  <div class="grid">${c.values
+  ${sectionHead('Our core values', 'What we stand for', 'The principles behind every visit.')}
+  <div class="grid values-grid">${c.values
     .map(
       (v, i) =>
-        `<div class="glass"${rv('up', i)}><span class="tile">${ic(whyIcons[i % whyIcons.length])}</span><h3>${esc(v.title)}</h3><p>${esc(v.text)}</p></div>`
+        `<div class="glass compact"${rv('up', i % 4)}><span class="tile">${ic(valueIcons[v.title] || 'check')}</span><h3>${esc(v.title)}</h3></div>`
     )
     .join('')}</div>
 </div></section>
@@ -723,7 +732,7 @@ ${founderStory(1)}
   <div class="grid about-cards">
     <article class="card about-card"${rv('up', 0)}><h3>Our Mission</h3><p>${esc(c.mission)}</p></article>
     <article class="card about-card"${rv('up', 1)}><h3>Our Vision</h3><p>${esc(c.vision)}</p></article>
-    <article class="card about-card"${rv('up', 2)}><h3>Our Core Values</h3><ul class="values-list">${c.values.map((v) => `<li><strong>${esc(v.title)}.</strong> ${esc(v.text)}</li>`).join('')}</ul></article>
+    <article class="card about-card"${rv('up', 2)}><h3>Our Core Values</h3><ul class="values-list">${c.values.map((v) => `<li>${esc(v.title)}</li>`).join('')}</ul></article>
   </div>
 </div></section>
 <section class="section tinted" id="team"><div class="wrap">

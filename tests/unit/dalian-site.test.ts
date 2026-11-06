@@ -158,7 +158,21 @@ describe('Dalian Dental landing site', () => {
       expect(section).toContain(`<h3>${title}</h3>`)
     }
     // The four values live inside the Core Values card, not as cards of their own.
-    expect(section).not.toMatch(/<h3>(Care|Clarity|Safety|Quality)<\/h3>/)
+    expect(section).not.toMatch(/<h3>(Professionalism|Integrity|Patient Safety|Compassion)<\/h3>/)
+    for (const value of [
+      'Professionalism',
+      'Integrity',
+      'Patient Safety',
+      'Compassion',
+      'Teamwork',
+      'Continuous Improvement',
+      'Trust',
+      'Innovation',
+    ]) {
+      expect(section).toContain(`<li>${value}</li>`)
+    }
+    expect(section).toContain('trusted dental care destination')
+    expect(section).toContain('patient-centered dental care')
   })
 
   it('every treatment page has the five sections, its own title and only its own doctors', () => {
