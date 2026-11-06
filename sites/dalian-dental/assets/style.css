@@ -1942,3 +1942,40 @@ body.lb-open {
     right: 10px;
   }
 }
+
+.about-cards {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  align-items: stretch;
+}
+.about-card {
+  padding: 28px;
+}
+.about-card:hover {
+  transform: none;
+}
+.values-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+.values-list li {
+  padding-left: 18px;
+  position: relative;
+  font-size: 0.95rem;
+}
+.values-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+.values-list strong {
+  color: var(--ink);
+  font-family: var(--font-secondary);
+}

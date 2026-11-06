@@ -150,6 +150,17 @@ describe('Dalian Dental landing site', () => {
     }
   })
 
+  it('About page shows only the three cards: Mission, Vision and Core Values', () => {
+    const about = readFileSync(join(dist, 'about/index.html'), 'utf8')
+    const section = about.slice(about.indexOf('about-cards'), about.indexOf('id="team"'))
+    expect(section.match(/<article class="card about-card"/g)?.length).toBe(3)
+    for (const title of ['Our Mission', 'Our Vision', 'Our Core Values']) {
+      expect(section).toContain(`<h3>${title}</h3>`)
+    }
+    // The four values live inside the Core Values card, not as cards of their own.
+    expect(section).not.toMatch(/<h3>(Care|Clarity|Safety|Quality)<\/h3>/)
+  })
+
   it('uses Telegram, not WhatsApp, and shows no unfilled placeholders', () => {
     for (const file of htmlFiles(dist)) {
       const html = readFileSync(file, 'utf8')
