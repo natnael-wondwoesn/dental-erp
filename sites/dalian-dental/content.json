@@ -12,8 +12,8 @@
     "telegram": "",
     "address": "Abyssinia Building, 4th floor, Bole Medhanialem",
     "city": "Addis Ababa",
-    "mapUrl": "",
-    "mapEmbedUrl": "",
+    "mapUrl": "https://maps.app.goo.gl/2UyXoSpZfLedUp3F7",
+    "mapEmbedUrl": "https://www.google.com/maps?q=8.9946209,38.790487&z=17&output=embed",
     "hours": "Monday to Saturday, 8:30 AM to 6:00 PM. Closed on Sundays.",
     "facebook": "",
     "instagram": "",
@@ -61,6 +61,13 @@
       "title": "Oral & Maxillofacial Surgeon",
       "bio": "",
       "photo": ""
+    },
+    {
+      "id": "merhawit-zerabiruk",
+      "name": "Dr. Merhawit Zerabiruk",
+      "title": "Expert Dental Surgeon",
+      "bio": "",
+      "photo": "images/team/dr-merhawit-zerabiruk.jpg"
     }
   ],
   "services": [
@@ -71,7 +78,12 @@
       "icon": "braces",
       "includes": ["Kids braces", "Myofunctional appliance", "Invisible aligners"],
       "doctors": ["fithalew-lijindi"],
-      "keywords": "braces in Addis Ababa, kids braces, orthodontist, invisible aligners"
+      "keywords": "braces in Addis Ababa, kids braces, orthodontist, invisible aligners",
+      "hero": "photos/doctors/doctor-model.jpg",
+      "heroAlt": "A dentist holding a model of teeth with braces",
+      "results": ["braces"],
+      "image": "photos/doctors/doctor-model.jpg",
+      "imageAlt": "A dentist holding a model of teeth with braces"
     },
     {
       "slug": "prosthodontics",
@@ -84,7 +96,10 @@
         "Dentures (full or partial)"
       ],
       "doctors": ["ferhana-adem", "abyalew-zewdu"],
-      "keywords": "dental crowns, bridges, dentures, zirconia crown Addis Ababa"
+      "keywords": "dental crowns, bridges, dentures, zirconia crown Addis Ababa",
+      "results": ["smile-makeover-1", "smile-makeover-2"],
+      "image": "images/treatments/prosthodontics.jpg",
+      "imageAlt": "Ceramic crowns and a bridge"
     },
     {
       "slug": "dental-implants",
@@ -108,7 +123,9 @@
         "Gingivectomy"
       ],
       "doctors": ["shimelis-megersa", "melese-tabor"],
-      "keywords": "tooth extraction, oral surgery, apicoectomy, gingivectomy"
+      "keywords": "tooth extraction, oral surgery, apicoectomy, gingivectomy",
+      "image": "images/treatments/oral-surgery.jpg",
+      "imageAlt": "A dentist examining a patient's mouth"
     },
     {
       "slug": "root-canal",
@@ -117,7 +134,9 @@
       "icon": "root",
       "includes": ["Root canal treatment"],
       "doctors": ["ferhana-adem", "abyalew-zewdu"],
-      "keywords": "root canal treatment in Addis Ababa"
+      "keywords": "root canal treatment in Addis Ababa",
+      "image": "images/treatments/root-canal.jpg",
+      "imageAlt": "Illustration of root canal treatment inside a tooth"
     },
     {
       "slug": "cosmetic-dentistry",
@@ -130,7 +149,9 @@
         "Teeth whitening"
       ],
       "doctors": ["ferhana-adem", "abyalew-zewdu"],
-      "keywords": "Hollywood smile, veneers, teeth whitening Addis Ababa"
+      "keywords": "Hollywood smile, veneers, teeth whitening Addis Ababa",
+      "image": "images/treatments/cosmetic-dentistry.jpg",
+      "imageAlt": "Example of veneers: before and after"
     },
     {
       "slug": "dental-hygiene",
@@ -139,7 +160,9 @@
       "icon": "clean",
       "includes": ["Stain removal", "Scaling and tooth cleaning", "Mouth hygiene guidance"],
       "doctors": ["ferhana-adem", "abyalew-zewdu"],
-      "keywords": "teeth cleaning and whitening in Addis Ababa, scaling"
+      "keywords": "teeth cleaning and whitening in Addis Ababa, scaling",
+      "image": "images/treatments/dental-hygiene.jpg",
+      "imageAlt": "Everyday oral care products: toothpaste, floss, mouthwash and toothbrush"
     },
     {
       "slug": "emergency-care",
@@ -148,7 +171,9 @@
       "icon": "emergency",
       "includes": ["Knocked-out teeth", "Toothache", "Mandibular fracture"],
       "doctors": ["shimelis-megersa", "melese-tabor", "ferhana-adem"],
-      "keywords": "emergency dentist Addis Ababa, toothache"
+      "keywords": "emergency dentist Addis Ababa, toothache",
+      "image": "images/treatments/emergency-care.jpg",
+      "imageAlt": "A person holding their cheek because of toothache"
     },
     {
       "slug": "pediatric-dentistry",
@@ -157,7 +182,9 @@
       "icon": "kids",
       "includes": ["Treatment and fillings", "Dental cleanings", "Baby tooth extraction"],
       "doctors": ["ferhana-adem", "fithalew-lijindi"],
-      "keywords": "pediatric dentist Addis Ababa, kids dentist"
+      "keywords": "pediatric dentist Addis Ababa, kids dentist",
+      "image": "images/treatments/pediatric-dentistry.jpg",
+      "imageAlt": "A child having a dental check-up"
     }
   ],
   "faq": [
@@ -232,5 +259,35 @@
     "image": "images/doctor-gloves.jpg",
     "quote": "We treat you with care."
   },
-  "storyMotto": "The clinic's motto, Changing Lives One Smile At A Time, guides how we work, from the first consultation to the final check-up."
+  "storyMotto": "The clinic's motto, Changing Lives One Smile At A Time, guides how we work, from the first consultation to the final check-up.",
+  "staff": [
+    {
+      "id": "rahel-gosaye",
+      "name": "Sister Rahel Gosaye",
+      "title": "Nurse",
+      "bio": "Supports patients and doctors during treatment.",
+      "photo": "images/team/rahel-gosaye.jpg"
+    },
+    {
+      "id": "roman-birhanu",
+      "name": "Sister Roman Birhanu",
+      "title": "Nurse",
+      "bio": "Supports patients and doctors during treatment.",
+      "photo": "images/team/roman-birhanu.jpg"
+    },
+    {
+      "id": "aregash-teferi",
+      "name": "Aregash Teferi",
+      "title": "Manager",
+      "bio": "Manages the clinic's day-to-day operations.",
+      "photo": "images/team/aregash-teferi.jpg"
+    },
+    {
+      "id": "seida-surur",
+      "name": "Seida Surur",
+      "title": "Front Desk",
+      "bio": "Welcomes and assists patients.",
+      "photo": "images/team/seida-surur.jpg"
+    }
+  ]
 }
