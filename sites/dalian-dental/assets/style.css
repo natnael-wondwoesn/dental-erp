@@ -1978,6 +1978,7 @@ body.lb-open {
 .values-list strong {
   color: var(--ink);
   font-family: var(--font-secondary);
+}
 
 /* ---- Service detail pages ----------------------------------------------- */
 .sub-grid {
