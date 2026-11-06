@@ -32,6 +32,8 @@ const esc = (s) =>
 
 const digits = (s) => String(s).replace(/[^\d+]/g, '')
 // Telegram username without the @ or a t.me/ prefix.
+// Digits only, no + sign: the format wa.me links need.
+const waNumber = String(clinic.whatsapp || '').replace(/\D/g, '')
 const tg = String(clinic.telegram || '')
   .trim()
   .replace(/^https?:\/\/t\.me\//i, '')
@@ -220,6 +222,11 @@ ${body}
   </div>
   <div class="wrap legal">&copy; ${new Date().getFullYear()} ${esc(clinic.name)}. All rights reserved.</div>
 </footer>
+${
+  waNumber
+    ? `<a class="wa-float" href="https://wa.me/${waNumber}${clinic.whatsappMessage ? `?text=${encodeURIComponent(clinic.whatsappMessage)}` : ''}" target="_blank" rel="noopener" aria-label="Chat with ${esc(clinic.name)} on WhatsApp" data-track="whatsapp"><svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true" fill="currentColor"><path d="M16.04 3C9.4 3 4 8.4 4 15.02c0 2.12.55 4.18 1.6 6L4 29l8.13-1.56a12 12 0 0 0 3.9.65h.01C22.68 28.1 28 22.7 28 16.08 28 9.4 22.68 3 16.04 3Zm0 22.1h-.01a10 10 0 0 1-5.1-1.4l-.37-.22-3.77.72.8-3.67-.24-.38a9.9 9.9 0 0 1-1.53-5.3c0-5.5 4.5-10 10.03-10 5.53 0 10.03 4.5 10.03 10.06 0 5.5-4.5 10.19-9.84 10.19Zm5.5-7.5c-.3-.15-1.78-.88-2.06-.98-.28-.1-.48-.15-.68.15-.2.3-.78.98-.95 1.18-.18.2-.35.22-.65.07-.3-.15-1.27-.47-2.42-1.5-.9-.8-1.5-1.78-1.67-2.08-.18-.3-.02-.46.13-.6.13-.14.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.68-1.65-.93-2.26-.25-.6-.5-.5-.68-.5h-.58c-.2 0-.52.07-.8.37-.27.3-1.05 1.03-1.05 2.5s1.08 2.9 1.23 3.1c.15.2 2.1 3.2 5.1 4.5.7.3 1.27.5 1.7.62.72.23 1.37.2 1.88.12.58-.08 1.78-.73 2.03-1.43.25-.7.25-1.3.18-1.43-.08-.13-.28-.2-.58-.35Z"/></svg><span class="wa-label">Chat on WhatsApp</span></a>`
+    : ''
+}
 <script src="${r}assets/main.js" defer></script>
 ${scripts}
 </body>
