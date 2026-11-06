@@ -151,7 +151,7 @@
       ],
       "doctors": ["ferhana-adem", "abyalew-zewdu"],
       "keywords": "dental crowns, bridges, dentures, zirconia crown Addis Ababa",
-      "results": ["smile-makeover-1", "fixed-teeth-restoration"],
+      "results": ["smile-makeover-1", "fixed-teeth-restoration", "smile-brightening"],
       "image": "images/treatments/prosthodontics.jpg",
       "imageAlt": "Ceramic crowns and a bridge",
       "detail": {
@@ -757,6 +757,11 @@
       "id": "fixed-teeth-restoration",
       "title": "Fixed Teeth Restoration",
       "text": "Damaged and discoloured teeth restored with fixed prosthetic teeth."
+    },
+    {
+      "id": "smile-brightening",
+      "title": "Smile Brightening",
+      "text": "Yellowed, uneven front teeth restored to a brighter, more even smile."
     },
     {
       "id": "front-view",
