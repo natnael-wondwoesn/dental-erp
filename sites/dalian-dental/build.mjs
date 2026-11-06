@@ -44,6 +44,8 @@ const founderFirst = (a, b) => Number(b === c.founder.doctor) - Number(a === c.f
 c.doctors.sort((x, y) => founderFirst(x.id, y.id))
 for (const s of c.services) s.doctors.sort(founderFirst)
 const doctorById = Object.fromEntries(c.doctors.map((d) => [d.id, d]))
+// The number the "Call us" buttons dial.
+const callNumber = clinic.callPhone || clinic.phone
 const base = clinic.domain ? `https://${clinic.domain}` : ''
 const story = c.story.replace(/\s*TODO:.*$/, '')
 
@@ -91,8 +93,9 @@ function rel(depth) {
 
 function contactLine(depth) {
   return [
-    clinic.phone && `<a href="tel:${esc(digits(clinic.phone))}">${esc(clinic.phone)}</a>`,
-    clinic.phone2 && `<a href="tel:${esc(digits(clinic.phone2))}">${esc(clinic.phone2)}</a>`,
+    ...[...new Set([clinic.callPhone, clinic.phone, clinic.phone2].filter(Boolean))].map(
+      (n) => `<a href="tel:${esc(digits(n))}">${esc(n)}</a>`
+    ),
   ]
     .filter(Boolean)
     .join('<br>')
@@ -103,9 +106,9 @@ function heroButtons(depth, { variant = 'dark' } = {}) {
   const parts = [
     `<a class="btn btn-white" href="${r}contact/#book" data-track="book">Book / Contact</a>`,
   ]
-  if (clinic.phone)
+  if (callNumber)
     parts.push(
-      `<a class="btn btn-ghost" href="tel:${esc(digits(clinic.phone))}" data-track="phone">${ic('phone')} Call us</a>`
+      `<a class="btn btn-ghost" href="tel:${esc(digits(callNumber))}" data-track="phone">${ic('phone')} Call us</a>`
     )
   if (tg)
     parts.push(
@@ -137,7 +140,7 @@ function layout({ title, description, depth, body, path = '', jsonld = [], scrip
     '@type': 'Dentist',
     name: clinic.name,
     ...(base && { url: base }),
-    ...(clinic.phone && { telephone: clinic.phone }),
+    ...(callNumber && { telephone: callNumber }),
     ...(clinic.email && { email: clinic.email }),
     address: {
       '@type': 'PostalAddress',
@@ -299,8 +302,8 @@ function ctaPanel(
   <h2>${esc(heading)}</h2>
   <p>${esc(text)}</p>
   <div class="btn-row"><a class="btn btn-white" href="${r}contact/#book" data-track="book">${esc(label)}</a>${
-    clinic.phone
-      ? `<a class="btn btn-ghost" href="tel:${esc(digits(clinic.phone))}" data-track="phone">${ic('phone')} Call us</a>`
+    callNumber
+      ? `<a class="btn btn-ghost" href="tel:${esc(digits(callNumber))}" data-track="phone">${ic('phone')} Call us</a>`
       : ''
   }</div>
 </div></div></section>`
@@ -593,8 +596,8 @@ for (const s of c.services) {
   }
   const bookHref = `../../contact/?service=${encodeURIComponent(s.name)}#book`
   const buttons = `<a class="btn btn-white" href="${bookHref}" data-track="book">${esc(dt.bookLabel)}</a>${
-    clinic.phone
-      ? `<a class="btn btn-ghost" href="tel:${esc(digits(clinic.phone))}" data-track="phone">${ic('phone')} Call us</a>`
+    callNumber
+      ? `<a class="btn btn-ghost" href="tel:${esc(digits(callNumber))}" data-track="phone">${ic('phone')} Call us</a>`
       : ''
   }`
   page(`services/${s.slug}/`, {
@@ -1117,7 +1120,7 @@ page('contact/', {
   description: `Book an appointment or contact ${clinic.name} in ${clinic.city}.`,
   body: `${pageHero({ crumbs: ['Contact'], h1: 'Book an appointment', text: 'Tell us what you need and when suits you. We will confirm your time with you.', depth: 1 })}
 <section class="section" id="book"><div class="wrap split" style="align-items:start">
-  <form id="appointment" class="card form" novalidate data-telegram="${esc(tg)}" data-clinic="${esc(clinic.name)}"${rv('left')}>
+  <form id="appointment" class="card form" novalidate data-email="${esc(clinic.email || '')}" data-telegram="${esc(tg)}" data-clinic="${esc(clinic.name)}"${rv('left')}>
     <h2>Appointment request</h2>
     <label>Full name<input name="name" required autocomplete="name"></label>
     <label>Phone number<input name="phone" required inputmode="tel" autocomplete="tel"></label>
@@ -1129,7 +1132,7 @@ page('contact/', {
     <label>Service needed<select name="service"><option value="">Not sure yet</option>${serviceOptions}</select></label>
     <label>Message<textarea name="message" rows="4"></textarea></label>
     <p class="honeypot"><label>Leave this empty<input name="website" tabindex="-1" autocomplete="off"></label></p>
-    <button class="btn" type="submit">${tg ? 'Send request on Telegram' : 'Prepare my request'}</button>
+    <button class="btn" type="submit">${clinic.email ? 'Send request by email' : tg ? 'Send request on Telegram' : 'Prepare my request'}</button>
     <p class="form-msg" role="status" aria-live="polite"></p>
   </form>
   <div${rv('right')}>

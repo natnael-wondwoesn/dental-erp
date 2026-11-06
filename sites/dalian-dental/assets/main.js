@@ -106,8 +106,25 @@
         f.get('time') ? 'Preferred time: ' + f.get('time') : '',
         f.get('message') ? 'Message: ' + f.get('message') : '',
       ].filter(Boolean)
+      var email = form.dataset.email
       var user = form.dataset.telegram
-      if (user) {
+      if (email) {
+        // A static site cannot send email itself, so open the visitor's email app with the
+        // request already written and addressed to the clinic.
+        var subject = 'Appointment request - ' + name
+        window.location.href =
+          'mailto:' +
+          email +
+          '?subject=' +
+          encodeURIComponent(subject) +
+          '&body=' +
+          encodeURIComponent(lines.join('\n'))
+        msg.className = 'form-msg ok'
+        msg.textContent =
+          'Your email app is opening with the request filled in. Press send and we will confirm your time. If nothing opens, please write to ' +
+          email +
+          '.'
+      } else if (user) {
         var text = lines.join('\n')
         var done = function (copied) {
           window.open('https://t.me/' + user, '_blank', 'noopener')
