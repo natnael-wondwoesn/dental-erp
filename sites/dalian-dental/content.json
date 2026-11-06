@@ -573,7 +573,9 @@
             "q": "What will happen at an emergency visit?",
             "a": "We will relieve your pain, examine you, take any X-rays needed and explain the treatment. If more visits are needed we will arrange them."
           }
-        ]
+        ],
+        "specialistsHeading": "Meet Your Dentists, Oral and Maxillofacial Surgeon for Emergency Dental Care",
+        "specialistsLabel": "Dentists, Oral and Maxillofacial Surgeon"
       },
       "results": []
     },
