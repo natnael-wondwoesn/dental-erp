@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAuthAndRole } from '@/lib/api-helpers'
-import { calculateInvoiceTotals, gstConfig } from '@/lib/billing-utils'
+import { calculateInvoiceTotals } from '@/lib/billing-utils'
+import { z } from 'zod'
 import { DiscountType, InvoiceStatus } from '@prisma/client'
 
 // GET - Get single invoice with full details
@@ -85,7 +86,28 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-// PUT - Update invoice
+const itemSchema = z.object({
+  treatmentId: z.string().min(1).nullable().optional(),
+  description: z.string().trim().min(1, 'Every item needs a description').max(500),
+  quantity: z.coerce.number().positive('Quantity must be more than zero').max(100000),
+  unitPrice: z.coerce.number().min(0, 'Price cannot be negative').max(100000000),
+  taxable: z.boolean().optional(),
+})
+
+const updateSchema = z.object({
+  items: z.array(itemSchema).min(1, 'An invoice needs at least one item').optional(),
+  discountType: z.enum(['PERCENTAGE', 'FIXED']).nullable().optional(),
+  discountValue: z.coerce.number().min(0).max(100000000).nullable().optional(),
+  dueDate: z.string().nullable().optional(),
+  notes: z.string().max(5000).nullable().optional(),
+  termsAndConditions: z.string().max(5000).nullable().optional(),
+  status: z.string().optional(),
+})
+
+// Invoices in these states are final and cannot be edited any more.
+const LOCKED_STATUSES: InvoiceStatus[] = ['PAID', 'REFUNDED', 'CANCELLED']
+
+// PUT - Update (edit) an invoice
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { error, hospitalId, session } = await requireAuthAndRole()
   if (error || !hospitalId) {
@@ -93,8 +115,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 
   try {
-    // Check if user has permission
-    if (!['ADMIN', 'ACCOUNTANT'].includes(session.user.role)) {
+    // Reception issues invoices, so reception may correct them too.
+    if (!['ADMIN', 'ACCOUNTANT', 'RECEPTIONIST'].includes(session.user.role)) {
       return NextResponse.json(
         { error: "You don't have permission to update invoices" },
         { status: 403 }
@@ -102,26 +124,32 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     const { id } = await params
-    const body = await request.json()
+    const parsed = updateSchema.safeParse(await request.json().catch(() => null))
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message || 'Invalid invoice data' },
+        { status: 400 }
+      )
+    }
+    const body = parsed.data
 
-    // Check if invoice exists
     const existingInvoice = await prisma.invoice.findUnique({
       where: { id, hospitalId },
-      include: {
-        payments: true,
-      },
+      include: { payments: true },
     })
 
     if (!existingInvoice) {
       return NextResponse.json({ error: 'Invoice not found' }, { status: 404 })
     }
 
-    // Don't allow editing paid or refunded invoices
-    if (existingInvoice.status === 'PAID' || existingInvoice.status === 'REFUNDED') {
-      return NextResponse.json({ error: 'Cannot edit a paid or refunded invoice' }, { status: 400 })
+    if (LOCKED_STATUSES.includes(existingInvoice.status)) {
+      return NextResponse.json(
+        { error: 'Paid, cancelled or refunded invoices cannot be edited' },
+        { status: 400 }
+      )
     }
 
-    // Don't allow editing if there are completed payments
+    // Items and prices are frozen once money has been received.
     const completedPayments = existingInvoice.payments.filter((p) => p.status === 'COMPLETED')
     if (completedPayments.length > 0 && body.items) {
       return NextResponse.json(
@@ -130,78 +158,55 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       )
     }
 
-    const {
-      items,
-      discountType,
-      discountValue,
-      cgstRate = existingInvoice.cgstRate,
-      sgstRate = existingInvoice.sgstRate,
-      dueDate,
-      notes,
-      termsAndConditions,
-      status,
-    } = body
+    const { items, discountType, discountValue, dueDate, notes, termsAndConditions, status } = body
 
-    let updateData: any = {
-      notes,
-      termsAndConditions,
-    }
+    const updateData: Record<string, unknown> = {}
+    if (notes !== undefined) updateData.notes = notes
+    if (termsAndConditions !== undefined) updateData.termsAndConditions = termsAndConditions
+    if (dueDate !== undefined) updateData.dueDate = dueDate ? new Date(dueDate) : null
 
-    // Update due date if provided
-    if (dueDate !== undefined) {
-      updateData.dueDate = dueDate ? new Date(dueDate) : null
-    }
-
-    // Recalculate totals if items are being updated
-    if (items && items.length > 0) {
-      const calculatedTotals = calculateInvoiceTotals(
-        items.map((item: any) => ({
+    if (items) {
+      // Keep the tax rates the invoice was issued with.
+      const cgstRate = Number(existingInvoice.cgstRate)
+      const sgstRate = Number(existingInvoice.sgstRate)
+      const nextDiscountType = (discountType ??
+        existingInvoice.discountType ??
+        'FIXED') as DiscountType
+      const nextDiscountValue =
+        discountValue !== undefined && discountValue !== null
+          ? discountValue
+          : Number(existingInvoice.discountValue ?? 0)
+      const totals = calculateInvoiceTotals(
+        items.map((item) => ({
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           taxable: item.taxable !== false,
         })),
-        (discountType || existingInvoice.discountType) as DiscountType,
-        discountValue !== undefined ? discountValue : Number(existingInvoice.discountValue),
+        nextDiscountType,
+        nextDiscountValue,
         cgstRate,
         sgstRate
       )
-
-      updateData = {
-        ...updateData,
-        subtotal: calculatedTotals.subtotal,
-        discountType: discountType || existingInvoice.discountType,
-        discountValue: discountValue !== undefined ? discountValue : existingInvoice.discountValue,
-        discountAmount: calculatedTotals.discountAmount,
-        taxableAmount: calculatedTotals.taxableAmount,
-        cgstRate,
-        cgstAmount: calculatedTotals.cgstAmount,
-        sgstRate,
-        sgstAmount: calculatedTotals.sgstAmount,
-        totalAmount: calculatedTotals.totalAmount,
-        balanceAmount: calculatedTotals.totalAmount - Number(existingInvoice.paidAmount),
+      if (totals.totalAmount < Number(existingInvoice.paidAmount)) {
+        return NextResponse.json(
+          { error: 'The new total cannot be lower than the amount already paid' },
+          { status: 400 }
+        )
       }
-
-      // Delete existing items and create new ones
-      await prisma.invoiceItem.deleteMany({
-        where: { invoiceId: id },
-      })
-
-      await prisma.invoiceItem.createMany({
-        data: items.map((item: any) => ({
-          invoiceId: id,
-          treatmentId: item.treatmentId || null,
-          description: item.description,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          amount: item.quantity * item.unitPrice,
-          taxable: item.taxable !== false,
-        })),
+      Object.assign(updateData, {
+        subtotal: totals.subtotal,
+        discountType: nextDiscountType,
+        discountValue: nextDiscountValue,
+        discountAmount: totals.discountAmount,
+        taxableAmount: totals.taxableAmount,
+        cgstAmount: totals.cgstAmount,
+        sgstAmount: totals.sgstAmount,
+        totalAmount: totals.totalAmount,
+        balanceAmount: totals.totalAmount - Number(existingInvoice.paidAmount),
       })
     }
 
-    // Update status if provided and valid
     if (status) {
-      // Validate status transition
       const validTransitions: Record<InvoiceStatus, InvoiceStatus[]> = {
         DRAFT: ['PENDING', 'CANCELLED'],
         PENDING: ['PARTIALLY_PAID', 'PAID', 'OVERDUE', 'CANCELLED'],
@@ -211,9 +216,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         CANCELLED: [],
         REFUNDED: [],
       }
-
       const allowedStatuses = validTransitions[existingInvoice.status]
-      if (allowedStatuses && allowedStatuses.includes(status)) {
+      if (allowedStatuses && allowedStatuses.includes(status as InvoiceStatus)) {
         updateData.status = status
       } else if (status !== existingInvoice.status) {
         return NextResponse.json(
@@ -223,42 +227,51 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       }
     }
 
-    const invoice = await prisma.invoice.update({
-      where: { id, hospitalId },
-      data: updateData,
-      include: {
-        patient: {
-          select: {
-            id: true,
-            patientId: true,
-            firstName: true,
-            lastName: true,
-            phone: true,
-            email: true,
+    // Replace the items and update the totals together, so a failure never leaves a
+    // half-edited invoice behind.
+    const invoice = await prisma.$transaction(async (tx) => {
+      if (items) {
+        await tx.invoiceItem.deleteMany({ where: { invoiceId: id } })
+        await tx.invoiceItem.createMany({
+          data: items.map((item) => ({
+            invoiceId: id,
+            treatmentId: item.treatmentId || null,
+            description: item.description,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            amount: item.quantity * item.unitPrice,
+            taxable: item.taxable !== false,
+          })),
+        })
+      }
+      return tx.invoice.update({
+        where: { id, hospitalId },
+        data: updateData,
+        include: {
+          patient: {
+            select: {
+              id: true,
+              patientId: true,
+              firstName: true,
+              lastName: true,
+              phone: true,
+              email: true,
+            },
           },
-        },
-        items: {
-          include: {
-            treatment: {
-              select: {
-                id: true,
-                treatmentNo: true,
-                procedure: {
-                  select: {
-                    name: true,
-                    code: true,
-                  },
+          items: {
+            include: {
+              treatment: {
+                select: {
+                  id: true,
+                  treatmentNo: true,
+                  procedure: { select: { name: true, code: true } },
                 },
               },
             },
           },
+          payments: { orderBy: { paymentDate: 'desc' } },
         },
-        payments: {
-          orderBy: {
-            paymentDate: 'desc',
-          },
-        },
-      },
+      })
     })
 
     return NextResponse.json(invoice)
