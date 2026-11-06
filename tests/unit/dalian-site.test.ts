@@ -333,6 +333,19 @@ describe('Dalian Dental landing site', () => {
     expect(home).not.toMatch(/<h1>Changing Lives One Smile At A Time<\/h1>/)
   })
 
+  it('the old slogan is gone: footer, About and story use "We Care For Your Smile"', () => {
+    for (const path of [
+      'index.html',
+      'about/index.html',
+      'contact/index.html',
+      'learn/index.html',
+    ]) {
+      const html = readFileSync(join(dist, path), 'utf8')
+      expect(html, path).toContain('We Care For Your Smile')
+      expect(html, path).not.toContain('Changing Lives One Smile At A Time')
+    }
+  })
+
   it('every page has the floating WhatsApp button linking to the clinic number', () => {
     for (const file of htmlFiles(dist)) {
       const html = readFileSync(file, 'utf8')
