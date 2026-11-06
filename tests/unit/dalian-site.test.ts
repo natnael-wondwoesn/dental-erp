@@ -264,6 +264,24 @@ describe('Dalian Dental landing site', () => {
     }
   })
 
+  it('every card has a real, related photograph and there are no placeholder tiles', () => {
+    for (const file of htmlFiles(dist)) {
+      const html = readFileSync(file, 'utf8')
+      expect(html, file).not.toContain('class="ph"')
+      // Treatment cards and article cards always carry an <img>.
+      for (const m of html.matchAll(/<article class="card service"[\s\S]*?<\/article>/g)) {
+        expect(m[0], `${file}: service card without a photo`).toMatch(
+          /<div class="media"[^>]*><img /
+        )
+      }
+      for (const m of html.matchAll(/<article class="card acard[\s\S]*?<\/article>/g)) {
+        expect(m[0], `${file}: article card without a photo`).toMatch(
+          /<a class="amedia"[^>]*><img /
+        )
+      }
+    }
+  })
+
   it('uses Telegram, not WhatsApp, and shows no unfilled placeholders', () => {
     for (const file of htmlFiles(dist)) {
       const html = readFileSync(file, 'utf8')

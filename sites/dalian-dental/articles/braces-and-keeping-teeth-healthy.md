@@ -4,8 +4,8 @@
   "title": "Braces: Keeping Your Teeth and Gums Healthy During Treatment",
   "category": "Braces & Teeth Alignment",
   "description": "Braces and aligners straighten teeth, but need extra cleaning. Learn how to prevent white spots and decay during orthodontic treatment.",
-  "image": "photos/doctors/doctor-model.jpg",
-  "imageAlt": "A dentist holding a model of teeth with braces",
+  "image": "photos/before-after/braces-after.jpg",
+  "imageAlt": "Teeth with metal braces after orthodontic treatment",
   "keywords": "braces, orthodontics, white spot lesions, braces care, aligners Addis Ababa",
   "intro": "Straight teeth are easier to clean, but while you wear braces plaque collects around the brackets. A good routine protects your teeth while they move.",
   "faq": [
