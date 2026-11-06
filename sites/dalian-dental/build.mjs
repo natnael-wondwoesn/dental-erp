@@ -644,11 +644,11 @@ page('about/', {
   body: `${pageHero({ crumbs: ['About'], h1: `About ${clinic.name}`, text: clinic.tagline, depth: 1, image: 'images/clinic-team.jpg', alt: `The ${clinic.name} team in front of the clinic sign` })}
 ${founderStory(1)}
 <section class="section"><div class="wrap">
-  ${sectionHead('Mission and values', 'What guides our care')}
-  <div class="grid">
-    <article class="card narrow-card" style="padding:24px"${rv('up', 0)}><h3>Our mission</h3><p>${esc(c.mission)}</p></article>
-    <article class="card" style="padding:24px"${rv('up', 1)}><h3>Our vision</h3><p>${esc(c.vision)}</p></article>
-    ${c.values.map((v, i) => `<article class="card" style="padding:24px"${rv('up', i + 2)}><h3>${esc(v.title)}</h3><p>${esc(v.text)}</p></article>`).join('')}
+  ${sectionHead('About us', 'What guides our care')}
+  <div class="grid about-cards">
+    <article class="card about-card"${rv('up', 0)}><h3>Our Mission</h3><p>${esc(c.mission)}</p></article>
+    <article class="card about-card"${rv('up', 1)}><h3>Our Vision</h3><p>${esc(c.vision)}</p></article>
+    <article class="card about-card"${rv('up', 2)}><h3>Our Core Values</h3><ul class="values-list">${c.values.map((v) => `<li><strong>${esc(v.title)}.</strong> ${esc(v.text)}</li>`).join('')}</ul></article>
   </div>
 </div></section>
 <section class="section tinted" id="team"><div class="wrap">
