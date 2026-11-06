@@ -253,7 +253,7 @@ function doctorCard(d, depth = 0, i = 0) {
 </article>`
 }
 
-// Only these cards name their specialists; every other card just says the care is by an expert and senior dentist.
+// On the home page only these cards name their specialists; the others say the care is by an expert and senior dentist.
 const namedSpecialists = new Set(['dental-implants', 'orthodontics', 'oral-surgery'])
 const mediaTones = [
   'linear-gradient(135deg,#0a4a7c,#1196e8)',
@@ -263,7 +263,7 @@ const mediaTones = [
   'linear-gradient(135deg,#083a63,#0b78bf)',
   'linear-gradient(135deg,#2aa8f0,#9ed4f7)',
 ]
-function serviceCard(s, depth, i = 0) {
+function serviceCard(s, depth, i = 0, homeCard = false) {
   const r = rel(depth)
   const names = s.doctors.map((id) => doctorById[id]?.name).filter(Boolean)
   return `<article class="card service"${rv('up', i)}>
@@ -277,9 +277,11 @@ function serviceCard(s, depth, i = 0) {
       .map((x) => `<li>${esc(x)}</li>`)
       .join('')}</ul>
     ${
-      namedSpecialists.has(s.slug) && names.length
+      (!homeCard || namedSpecialists.has(s.slug)) && names.length
         ? `<p class="muted small">${esc(s.detail?.specialistsLabel || 'Specialists')}: ${esc(names.join(', '))}</p>`
-        : '<p class="muted small">Expert and senior dentist</p>'
+        : homeCard
+          ? '<p class="muted small">Expert and senior dentist</p>'
+          : ''
     }
     <a class="more" href="${r}services/${esc(s.slug)}/">Learn more ${ic('arrow')}</a>
   </div>
@@ -477,7 +479,7 @@ page('index.html', {
 ${trustRow()}
 <section class="section"><div class="wrap">
   ${sectionHead('Treatments', 'Care for every stage of your smile', 'From a routine clean to specialist procedures, our team covers the treatments most families need.')}
-  <div class="grid">${c.services.map((s, i) => serviceCard(s, 0, i % 3)).join('')}</div>
+  <div class="grid">${c.services.map((s, i) => serviceCard(s, 0, i % 3, true)).join('')}</div>
 </div></section>
 ${founderStory(0)}
 <section class="section"><div class="wrap">
