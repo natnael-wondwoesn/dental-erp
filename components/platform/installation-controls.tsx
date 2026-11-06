@@ -40,10 +40,11 @@ export function InstallationControls({
   const [message, setMessage] = useState('')
   const [users, setUsers] = useState<User[] | null>(null)
   const [password, setPassword] = useState<{
-    email: string
+    login: string
     password: string
     reset?: boolean
   } | null>(null)
+  const [copied, setCopied] = useState('')
   const [database, setDatabase] = useState<boolean | undefined>(
     installation.status === 'DATABASE_STOPPED' ? false : undefined
   )
@@ -92,7 +93,7 @@ export function InstallationControls({
         )
         if (queued.temporaryPassword)
           setPassword({
-            email: result.user.email,
+            login: result.user.phone || result.user.email,
             password: queued.temporaryPassword,
             reset: input.action === 'USER_RESET_PASSWORD',
           })
@@ -340,14 +341,18 @@ export function InstallationControls({
                   <Button
                     size="sm"
                     variant="outline"
-                    disabled={busy || reason.trim().length < 3 || database === false}
+                    disabled={busy || database === false}
                     onClick={() => {
                       if (
                         window.confirm(
-                          `Reset the password for ${user.email}? They must change it at next sign-in.`
+                          `Reset the password for ${user.phone || user.email}? Their current password stops working. You will get a new temporary password to send them, and they will choose their own at first sign-in.`
                         )
                       )
-                        void run({ action: 'USER_RESET_PASSWORD', userId: user.id, reason })
+                        void run({
+                          action: 'USER_RESET_PASSWORD',
+                          userId: user.id,
+                          reason: reason.trim().length >= 3 ? reason : 'Password reset by owner',
+                        })
                     }}
                   >
                     Reset password
@@ -416,19 +421,71 @@ export function InstallationControls({
           </p>
         </form>
         {password && (
-          <div className="rounded-lg border border-blue-300 bg-blue-50 p-4 space-y-2">
+          <div className="rounded-lg border border-blue-300 bg-blue-50 p-4 space-y-3">
             <p className="font-semibold">
-              {password.reset ? 'Password reset' : 'Account created'} — copy temporary password now
+              {password.reset ? 'New temporary password' : 'Account created'} — shown only once
             </p>
-            <p>{password.email}</p>
-            <code className="break-all select-all">{password.password}</code>
-            <p className="text-xs">
-              Share privately with this clinic’s authorized user. This password is not saved in
-              operation history.
+            <div className="space-y-1">
+              <p className="text-xs text-slate-600">Sign-in</p>
+              <p className="font-medium">{password.login}</p>
+              <p className="text-xs text-slate-600">Temporary password</p>
+              <code className="block break-all select-all rounded bg-white px-3 py-2 text-base">
+                {password.password}
+              </code>
+            </div>
+            <ol className="list-decimal pl-5 text-sm text-slate-700 space-y-1">
+              <li>Send them the sign-in and temporary password (use the copy button below).</li>
+              <li>They sign in at https://{installation.hostname}/login.</li>
+              <li>The system makes them choose their own password before they can continue.</li>
+            </ol>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                onClick={() => {
+                  const text = `Hello! Your login for ${installation.name}:\nSign-in: ${password.login}\nTemporary password: ${password.password}\nOpen https://${installation.hostname}/login and sign in. You will be asked to choose your own password.`
+                  void navigator.clipboard
+                    ?.writeText(text)
+                    .then(() => setCopied('message'))
+                    .catch(() => setCopied('failed'))
+                }}
+              >
+                Copy message to send
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  void navigator.clipboard
+                    ?.writeText(password.password)
+                    .then(() => setCopied('password'))
+                    .catch(() => setCopied('failed'))
+                }}
+              >
+                Copy password only
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setPassword(null)
+                  setCopied('')
+                }}
+              >
+                Hide password
+              </Button>
+            </div>
+            {copied && (
+              <p role="status" className="text-xs text-slate-700">
+                {copied === 'failed'
+                  ? 'Could not copy automatically. Select the password above and copy it.'
+                  : copied === 'message'
+                    ? 'Message copied. Paste it into your chat with the user.'
+                    : 'Password copied.'}
+              </p>
+            )}
+            <p className="text-xs text-slate-600">
+              This password is not saved in the operation history or sent by email.
             </p>
-            <Button size="sm" variant="outline" onClick={() => setPassword(null)}>
-              Hide password
-            </Button>
           </div>
         )}
       </div>
