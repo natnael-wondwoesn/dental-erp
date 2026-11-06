@@ -79,6 +79,9 @@ def snippet(target, paused):
     return (
         f"{host} {{\n"
         f"  encode zstd gzip\n"
+        # Browsers may otherwise keep showing an old copy of a page for hours after a publish.
+        # "no-cache" makes them check with the server each time (cheap: unchanged files get a 304).
+        f"  header Cache-Control \"no-cache\"\n"
         f"  root * {SERVE_ROOT}/{slug}/current\n"
         f"  file_server\n"
         f"  handle_errors {{\n"
