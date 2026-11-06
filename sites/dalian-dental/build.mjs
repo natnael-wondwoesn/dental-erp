@@ -109,7 +109,7 @@ function heroButtons(depth, { variant = 'dark' } = {}) {
   return parts.join('')
 }
 
-function layout({ title, description, depth, body, path = '' }) {
+function layout({ title, description, depth, body, path = '', jsonld = [] }) {
   const r = rel(depth)
   const nav = pages
     .map(
@@ -179,6 +179,7 @@ ${base ? `<link rel="canonical" href="${base}/${esc(path === 'index.html' ? '' :
 <link rel="stylesheet" href="${r}assets/fonts.css">
 <link rel="stylesheet" href="${r}assets/style.css">
 <script type="application/ld+json">${JSON.stringify(ld)}</script>
+${jsonld.map((x) => `<script type="application/ld+json">${JSON.stringify(x)}</script>`).join('\n')}
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -518,35 +519,97 @@ page('services/', {
 ${ctaPanel(1)}`,
 })
 
-for (const s of c.services) {
-  const docs = s.doctors.map((id) => doctorById[id]).filter(Boolean)
-  page(`services/${s.slug}/`, {
-    title: `${s.name} in Addis Ababa | ${clinic.name}`,
-    description: `${s.short} Book ${s.name.toLowerCase()} at ${clinic.name}, Addis Ababa.`,
-    body: `${pageHero({ crumbs: ['<a href="../">Treatments</a>', esc(s.name)], h1: `${s.name} in ${clinic.city}`, text: s.short, depth: 2, image: s.hero || s.image, alt: s.heroAlt || s.imageAlt || '' })}
-<section class="section"><div class="wrap split" style="align-items:start">
-  <div${rv('left')}>
-    <p class="eyebrow">What is included</p>
-    <h2>${esc(s.name)}</h2>
-    <ul class="ticks">${s.includes.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>
-    <p class="muted small">Your doctor will examine you first and explain the options, the steps and the cost before any treatment starts.</p>
-  </div>
-  <div${rv('right')}>
-    <p class="eyebrow">Your specialists</p>
-    <div class="grid grid-doctors" style="margin-top:8px">${docs.map((d) => doctorCard(d, 2)).join('')}</div>
-  </div>
-</div></section>
-${
-  (s.results || []).length
-    ? `<section class="section tight"><div class="wrap">${sectionHead('Real results', `${s.name}: before and after`, `Photographs of real ${clinic.name} patients.`)}<div class="ba-grid">${(
-        s.results || []
-      )
-        .map((name, i) => beforeAfterPairs().find((p) => p.name === name))
-        .filter(Boolean)
-        .map((pair, i) => baFigure(pair, '../../', i))
-        .join('')}</div></div></section>`
-    : ''
+function specialistCard(d, depth, i = 0) {
+  const initials = d.name
+    .replace(/^Dr\.?\s*/, '')
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+  const media = d.photo
+    ? `<div class="g-doc-photo"><img src="${rel(depth)}${esc(d.photo)}" alt="${esc(d.name)}, ${esc(d.title)}" loading="lazy"${dims(d.photo)}></div>`
+    : `<div class="g-doc-photo g-doc-empty" aria-hidden="true"><span>${esc(initials)}</span></div>`
+  return `<article class="card g-doc"${rv('up', i)}>${media}<div class="g-doc-info"><p class="spec-role">${esc(d.title)}</p><h3>${esc(d.name)}</h3>${d.bio ? `<p class="bio">${esc(d.bio)}</p>` : ''}</div></article>`
 }
+
+for (const s of c.services) {
+  const dt = s.detail
+  const docs = s.doctors.map((id) => doctorById[id]).filter(Boolean)
+  const cases = (s.results || [])
+    .map((name) => beforeAfterPairs().find((p) => p.name === name))
+    .filter(Boolean)
+  const faqLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: dt.faq.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  }
+  const crumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      ['Home', ''],
+      ['Treatments', 'services/'],
+      [s.name, `services/${s.slug}/`],
+    ].map(([name, path], i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name,
+      ...(base && { item: `${base}/${path}` }),
+    })),
+  }
+  const bookHref = `../../contact/?service=${encodeURIComponent(s.name)}#book`
+  const buttons = `<a class="btn btn-white" href="${bookHref}" data-track="book">${esc(dt.bookLabel)}</a>${
+    clinic.phone
+      ? `<a class="btn btn-ghost" href="tel:${esc(digits(clinic.phone))}" data-track="phone">${ic('phone')} Call us</a>`
+      : ''
+  }`
+  page(`services/${s.slug}/`, {
+    title: dt.metaTitle,
+    description: dt.metaDescription,
+    jsonld: [faqLd, crumbLd],
+    body: `${pageHero({ crumbs: ['<a href="../">Treatments</a>', esc(s.name)], h1: `${s.name} in ${clinic.city}`, text: s.short, depth: 2, image: s.hero || s.image, alt: s.heroAlt || s.imageAlt || '', buttons })}
+<section class="section" id="options"><div class="wrap">
+  ${sectionHead('Specialized options', 'Available Treatment Subcategories', `The ${s.name.toLowerCase()} options we offer.`)}
+  <div class="sub-grid">${dt.subcategories
+    .map(
+      (x, i) =>
+        `<article class="sub-card"${rv('up', i % 2)}><span class="sub-num">${i + 1}</span><div><h3>${esc(x.name)}</h3><p>${esc(x.text)}</p></div></article>`
+    )
+    .join('')}</div>
+</div></section>
+<section class="section tinted" id="benefits"><div class="wrap">
+  ${sectionHead('Clinical outcomes', `Benefits of ${s.name}`)}
+  <div class="benefit-grid">${dt.benefits
+    .map(
+      (x, i) => `<div class="benefit"${rv('up', i % 3)}>${ic('check')}<span>${esc(x)}</span></div>`
+    )
+    .join('')}</div>
+</div></section>
+<section class="section" id="specialists"><div class="wrap">
+  ${sectionHead('Assigned medical staff', `Meet Your Specialists for ${s.name}`, 'The doctors who provide this treatment at Dalian Dental Clinic.')}
+  <div class="spec-grid">${docs.map((d, i) => specialistCard(d, 2, i)).join('')}</div>
+</div></section>
+<section class="section tinted" id="faq"><div class="wrap narrow">
+  ${sectionHead('Patient guidance', `Frequently Asked Questions About ${s.name}`)}
+  <div class="faq-card"${rv('up')}>${dt.faq
+    .map(
+      (f) =>
+        `<details class="faq"><summary>${esc(f.q)} ${ic('chevron')}</summary><p>${esc(f.a)}</p></details>`
+    )
+    .join('')}</div>
+</div></section>
+<section class="section" id="results"><div class="wrap">
+  ${sectionHead('Real results', `${s.name}: Before & After`, cases.length ? `Photographs of real ${clinic.name} patients.` : '')}
+  ${
+    cases.length
+      ? `<div class="case-grid">${cases.map((pair, i) => baFigure(pair, '../../', i)).join('')}</div>`
+      : `<div class="empty">Before-and-after photographs for ${esc(s.name.toLowerCase())} will be added here. In the meantime, see our <a href="../../gallery/#results">other treatment results</a> or ask us about this treatment at your consultation.</div>`
+  }
+</div></section>
 <section class="section tinted"><div class="wrap">
   ${sectionHead('More care', 'Other treatments')}
   <div class="grid">${c.services
@@ -555,7 +618,7 @@ ${
     .map((x, i) => serviceCard(x, 2, i))
     .join('')}</div>
 </div></section>
-${ctaPanel(2)}`,
+${ctaPanel(2, `Ready to book your ${s.name.toLowerCase()} appointment?`, 'Send us your details and we will confirm a time that suits you.', dt.bookLabel).replace('href="../../contact/#book"', `href="${bookHref}"`)}`,
   })
 }
 

@@ -75,6 +75,14 @@
 
   var form = document.getElementById('appointment')
   if (form) {
+    // A treatment page links here with ?service=<name> so the right service is pre-selected.
+    var wanted = new URLSearchParams(location.search).get('service')
+    var select = form.querySelector('select[name="service"]')
+    if (wanted && select) {
+      Array.prototype.forEach.call(select.options, function (o) {
+        if (o.text === wanted) select.value = o.value || o.text
+      })
+    }
     var msg = form.querySelector('.form-msg')
     form.addEventListener('submit', function (ev) {
       ev.preventDefault()
