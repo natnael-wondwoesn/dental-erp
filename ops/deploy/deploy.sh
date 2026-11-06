@@ -128,4 +128,6 @@ log "done: $CLIENT now runs $IMAGE (previous: $PREVIOUS, backup: $BACKUPS/$CLIEN
 ls -1t "$BACKUPS/$CLIENT"/*.sql.gz 2>/dev/null | tail -n +15 | xargs -r rm -f
 ls -1t "$BACKUPS/$CLIENT"/*.uploads.tar.gz 2>/dev/null | tail -n +15 | xargs -r rm -f || true
 find "$BACKUPS/$CLIENT" -name '*.uploads.tar.gz.sha256' -type f -mtime +45 -delete || true
-docker image prune -f >/dev/null
+# Cleanup only. Docker allows one prune at a time and sites now deploy side by side, so a
+# "prune already running" error must not fail a deploy that has already succeeded.
+docker image prune -f >/dev/null 2>&1 || true
