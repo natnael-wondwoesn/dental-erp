@@ -366,6 +366,16 @@ export default function InvoicesPage() {
                               <Eye className="h-4 w-4 mr-2" />
                               View Details
                             </DropdownMenuItem>
+                            {['DRAFT', 'PENDING', 'PARTIALLY_PAID', 'OVERDUE'].includes(
+                              invoice.status
+                            ) && (
+                              <DropdownMenuItem
+                                onClick={() => router.push(`/billing/invoices/${invoice.id}/edit`)}
+                              >
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuSeparator />
                             {['PENDING', 'PARTIALLY_PAID', 'OVERDUE'].includes(invoice.status) && (
                               <DropdownMenuItem

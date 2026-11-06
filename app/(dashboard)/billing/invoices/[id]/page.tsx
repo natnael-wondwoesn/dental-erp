@@ -40,6 +40,7 @@ import {
   Phone,
   Mail,
   MapPin,
+  Pencil,
   Printer,
   CreditCard,
   FileText,
@@ -351,6 +352,14 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
             <Printer className="h-4 w-4 mr-2" />
             Print
           </Button>
+          {['DRAFT', 'PENDING', 'PARTIALLY_PAID', 'OVERDUE'].includes(invoice.status) && (
+            <Button variant="outline" asChild>
+              <Link href={`/billing/invoices/${invoice.id}/edit`}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Edit invoice
+              </Link>
+            </Button>
+          )}
           {['PENDING', 'PARTIALLY_PAID', 'OVERDUE'].includes(invoice.status) && (
             <>
               <PaymentCheckout
