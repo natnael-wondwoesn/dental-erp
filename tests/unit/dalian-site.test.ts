@@ -161,6 +161,49 @@ describe('Dalian Dental landing site', () => {
     expect(section).not.toMatch(/<h3>(Care|Clarity|Safety|Quality)<\/h3>/)
   })
 
+  it('every treatment page has the five sections, its own title and only its own doctors', () => {
+    const content = JSON.parse(readFileSync(join(site, 'content.json'), 'utf8'))
+    const titles = new Set<string>()
+    const descriptions = new Set<string>()
+    for (const s of content.services) {
+      const html = readFileSync(join(dist, 'services', s.slug, 'index.html'), 'utf8')
+      expect(html, s.slug).toContain('Available Treatment Subcategories')
+      expect(html, s.slug).toContain(`Benefits of ${s.name}`)
+      expect(html, s.slug).toContain(`Meet Your Specialists for ${s.name}`)
+      expect(html, s.slug).toContain(`Frequently Asked Questions About ${s.name}`)
+      expect(html, s.slug).toContain(`${s.name}: Before &amp; After`)
+      // Subcategories, FAQ accordion and structured data come from this treatment's own content.
+      for (const sub of s.detail.subcategories) expect(html, s.slug).toContain(sub.name)
+      expect(html.match(/<details class="faq"/g)?.length, s.slug).toBe(s.detail.faq.length)
+      expect(html, s.slug).toContain('"@type":"FAQPage"')
+      // SEO: one h1, a unique title and description.
+      expect(html.match(/<h1/g)?.length, s.slug).toBe(1)
+      const title = html.match(/<title>([^<]+)<\/title>/)![1]
+      const desc = html.match(/name="description" content="([^"]+)"/)![1]
+      expect(titles.has(title), `duplicate title ${s.slug}`).toBe(false)
+      expect(descriptions.has(desc), `duplicate description ${s.slug}`).toBe(false)
+      titles.add(title)
+      descriptions.add(desc)
+      // Only the doctors assigned to this treatment are shown.
+      const spec = html.slice(html.indexOf('id="specialists"'), html.indexOf('id="faq"'))
+      for (const d of content.doctors) {
+        const assigned = s.doctors.includes(d.id)
+        expect(spec.includes(d.name), `${s.slug}: ${d.name}`).toBe(assigned)
+      }
+      // The booking button carries the treatment so the form can pre-select it.
+      expect(html, s.slug).toContain(`contact/?service=${encodeURIComponent(s.name)}#book`)
+    }
+    // Treatments with no matching photographs say so instead of showing unrelated pictures.
+    const emergency = readFileSync(join(dist, 'services/emergency-care/index.html'), 'utf8')
+    expect(emergency).toContain('will be added here')
+    const ortho = readFileSync(join(dist, 'services/orthodontics/index.html'), 'utf8')
+    expect(ortho).toContain('Orthodontic Treatment')
+    expect(ortho).toContain('<span>Before</span>')
+    // The Services page links every card to its own treatment page.
+    const index = readFileSync(join(dist, 'services/index.html'), 'utf8')
+    for (const s of content.services) expect(index).toContain(`href="../services/${s.slug}/"`)
+  })
+
   it('uses Telegram, not WhatsApp, and shows no unfilled placeholders', () => {
     for (const file of htmlFiles(dist)) {
       const html = readFileSync(file, 'utf8')

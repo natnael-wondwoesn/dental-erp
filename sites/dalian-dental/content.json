@@ -31,42 +31,42 @@
       "id": "fithalew-lijindi",
       "name": "Dr. Fithalew Lijindi",
       "title": "Senior Orthodontist and Dentofacial Orthopedics",
-      "bio": "",
+      "bio": "Senior orthodontist and dentofacial orthopedics specialist. Dr. Fithalew treats children and adults with braces, myofunctional appliances and invisible aligners, and cares for children's teeth.",
       "photo": "images/doctors/fithalew-lijindi.jpg"
     },
     {
       "id": "ferhana-adem",
       "name": "Dr. Ferhana Adem",
       "title": "Founder / Expert Dental Surgeon",
-      "bio": "",
+      "bio": "Founder of Dalian Dental Clinic and an expert dental surgeon. Dr. Ferhana provides prosthodontic and cosmetic dental care, root canal treatment, dental hygiene, emergency care and children's dentistry.",
       "photo": "images/doctors/ferhana-adem.jpg"
     },
     {
       "id": "abyalew-zewdu",
       "name": "Dr. Abyalew Zewdu",
       "title": "Senior Dental Surgeon",
-      "bio": "",
+      "bio": "Senior dental surgeon at Dalian Dental Clinic. Dr. Abyalew provides prosthodontic and cosmetic dental care, root canal treatment and dental hygiene.",
       "photo": ""
     },
     {
       "id": "shimelis-megersa",
       "name": "Dr. Shimelis Megersa",
       "title": "Senior Oral & Maxillofacial Surgeon",
-      "bio": "",
+      "bio": "Senior oral and maxillofacial surgeon. Dr. Shimelis places dental implants, performs oral surgery and treats dental and jaw emergencies.",
       "photo": "images/doctors/shimelis-megersa.jpg"
     },
     {
       "id": "melese-tabor",
       "name": "Dr. Melese Tabor",
       "title": "Oral & Maxillofacial Surgeon",
-      "bio": "",
+      "bio": "Oral and maxillofacial surgeon at Dalian Dental Clinic. Dr. Melese places dental implants, performs oral surgery and treats dental and jaw emergencies.",
       "photo": ""
     },
     {
       "id": "merhawit-zerabiruk",
       "name": "Dr. Merhawit Zerabiruk",
       "title": "Expert Dental Surgeon",
-      "bio": "",
+      "bio": "Expert dental surgeon at Dalian Dental Clinic.",
       "photo": "images/team/dr-merhawit-zerabiruk.jpg"
     }
   ],
@@ -83,7 +83,59 @@
       "heroAlt": "A dentist holding a model of teeth with braces",
       "results": ["braces"],
       "image": "photos/doctors/doctor-model.jpg",
-      "imageAlt": "A dentist holding a model of teeth with braces"
+      "imageAlt": "A dentist holding a model of teeth with braces",
+      "detail": {
+        "metaTitle": "Orthodontic Treatment & Braces in Addis Ababa | Dalian Dental Clinic",
+        "metaDescription": "Braces, kids' braces, myofunctional appliances and invisible aligners for children and adults in Bole, Addis Ababa. Meet our orthodontist and book your consultation.",
+        "bookLabel": "Book an orthodontic consultation",
+        "subcategories": [
+          {
+            "name": "Traditional Braces",
+            "text": "Fixed brackets and wires that move teeth gradually into position. Suitable for most alignment and bite problems."
+          },
+          {
+            "name": "Kids' Braces",
+            "text": "Early orthodontic care that guides the way a child's teeth and jaws grow, so problems are easier to correct."
+          },
+          {
+            "name": "Myofunctional Appliances",
+            "text": "Removable appliances that help correct habits such as thumb sucking, tongue posture and mouth breathing, supporting healthy jaw development."
+          },
+          {
+            "name": "Invisible Aligners",
+            "text": "Clear, removable trays that straighten teeth discreetly. Often used for mild to moderate alignment problems."
+          }
+        ],
+        "benefits": [
+          "Straighter teeth and a smile you feel confident about",
+          "A better bite and more comfortable chewing",
+          "Teeth that are easier to clean, which supports gum health",
+          "Early correction of jaw and growth problems in children",
+          "Better balance between your teeth, jaws and lips"
+        ],
+        "faq": [
+          {
+            "q": "How long does orthodontic treatment take?",
+            "a": "Most treatments take between about 12 and 24 months, depending on the problem and the appliance used. Your orthodontist will give you an estimate after examining you."
+          },
+          {
+            "q": "Are invisible aligners as effective as traditional braces?",
+            "a": "Aligners work well for many mild to moderate cases. More complex problems may need braces. Your orthodontist will explain which option suits you."
+          },
+          {
+            "q": "What is the ideal age for a child to see an orthodontist?",
+            "a": "A first check around the age of 7 is commonly recommended, so that any problems can be spotted early. Treatment may start then or later, depending on the child."
+          },
+          {
+            "q": "Do braces hurt?",
+            "a": "Teeth can feel sore for a few days after braces are fitted or adjusted. This usually settles quickly and can be eased with simple pain relief if your orthodontist agrees."
+          },
+          {
+            "q": "Can adults have braces?",
+            "a": "Yes. Orthodontic treatment is possible at any age as long as your teeth and gums are healthy."
+          }
+        ]
+      }
     },
     {
       "slug": "prosthodontics",
@@ -99,7 +151,59 @@
       "keywords": "dental crowns, bridges, dentures, zirconia crown Addis Ababa",
       "results": ["smile-makeover-1", "smile-makeover-2"],
       "image": "images/treatments/prosthodontics.jpg",
-      "imageAlt": "Ceramic crowns and a bridge"
+      "imageAlt": "Ceramic crowns and a bridge",
+      "detail": {
+        "metaTitle": "Crowns, Bridges & Dentures in Addis Ababa | Dalian Dental Clinic",
+        "metaDescription": "Zirconia and ceramic crowns, bridges, jacket crowns and full or partial dentures in Bole, Addis Ababa. Meet our dental surgeons and book your visit.",
+        "bookLabel": "Book a crown, bridge or denture visit",
+        "subcategories": [
+          {
+            "name": "Crowns and Bridges",
+            "text": "Crowns cover and protect a damaged tooth. Bridges replace missing teeth. Both can be made from zirconia or ceramic for strength and a natural look."
+          },
+          {
+            "name": "Jacket Crowns",
+            "text": "Tooth-coloured crowns that cover the whole tooth to restore its shape, size and appearance."
+          },
+          {
+            "name": "Full Dentures",
+            "text": "A removable set of replacement teeth for a whole upper or lower arch."
+          },
+          {
+            "name": "Partial Dentures",
+            "text": "A removable replacement for some missing teeth, held in place by the teeth you still have."
+          }
+        ],
+        "benefits": [
+          "Restores your ability to chew and speak comfortably",
+          "Natural-looking teeth that match your smile",
+          "Protects weak or heavily filled teeth from breaking",
+          "Replaces missing teeth so neighbouring teeth do not drift",
+          "Long-lasting results with good care and regular check-ups"
+        ],
+        "faq": [
+          {
+            "q": "What is the difference between a crown and a bridge?",
+            "a": "A crown covers a single damaged tooth. A bridge replaces one or more missing teeth by joining a false tooth to crowns on the teeth either side."
+          },
+          {
+            "q": "Should I choose zirconia or ceramic?",
+            "a": "Both give a natural look. Zirconia is very strong, while ceramic can be very life-like. Your dentist will recommend the better material for the tooth and your bite."
+          },
+          {
+            "q": "How long do crowns last?",
+            "a": "With good brushing, flossing and regular check-ups, crowns often last many years. The exact lifespan depends on the material, your bite and your oral hygiene."
+          },
+          {
+            "q": "Is getting a crown painful?",
+            "a": "The tooth is numbed with local anaesthetic, so the treatment is comfortable. Mild sensitivity for a few days afterwards is normal."
+          },
+          {
+            "q": "Are dentures uncomfortable?",
+            "a": "New dentures can feel strange at first. Most people adjust within a few weeks, and your dentist will adjust the fit if any area rubs."
+          }
+        ]
+      }
     },
     {
       "slug": "dental-implants",
@@ -108,7 +212,52 @@
       "icon": "implant",
       "includes": ["Dental implants"],
       "doctors": ["shimelis-megersa", "melese-tabor"],
-      "keywords": "dental implants in Addis Ababa"
+      "keywords": "dental implants in Addis Ababa",
+      "detail": {
+        "metaTitle": "Dental Implants in Addis Ababa | Dalian Dental Clinic",
+        "metaDescription": "Single-tooth dental implants and implant-supported bridges placed by oral and maxillofacial surgeons in Bole, Addis Ababa. Book an implant consultation.",
+        "bookLabel": "Book an implant consultation",
+        "subcategories": [
+          {
+            "name": "Single Tooth Implants",
+            "text": "A titanium post placed in the jawbone with a crown on top, to replace one missing tooth without involving the teeth next to it."
+          },
+          {
+            "name": "Implant-Supported Bridges",
+            "text": "Several missing teeth replaced by a bridge that is anchored to implants rather than to natural teeth."
+          }
+        ],
+        "benefits": [
+          "A fixed replacement that looks and feels like a natural tooth",
+          "Helps preserve the jawbone where a tooth is missing",
+          "Does not rely on the neighbouring teeth for support",
+          "Comfortable chewing and clear speech",
+          "A long-lasting solution with good care"
+        ],
+        "faq": [
+          {
+            "q": "What is a dental implant?",
+            "a": "A dental implant is a small titanium post placed in the jawbone. Once it has bonded with the bone, a crown or bridge is fixed on top to replace the missing tooth or teeth."
+          },
+          {
+            "q": "How long does implant treatment take?",
+            "a": "It usually takes several months, because the implant needs time to bond with the bone before the final crown is fitted. Your surgeon will give you a plan after your examination."
+          },
+          {
+            "q": "Is the procedure painful?",
+            "a": "The area is numbed with local anaesthetic during surgery. Some swelling and soreness for a few days afterwards is normal and can be managed with the medicines your surgeon advises."
+          },
+          {
+            "q": "Am I suitable for an implant?",
+            "a": "You need healthy gums and enough jawbone. An examination and X-rays will show whether implants are suitable for you or whether another option is better."
+          },
+          {
+            "q": "How do I look after an implant?",
+            "a": "Brush and floss as you would for natural teeth and attend regular check-ups. Good hygiene is the best way to keep the implant healthy."
+          }
+        ]
+      },
+      "results": []
     },
     {
       "slug": "oral-surgery",
@@ -125,7 +274,64 @@
       "doctors": ["shimelis-megersa", "melese-tabor"],
       "keywords": "tooth extraction, oral surgery, apicoectomy, gingivectomy",
       "image": "images/treatments/oral-surgery.jpg",
-      "imageAlt": "A dentist examining a patient's mouth"
+      "imageAlt": "A dentist examining a patient's mouth",
+      "detail": {
+        "metaTitle": "Oral & Maxillofacial Surgery in Addis Ababa | Dalian Dental Clinic",
+        "metaDescription": "Tooth extraction, apicoectomy, gingivectomy and orthognathic (jaw) surgery by oral and maxillofacial surgeons in Bole, Addis Ababa. Book a surgical consultation.",
+        "bookLabel": "Book a surgical consultation",
+        "subcategories": [
+          {
+            "name": "Tooth Extraction",
+            "text": "Safe removal of a tooth that is badly decayed, damaged, infected or in the way of other treatment."
+          },
+          {
+            "name": "Orthognathic Surgery",
+            "text": "Corrective jaw surgery to improve the bite and jaw alignment, usually planned together with orthodontic treatment."
+          },
+          {
+            "name": "Apicoectomy",
+            "text": "Removal of the tip of a tooth root, and sealing of the root, when infection remains after a root canal treatment."
+          },
+          {
+            "name": "Gingivectomy",
+            "text": "Removal of excess or diseased gum tissue to improve gum health and the shape of the gum line."
+          },
+          {
+            "name": "Disinfection",
+            "text": "Careful cleaning and disinfection of the treatment area to lower the risk of infection."
+          }
+        ],
+        "benefits": [
+          "Relief from pain and infection",
+          "Treatment for problems that cannot be solved without surgery",
+          "Healthier gums and a better-fitting bite",
+          "Careful planning and aftercare from specialist surgeons",
+          "A clean, controlled setting for every procedure"
+        ],
+        "faq": [
+          {
+            "q": "Is tooth extraction painful?",
+            "a": "The area is numbed before the tooth is removed, so you should feel pressure but not pain. Some soreness afterwards is normal and can be managed with the pain relief your dentist advises."
+          },
+          {
+            "q": "What should I do after an extraction?",
+            "a": "Bite gently on the gauze, avoid rinsing hard or using a straw on the first day, keep the area clean as advised and call the clinic if bleeding or pain gets worse."
+          },
+          {
+            "q": "What is an apicoectomy?",
+            "a": "It is a small operation to remove the tip of a tooth root and seal it when an infection does not clear after a root canal treatment. It can help save a tooth that would otherwise be lost."
+          },
+          {
+            "q": "What is orthognathic surgery?",
+            "a": "It is surgery on the upper or lower jaw to correct the bite and the way the jaws fit together. It is planned carefully, often together with braces."
+          },
+          {
+            "q": "How long is the recovery?",
+            "a": "It depends on the procedure. Simple extractions usually settle within days, while jaw surgery needs longer. Your surgeon will explain what to expect for your treatment."
+          }
+        ]
+      },
+      "results": []
     },
     {
       "slug": "root-canal",
@@ -136,7 +342,52 @@
       "doctors": ["ferhana-adem", "abyalew-zewdu"],
       "keywords": "root canal treatment in Addis Ababa",
       "image": "images/treatments/root-canal.jpg",
-      "imageAlt": "Illustration of root canal treatment inside a tooth"
+      "imageAlt": "Illustration of root canal treatment inside a tooth",
+      "detail": {
+        "metaTitle": "Root Canal Treatment in Addis Ababa | Dalian Dental Clinic",
+        "metaDescription": "Root canal treatment to relieve tooth pain and save your natural tooth, by experienced dental surgeons in Bole, Addis Ababa. Book your visit.",
+        "bookLabel": "Book a root canal visit",
+        "subcategories": [
+          {
+            "name": "Root Canal Treatment",
+            "text": "The infected or damaged inside of the tooth is cleaned, disinfected and sealed so the tooth can stay in your mouth."
+          },
+          {
+            "name": "Crown Restoration After Treatment",
+            "text": "A crown is often fitted over a treated tooth to protect it and restore its strength and appearance."
+          }
+        ],
+        "benefits": [
+          "Relieves tooth pain and swelling caused by infection",
+          "Saves your natural tooth instead of removing it",
+          "Stops infection from spreading to the surrounding bone and gums",
+          "Lets you chew and smile normally again",
+          "Usually comfortable, as the tooth is numbed first"
+        ],
+        "faq": [
+          {
+            "q": "Is a root canal treatment painful?",
+            "a": "The tooth is numbed with local anaesthetic, so the treatment should feel similar to having a filling. Mild soreness for a few days afterwards is common."
+          },
+          {
+            "q": "How do I know if I need a root canal?",
+            "a": "Signs can include lasting sensitivity to hot or cold, pain when biting, swelling of the gum, or a tooth that has darkened. Only an examination and an X-ray can confirm it."
+          },
+          {
+            "q": "How long does it take?",
+            "a": "Many teeth can be treated in one or two visits. Your dentist will tell you what to expect after examining the tooth."
+          },
+          {
+            "q": "Will I need a crown afterwards?",
+            "a": "Often yes, especially for back teeth, because a treated tooth can be weaker. Your dentist will advise whether a crown is needed."
+          },
+          {
+            "q": "What if I leave an infected tooth untreated?",
+            "a": "The infection can spread and cause more pain and swelling, and the tooth may eventually be lost. Early treatment gives the best chance of saving it."
+          }
+        ]
+      },
+      "results": []
     },
     {
       "slug": "cosmetic-dentistry",
@@ -151,7 +402,56 @@
       "doctors": ["ferhana-adem", "abyalew-zewdu"],
       "keywords": "Hollywood smile, veneers, teeth whitening Addis Ababa",
       "image": "images/treatments/cosmetic-dentistry.jpg",
-      "imageAlt": "Example of veneers: before and after"
+      "imageAlt": "Example of veneers: before and after",
+      "detail": {
+        "metaTitle": "Cosmetic Dentistry, Veneers & Whitening in Addis Ababa | Dalian Dental Clinic",
+        "metaDescription": "Hollywood smile design, porcelain, E.max and zirconia veneers, and teeth whitening in Bole, Addis Ababa. Meet our dental surgeons and book your smile consultation.",
+        "bookLabel": "Book a smile consultation",
+        "subcategories": [
+          {
+            "name": "Hollywood Smile",
+            "text": "A complete smile design that improves the colour, shape and alignment of your front teeth, planned to suit your face."
+          },
+          {
+            "name": "Veneers",
+            "text": "Thin shells bonded to the front of the teeth. We offer porcelain laminate, E.max and zirconia veneers."
+          },
+          {
+            "name": "Teeth Whitening",
+            "text": "Professional whitening that lightens stains and discolouration for a brighter smile."
+          }
+        ],
+        "benefits": [
+          "A brighter, more even smile",
+          "Corrects stains, chips, gaps and uneven teeth",
+          "A design planned to suit your face and your wishes",
+          "More confidence when you smile and speak",
+          "Long-lasting results with good care"
+        ],
+        "faq": [
+          {
+            "q": "What is a Hollywood smile?",
+            "a": "It is a smile makeover that gives you bright, even, well-shaped teeth. Depending on your teeth it can include veneers, crowns and whitening."
+          },
+          {
+            "q": "What is the difference between porcelain laminate, E.max and zirconia veneers?",
+            "a": "They are different materials. Porcelain laminate and E.max are very life-like, and zirconia is extremely strong. Your dentist will recommend the best one for your teeth and bite."
+          },
+          {
+            "q": "Does teeth whitening damage the teeth?",
+            "a": "Professional whitening is considered safe when it is supervised by a dentist. Some people feel temporary sensitivity, which usually passes."
+          },
+          {
+            "q": "How long do veneers last?",
+            "a": "With good oral hygiene and regular check-ups, veneers can last many years. Avoid biting hard objects and ask your dentist about a night guard if you grind your teeth."
+          },
+          {
+            "q": "Is cosmetic treatment suitable for everyone?",
+            "a": "Your teeth and gums need to be healthy first. We will examine you and explain which options are suitable before any treatment starts."
+          }
+        ]
+      },
+      "results": ["smile-makeover-1"]
     },
     {
       "slug": "dental-hygiene",
@@ -162,7 +462,56 @@
       "doctors": ["ferhana-adem", "abyalew-zewdu"],
       "keywords": "teeth cleaning and whitening in Addis Ababa, scaling",
       "image": "images/treatments/dental-hygiene.jpg",
-      "imageAlt": "Everyday oral care products: toothpaste, floss, mouthwash and toothbrush"
+      "imageAlt": "Everyday oral care products: toothpaste, floss, mouthwash and toothbrush",
+      "detail": {
+        "metaTitle": "Teeth Cleaning & Scaling in Addis Ababa | Dalian Dental Clinic",
+        "metaDescription": "Professional teeth cleaning, scaling, stain removal and mouth hygiene guidance in Bole, Addis Ababa. Book a dental hygiene visit.",
+        "bookLabel": "Book a cleaning visit",
+        "subcategories": [
+          {
+            "name": "Stain Removal",
+            "text": "Removal of surface stains from tea, coffee, smoking and food for a cleaner, brighter look."
+          },
+          {
+            "name": "Scaling and Tooth Cleaning",
+            "text": "Professional removal of plaque and tartar that brushing cannot remove, including from below the gum line."
+          },
+          {
+            "name": "Mouth Hygiene Guidance",
+            "text": "Clear advice on brushing, flossing and daily care that suits your mouth."
+          }
+        ],
+        "benefits": [
+          "Healthier gums and less bleeding",
+          "Fresher breath",
+          "Removal of plaque and tartar that causes decay and gum disease",
+          "Brighter teeth through stain removal",
+          "Early spotting of problems before they become painful"
+        ],
+        "faq": [
+          {
+            "q": "How often should I have my teeth cleaned?",
+            "a": "Many people benefit from a professional clean about every six months. Your dentist will advise how often is right for you."
+          },
+          {
+            "q": "Does scaling hurt?",
+            "a": "Most people feel only mild sensitivity. If your gums are sore, tell us and we will make the visit as comfortable as possible."
+          },
+          {
+            "q": "Will cleaning make my teeth whiter?",
+            "a": "Cleaning removes surface stains, so teeth often look brighter. It does not change the natural colour of the tooth; whitening does that."
+          },
+          {
+            "q": "Does scaling damage the enamel?",
+            "a": "No. When it is done properly, scaling removes deposits from the surface without harming the enamel."
+          },
+          {
+            "q": "What does mouth hygiene guidance include?",
+            "a": "We show you how to brush and clean between your teeth properly and suggest products and habits that suit your mouth."
+          }
+        ]
+      },
+      "results": []
     },
     {
       "slug": "emergency-care",
@@ -173,7 +522,56 @@
       "doctors": ["shimelis-megersa", "melese-tabor", "ferhana-adem"],
       "keywords": "emergency dentist Addis Ababa, toothache",
       "image": "images/treatments/emergency-care.jpg",
-      "imageAlt": "A person holding their cheek because of toothache"
+      "imageAlt": "A person holding their cheek because of toothache",
+      "detail": {
+        "metaTitle": "Emergency Dentist in Addis Ababa | Dalian Dental Clinic",
+        "metaDescription": "Urgent dental care for toothache, knocked-out teeth and jaw fractures in Bole, Addis Ababa. Call the clinic for emergency dental help.",
+        "bookLabel": "Call or book urgent care",
+        "subcategories": [
+          {
+            "name": "Knocked-Out Teeth",
+            "text": "Quick treatment to try to save a tooth that has been knocked out in an accident or fall."
+          },
+          {
+            "name": "Toothache",
+            "text": "Finding the cause of tooth pain, such as decay or infection, and treating it to relieve you."
+          },
+          {
+            "name": "Mandibular Fracture",
+            "text": "Care for a broken lower jaw by oral and maxillofacial surgeons."
+          }
+        ],
+        "benefits": [
+          "Fast relief from severe pain",
+          "A better chance of saving a knocked-out tooth when you are seen quickly",
+          "Specialist care for jaw injuries",
+          "Clear advice on what to do next",
+          "Follow-up care to complete your treatment"
+        ],
+        "faq": [
+          {
+            "q": "What should I do if a tooth is knocked out?",
+            "a": "Pick the tooth up by the crown, not the root, and do not scrub it. Keep it moist, for example in milk, and come to the clinic as quickly as you can. Treatment is most successful when it is done within the first hour."
+          },
+          {
+            "q": "What can I do about a severe toothache?",
+            "a": "Rinse gently with warm water, avoid very hot or cold food and call the clinic. Pain that lasts or comes with swelling or fever needs to be seen promptly."
+          },
+          {
+            "q": "How do I know if my jaw may be broken?",
+            "a": "Signs include pain, swelling, a bite that feels different, numbness or difficulty opening the mouth after an injury. Seek care straight away."
+          },
+          {
+            "q": "Should I call before I come?",
+            "a": "Yes, please call the clinic first so that we can prepare for you and tell you what to do on the way."
+          },
+          {
+            "q": "What will happen at an emergency visit?",
+            "a": "We will relieve your pain, examine you, take any X-rays needed and explain the treatment. If more visits are needed we will arrange them."
+          }
+        ]
+      },
+      "results": []
     },
     {
       "slug": "pediatric-dentistry",
@@ -184,7 +582,56 @@
       "doctors": ["ferhana-adem", "fithalew-lijindi"],
       "keywords": "pediatric dentist Addis Ababa, kids dentist",
       "image": "images/treatments/pediatric-dentistry.jpg",
-      "imageAlt": "A child having a dental check-up"
+      "imageAlt": "A child having a dental check-up",
+      "detail": {
+        "metaTitle": "Children's Dentist in Addis Ababa | Dalian Dental Clinic",
+        "metaDescription": "Gentle dental care for babies, children and teenagers: check-ups, cleanings, fillings and baby tooth extraction in Bole, Addis Ababa. Book your child's visit.",
+        "bookLabel": "Book a children's dental visit",
+        "subcategories": [
+          {
+            "name": "Treatment and Fillings",
+            "text": "Gentle treatment of cavities in baby and permanent teeth to stop decay and relieve pain."
+          },
+          {
+            "name": "Dental Cleanings",
+            "text": "Regular cleaning and check-ups to keep children's teeth and gums healthy and to teach good habits."
+          },
+          {
+            "name": "Baby Tooth Extraction",
+            "text": "Careful removal of a baby tooth that is badly decayed, infected or loose and not falling out on its own."
+          }
+        ],
+        "benefits": [
+          "Healthy teeth and gums from an early age",
+          "Early detection and treatment of decay",
+          "Comfortable, friendly visits that build good habits",
+          "Protection for the permanent teeth that follow",
+          "Advice for parents on brushing, diet and habits"
+        ],
+        "faq": [
+          {
+            "q": "When should my child first see a dentist?",
+            "a": "A first visit is usually recommended when the first tooth appears or by the first birthday. Early visits help prevent problems."
+          },
+          {
+            "q": "Do baby teeth really matter?",
+            "a": "Yes. Baby teeth help children chew and speak and hold space for the permanent teeth. Decay in baby teeth can cause pain and affect the teeth that follow."
+          },
+          {
+            "q": "How do you help children feel comfortable?",
+            "a": "We explain what we are doing in simple words, take our time and make the visit as relaxed as possible."
+          },
+          {
+            "q": "Does my child need a filling for a baby tooth?",
+            "a": "If the tooth has decay, treating it early prevents pain and infection. Your dentist will explain whether a filling is needed."
+          },
+          {
+            "q": "How often should my child brush?",
+            "a": "Twice a day with a smear or small pea-sized amount of fluoride toothpaste, with a parent helping or checking until the child can brush well alone."
+          }
+        ]
+      },
+      "results": []
     }
   ],
   "faq": [
