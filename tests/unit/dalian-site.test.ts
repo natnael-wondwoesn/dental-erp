@@ -90,6 +90,27 @@ describe('Dalian Dental landing site', () => {
     expect(home).toContain('images/doctor-gloves.jpg')
   })
 
+  it('shows the map, the logo, the extra staff and the clinic photos', () => {
+    const contact = readFileSync(join(dist, 'contact/index.html'), 'utf8')
+    expect(contact).toContain('google.com/maps?q=8.9946209,38.790487')
+    expect(contact).toContain('maps.app.goo.gl/2UyXoSpZfLedUp3F7')
+    const home = readFileSync(join(dist, 'index.html'), 'utf8')
+    expect(home).toContain('images/brand/logo-mark.png')
+    for (const name of [
+      'Dr. Merhawit Zerabiruk',
+      'Sister Rahel Gosaye',
+      'Sister Roman Birhanu',
+      'Aregash Teferi',
+      'Seida Surur',
+    ]) {
+      expect(home).toContain(name)
+    }
+    expect(existsSync(join(dist, 'images/brand/favicon.ico'))).toBe(true)
+    const gallery = readFileSync(join(dist, 'gallery/index.html'), 'utf8')
+    expect(gallery).toContain('smile-makeover-1')
+    expect(gallery).toContain('treatment-room-window.jpg')
+  })
+
   it('uses Telegram, not WhatsApp, and shows no unfilled placeholders', () => {
     for (const file of htmlFiles(dist)) {
       const html = readFileSync(file, 'utf8')

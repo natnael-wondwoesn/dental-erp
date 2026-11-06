@@ -140,7 +140,11 @@ function layout({ title, description, depth, body, path = '' }) {
     },
   }
   const footContact = [
-    clinic.address && ['pin', 'Address', `${esc(clinic.address)}, ${esc(clinic.city)}`],
+    clinic.address && [
+      'pin',
+      'Address',
+      `${esc(clinic.address)}, ${esc(clinic.city)}${clinic.mapUrl ? `<br><a href="${esc(clinic.mapUrl)}" rel="noopener">Get directions</a>` : ''}`,
+    ],
     clinic.hours && ['clock', 'Opening hours', esc(clinic.hours)],
     contactLine(depth) && ['phone', 'Phone', contactLine(depth)],
     clinic.email && [
@@ -170,6 +174,8 @@ ${base ? `<meta property="og:image" content="${base}/images/doctors-team.jpg">` 
 ${base ? `<link rel="canonical" href="${base}/${esc(path === 'index.html' ? '' : path)}">` : ''}
 <link rel="preload" href="${r}assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="${r}assets/fonts/poppins-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="icon" href="${r}images/brand/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="${r}images/brand/apple-icon.png">
 <link rel="stylesheet" href="${r}assets/fonts.css">
 <link rel="stylesheet" href="${r}assets/style.css">
 <script type="application/ld+json">${JSON.stringify(ld)}</script>
@@ -178,7 +184,7 @@ ${base ? `<link rel="canonical" href="${base}/${esc(path === 'index.html' ? '' :
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-header">
   <div class="wrap bar">
-    <a class="brand" href="${r}index.html"><span class="brand-mark">${ic('tooth')}</span><span>${esc(clinic.name)}</span></a>
+    <a class="brand" href="${r}index.html"><span class="brand-mark"><img src="${r}images/brand/logo-mark.png" alt="" width="40" height="40"></span><span>${esc(clinic.name)}</span></a>
     <button class="menu-btn" aria-expanded="false" aria-controls="nav" aria-label="Open menu"><span></span><span></span><span></span></button>
     <nav id="nav" class="nav" aria-label="Main">${nav}<a class="btn btn-sm" href="${r}contact/#book" data-track="book">Book / Contact</a></nav>
   </div>
@@ -189,7 +195,7 @@ ${body}
 <footer class="site-footer">
   <div class="wrap foot">
     <div>
-      <div class="brand brand-foot"><span class="brand-mark">${ic('tooth')}</span><span>${esc(clinic.name)}</span></div>
+      <div class="brand brand-foot"><span class="brand-mark"><img src="${r}images/brand/logo-mark.png" alt="" width="40" height="40"></span><span>${esc(clinic.name)}</span></div>
       <p>We treat you with care. Dental care in ${esc(clinic.area || clinic.city)}${clinic.area ? `, ${esc(clinic.city)}` : ''}.</p>
       <p><strong style="color:#fff">${esc(clinic.tagline)}</strong></p>
       ${social ? `<p class="social">${social}</p>` : ''}
@@ -246,7 +252,7 @@ function serviceCard(s, depth, i = 0) {
   const r = rel(depth)
   const names = s.doctors.map((id) => doctorById[id]?.name).filter(Boolean)
   return `<article class="card service"${rv('up', i)}>
-  <div class="media" style="background:${mediaTones[i % mediaTones.length]}">${ic('tooth')}</div>
+  <div class="media" style="background:${mediaTones[i % mediaTones.length]}">${s.image ? `<img src="${r}${esc(s.image)}" alt="${esc(s.imageAlt || s.name)}" loading="lazy" width="600" height="400">` : ic('tooth')}</div>
   <span class="badge">${ic('sparkle')}</span>
   <div class="body">
     <h3>${esc(s.name)}</h3>
@@ -345,6 +351,21 @@ function trustRow() {
     .join('')}</div></section>`
 }
 
+function jpegSize(file) {
+  try {
+    const buf = readFileSync(file)
+    let i = 2
+    while (i < buf.length) {
+      if (buf[i] !== 0xff) return null
+      const marker = buf[i + 1]
+      const len = buf.readUInt16BE(i + 2)
+      if (marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker))
+        return { h: buf.readUInt16BE(i + 5), w: buf.readUInt16BE(i + 7) }
+      i += 2 + len
+    }
+  } catch {}
+  return null
+}
 const imageExt = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif'])
 function photosIn(section) {
   const dir = join(here, 'photos', section)
@@ -363,15 +384,20 @@ function beforeAfterPairs() {
   }
   return Object.entries(pairs)
     .filter(([, p]) => p.before && p.after)
-    .map(([name, p]) => ({
-      name,
-      label: name.replace(/-/g, ' ').replace(/^./, (ch) => ch.toUpperCase()),
-      ...p,
-    }))
+    .map(([name, p]) => {
+      const size = jpegSize(join(here, 'photos', 'before-after', p.before))
+      return {
+        name,
+        label: name.replace(/-/g, ' ').replace(/^./, (ch) => ch.toUpperCase()),
+        landscape: Boolean(size && size.w > size.h),
+        ...p,
+      }
+    })
+    .sort((x, y) => Number(y.landscape) - Number(x.landscape))
 }
 function baFigure(pair, prefix, i = 0) {
   const src = (f) => `${prefix}photos/before-after/${esc(f)}`
-  return `<figure class="ba"${rv('up', i)}><div class="ba-pair"><div><img src="${src(pair.before)}" alt="Before treatment: ${esc(pair.label.toLowerCase())}" loading="lazy" width="800" height="1000"><span>Before</span></div><div><img src="${src(pair.after)}" alt="After treatment: ${esc(pair.label.toLowerCase())}" loading="lazy" width="800" height="1000"><span>After</span></div></div><figcaption>${esc(pair.label)}</figcaption></figure>`
+  return `<figure class="ba${pair.landscape ? ' landscape' : ''}"${rv('up', i)}><div class="ba-pair"><div><img src="${src(pair.before)}" alt="Before treatment: ${esc(pair.label.toLowerCase())}" loading="lazy" width="800" height="1000"><span>Before</span></div><div><img src="${src(pair.after)}" alt="After treatment: ${esc(pair.label.toLowerCase())}" loading="lazy" width="800" height="1000"><span>After</span></div></div><figcaption>${esc(pair.label)}</figcaption></figure>`
 }
 
 const writes = []
@@ -384,9 +410,23 @@ const whyIcons = ['heart', 'sparkle', 'shield', 'tooth']
 const mosaic = [
   ['images/clinic-building.jpg', 'Our clinic building', ''],
   ['images/clinic-team.jpg', 'The Dalian team', 'wide'],
-  ['images/doctor-gloves.jpg', 'Ready for your care', ''],
-  ['images/doctors-team.jpg', 'Our doctors', ''],
+  ['photos/treatments/treatment-scene-1.jpg', 'Chairside care', ''],
+  ['photos/clinic/treatment-room-window.jpg', 'Treatment room', ''],
 ]
+
+function mapSection(depth) {
+  if (!clinic.mapEmbedUrl) return ''
+  return `<section class="section"><div class="wrap split" style="align-items:stretch">
+  <div${rv('left')}>
+    <p class="eyebrow">Visit us</p>
+    <h2>Find the clinic</h2>
+    <p>${esc(clinic.address ? `${clinic.address}, ` : '')}${esc(clinic.city)}</p>
+    ${clinic.hours ? `<p class="muted">${esc(clinic.hours)}</p>` : ''}
+    <div class="btn-row">${clinic.mapUrl ? `<a class="btn" href="${esc(clinic.mapUrl)}" rel="noopener" data-track="directions">${ic('pin')} Get directions</a>` : ''}<a class="btn btn-outline" href="${rel(depth)}contact/#book">Book / Contact</a></div>
+  </div>
+  <div class="map-wrap"${rv('right')}><iframe class="map" title="Map showing ${esc(clinic.name)}" src="${esc(clinic.mapEmbedUrl)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
+</div></section>`
+}
 
 // ---- Home -------------------------------------------------------------------
 page('index.html', {
@@ -402,7 +442,7 @@ page('index.html', {
     alt: `Doctors at ${clinic.name} in front of the clinic sign`,
   })}
 <div class="wrap"><div class="feature-card">
-  <div class="item"><span class="tile">${ic('shield')}</span><div><h3>Specialist team</h3><p>${c.doctors.length} doctors, including an orthodontist and oral and maxillofacial surgeons.</p></div></div>
+  <div class="item"><span class="tile">${ic('shield')}</span><div><h3>Specialist team</h3><p>Doctors including an orthodontist, dental surgeons and oral and maxillofacial surgeons.</p></div></div>
   <div class="item"><span class="tile">${ic('heart')}</span><div><h3>We treat you with care</h3><p>Unhurried consultations and plans built around you.</p></div></div>
   <div class="item"><span class="tile">${ic('family')}</span><div><h3>Care for all ages</h3><p>From children's dentistry to braces, implants and surgery.</p></div></div>
 </div></div>
@@ -415,7 +455,7 @@ ${founderStory(0)}
 ${
   beforeAfterPairs().length
     ? `<section class="section"><div class="wrap">${sectionHead('Real results', 'Before and after', `Photographs of real patients treated at ${clinic.name}.`)}<div class="ba-grid">${beforeAfterPairs()
-        .slice(0, 2)
+        .slice(0, 3)
         .map((pair, i) => baFigure(pair, './', i))
         .join(
           ''
@@ -426,6 +466,10 @@ ${
   ${sectionHead('Our team', 'Specialists you can talk to', 'Doctors working together on your care.')}
   <div class="grid grid-doctors">${c.doctors.map((d, i) => doctorCard(d, 0, i)).join('')}</div>
   <p style="margin-top:28px"><a class="btn btn-outline" href="./about/#team">Meet the team</a></p>
+</div></section>
+<section class="section tight"><div class="wrap">
+  ${sectionHead('Behind the scenes', 'The people who look after you', 'Nurses and staff who make every visit smooth.')}
+  <div class="grid grid-doctors">${c.staff.map((d, i) => doctorCard(d, 0, i)).join('')}</div>
 </div></section>
 <section class="section dark"><div class="wrap">
   ${sectionHead('Why Dalian', 'Care you can feel good about', 'The way we work, at every visit.')}
@@ -458,6 +502,7 @@ ${
     )
     .join('')}</div>
 </div></section>
+${mapSection(0)}
 <section class="section tinted"><div class="wrap faq-wrap">
   <div${rv('left')}>
     <p class="eyebrow">FAQ</p>
@@ -489,7 +534,7 @@ for (const s of c.services) {
   page(`services/${s.slug}/`, {
     title: `${s.name} in Addis Ababa | ${clinic.name}`,
     description: `${s.short} Book ${s.name.toLowerCase()} at ${clinic.name}, Addis Ababa.`,
-    body: `${pageHero({ crumbs: ['<a href="../">Treatments</a>', esc(s.name)], h1: `${s.name} in ${clinic.city}`, text: s.short, depth: 2 })}
+    body: `${pageHero({ crumbs: ['<a href="../">Treatments</a>', esc(s.name)], h1: `${s.name} in ${clinic.city}`, text: s.short, depth: 2, image: s.hero || s.image, alt: s.heroAlt || s.imageAlt || '' })}
 <section class="section"><div class="wrap split" style="align-items:start">
   <div${rv('left')}>
     <p class="eyebrow">What is included</p>
@@ -502,6 +547,17 @@ for (const s of c.services) {
     <div class="grid grid-doctors" style="margin-top:8px">${docs.map((d) => doctorCard(d, 2)).join('')}</div>
   </div>
 </div></section>
+${
+  (s.results || []).length
+    ? `<section class="section tight"><div class="wrap">${sectionHead('Real results', `${s.name}: before and after`, `Photographs of real ${clinic.name} patients.`)}<div class="ba-grid">${(
+        s.results || []
+      )
+        .map((name, i) => beforeAfterPairs().find((p) => p.name === name))
+        .filter(Boolean)
+        .map((pair, i) => baFigure(pair, '../../', i))
+        .join('')}</div></div></section>`
+    : ''
+}
 <section class="section tinted"><div class="wrap">
   ${sectionHead('More care', 'Other treatments')}
   <div class="grid">${c.services
@@ -523,6 +579,7 @@ const gallerySections = [
     'Reception, waiting area, treatment rooms, equipment and sterilization.',
   ],
   ['patients', 'Our patients', 'Consultations and happy patients.'],
+  ['doctors', 'Our doctors', 'The doctors who look after you.'],
   ['treatments', 'Treatments', 'Our doctors at work.'],
   ['activities', 'Our activities', 'Team, training and events.'],
 ]
@@ -570,6 +627,10 @@ ${founderStory(1)}
 <section class="section tinted" id="team"><div class="wrap">
   ${sectionHead('Meet our team', 'The doctors who will treat you')}
   <div class="grid grid-doctors">${c.doctors.map((d, i) => doctorCard(d, 1, i)).join('')}</div>
+</div></section>
+<section class="section"><div class="wrap">
+  ${sectionHead('Nurses and staff', 'The people behind every visit')}
+  <div class="grid grid-doctors">${c.staff.map((d, i) => doctorCard(d, 1, i)).join('')}</div>
 </div></section>
 <section class="section dark"><div class="wrap">
   ${sectionHead('Your visit', 'Step by step')}
@@ -638,7 +699,7 @@ page('contact/', {
       ${clinic.email ? `<li><span class="tile">${ic('mail')}</span><span><strong>Email</strong><a href="mailto:${esc(clinic.email)}">${esc(clinic.email)}</a></span></li>` : ''}
     </ul>
     ${clinic.mapEmbedUrl ? `<iframe class="map" title="Map" src="${esc(clinic.mapEmbedUrl)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>` : ''}
-    ${clinic.mapUrl ? `<p><a class="btn btn-outline" href="${esc(clinic.mapUrl)}" rel="noopener">Get directions</a></p>` : ''}
+    ${clinic.mapUrl ? `<p><a class="btn btn-outline" href="${esc(clinic.mapUrl)}" rel="noopener" data-track="directions">Get directions</a></p>` : ''}
     <p class="muted small">For a dental emergency, please call the clinic directly.</p>
   </div>
 </div></section>`,
