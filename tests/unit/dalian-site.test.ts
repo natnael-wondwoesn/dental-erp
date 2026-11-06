@@ -64,13 +64,30 @@ describe('Dalian Dental landing site', () => {
   it('has slide/fade animations that switch off for visitors who prefer reduced motion', () => {
     const css = readFileSync(join(dist, 'assets/style.css'), 'utf8')
     const js = readFileSync(join(dist, 'assets/main.js'), 'utf8')
-    expect(css).toMatch(/\.reveal\.from-left/)
-    expect(css).toMatch(/\.reveal\.from-right/)
+    expect(css).toMatch(/data-r='left'/)
+    expect(css).toMatch(/data-r='right'/)
     expect(css).toMatch(/@keyframes slide-in-right/)
     expect(css).toMatch(/prefers-reduced-motion: reduce[\s\S]*animation: none/)
     expect(js).toContain('prefers-reduced-motion: reduce')
     // Content must stay visible without JavaScript: hiding is only ever added by the script.
     expect(css).not.toMatch(/^\s*(?:body|main|section)[^{]*\{[^}]*opacity:\s*0/m)
+  })
+
+  it('home page has the trust indicators and the founder story', () => {
+    const home = readFileSync(join(dist, 'index.html'), 'utf8')
+    for (const label of [
+      'Doctors and specialists',
+      'Treatment areas',
+      'Years of Excellence',
+      'Happy Smiles Created',
+    ]) {
+      expect(home).toContain(label)
+    }
+    expect(home).toContain('data-count="1000"')
+    expect(home).toContain('data-count="13"')
+    expect(home).toContain('Founded by Dr. Ferhana Adem')
+    expect(home).toContain('Founder / Expert Dental Surgeon')
+    expect(home).toContain('images/doctor-gloves.jpg')
   })
 
   it('uses Telegram, not WhatsApp, and shows no unfilled placeholders', () => {

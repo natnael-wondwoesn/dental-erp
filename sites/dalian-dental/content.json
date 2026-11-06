@@ -2,23 +2,25 @@
   "_note": "Everything shown on the Dalian Dental Clinic site comes from this file. Empty strings are details the clinic has not given us yet: the page hides them rather than showing made-up values. Search this file for \"TODO\" to see what is still needed.",
   "clinic": {
     "name": "Dalian Dental Clinic",
-    "tagline": "Changing lives, one smile at a time.",
+    "tagline": "Changing Lives One Smile At A Time",
     "domain": "dalian.dental.clinic-cms.cc",
     "primaryColor": "#8A1629",
     "backgroundColor": "#FAFAFA",
-    "phone": "",
-    "phone2": "",
-    "email": "",
+    "phone": "+251 91 263 8003",
+    "phone2": "+251 94 119 1958",
+    "email": "dentaldalian@gmail.com",
     "telegram": "",
-    "address": "",
+    "address": "Abyssinia Building, 4th floor, Bole Medhanialem",
     "city": "Addis Ababa",
     "mapUrl": "",
     "mapEmbedUrl": "",
-    "hours": "",
+    "hours": "Monday to Saturday, 8:30 AM to 6:00 PM. Closed on Sundays.",
     "facebook": "",
     "instagram": "",
     "tiktok": "",
-    "todo": "TODO: phone, Telegram username, email, address, map link, opening hours, social links, domain, logo"
+    "todo": "TODO: Telegram username, map link, social links, logo. Address, hours, phones and email were taken from the clinic's draft website: please confirm them.",
+    "hoursShort": "Open Monday to Saturday",
+    "area": "Bole Medhanialem"
   },
   "seo": {
     "title": "Dalian Dental Clinic | Professional Dental Clinic in Addis Ababa",
@@ -164,19 +166,23 @@
       "a": "Use the appointment form on the Contact page, call the clinic, or message us on Telegram. We will confirm your time with you."
     },
     {
+      "q": "What are your opening hours?",
+      "a": "We are open Monday to Saturday, 8:30 AM to 6:00 PM, and closed on Sundays."
+    },
+    {
+      "q": "Where is the clinic?",
+      "a": "We are in the Abyssinia Building, 4th floor, Bole Medhanialem, Addis Ababa, Ethiopia."
+    },
+    {
       "q": "Do you treat children?",
       "a": "Yes. Our pediatric service covers fillings, cleanings and baby tooth extraction, and kids braces are available."
     },
     {
       "q": "What should I do in a dental emergency?",
       "a": "Call the clinic straight away. For a knocked-out tooth, keep the tooth moist and get to the clinic as quickly as you can."
-    },
-    {
-      "q": "Do you offer braces for adults?",
-      "a": "Yes, braces and invisible aligners are available. An orthodontist will examine you and explain the options."
     }
   ],
-  "story": "Dalian Dental Clinic was founded by Dr. Ferhana Adem, an expert dental surgeon, and works with a team of specialists in orthodontics, prosthodontics, implants and oral surgery. TODO: year established and the clinic's own story.",
+  "story": "Dr. Ferhana Adem, an expert dental surgeon, founded Dalian Dental Clinic. Over time she has built a team of specialists who share one approach: listen first, explain clearly, and treat every patient with care.",
   "mission": "To give every patient safe, honest and comfortable dental care.",
   "vision": "To be a dental clinic in Addis Ababa that patients trust for the whole family.",
   "values": [
@@ -198,5 +204,33 @@
     }
   ],
   "testimonials": [],
-  "articles": []
+  "articles": [],
+  "stats": [
+    {
+      "value": 5,
+      "suffix": "",
+      "label": "Doctors and specialists"
+    },
+    {
+      "value": 9,
+      "suffix": "",
+      "label": "Treatment areas"
+    },
+    {
+      "value": 13,
+      "suffix": "+",
+      "label": "Years of Excellence"
+    },
+    {
+      "value": 1000,
+      "suffix": "+",
+      "label": "Happy Smiles Created"
+    }
+  ],
+  "founder": {
+    "doctor": "ferhana-adem",
+    "image": "images/doctor-gloves.jpg",
+    "quote": "We treat you with care."
+  },
+  "storyMotto": "The clinic's motto, Changing Lives One Smile At A Time, guides how we work, from the first consultation to the final check-up."
 }

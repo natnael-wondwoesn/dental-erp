@@ -39,37 +39,74 @@ const tg = String(clinic.telegram || '')
   .replace(/[^A-Za-z0-9_]/g, '')
 const doctorById = Object.fromEntries(c.doctors.map((d) => [d.id, d]))
 const base = clinic.domain ? `https://${clinic.domain}` : ''
+const story = c.story.replace(/\s*TODO:.*$/, '')
 
 const pages = [
   ['index.html', 'Home'],
-  ['services/', 'Services'],
+  ['services/', 'Treatments'],
   ['gallery/', 'Gallery'],
-  ['about/', 'About Us'],
-  ['blog/', 'Educational'],
+  ['about/', 'About'],
+  ['blog/', 'Learn'],
   ['contact/', 'Contact'],
 ]
 
-const toothIcon = `<svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 3C5 3 3.5 5 3.5 7.5c0 2 .7 3.2 1.2 5 .6 2.1.6 5.5 1.8 8 .5 1 1.6 1 2.1 0 .8-1.700.9-4 2.400-4s1.600 2.300 2.400 4c.5 1 1.600 1 2.100 0 1.200-2.500 1.200-5.900 1.800-8 .5-1.800 1.200-3 1.200-5C20.500 5 19 3 16.500 3c-1.700 0-2.600 1-4.500 1S9.200 3 7.500 3Z"/></svg>`
+// ---- Icons (inline SVG, stroke style) --------------------------------------
+const paths = {
+  tooth:
+    'M7.5 3C5 3 3.5 5 3.5 7.5c0 2 .7 3.2 1.2 5 .6 2.1.6 5.5 1.8 8 .5 1 1.6 1 2.1 0 .8-1.7.9-4 2.4-4s1.6 2.3 2.4 4c.5 1 1.6 1 2.1 0 1.2-2.5 1.2-5.9 1.8-8 .5-1.8 1.2-3 1.2-5C20.5 5 19 3 16.5 3c-1.7 0-2.6 1-4.5 1S9.2 3 7.5 3Z',
+  shield:
+    'M12 3 4.5 6v5.5c0 4.4 3.1 8.2 7.5 9.5 4.4-1.3 7.5-5.100 7.5-9.500V6L12 3Zm-3 9 2.200 2.200L15.500 9.800',
+  heart:
+    'M12 20.500s-7.500-4.400-7.500-10A4.500 4.500 0 0 1 12 7.600 4.500 4.500 0 0 1 19.500 10.500c0 5.600-7.500 10-7.500 10Z',
+  family:
+    'M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm8.500 1a2.500 2.500 0 1 0 0-5 2.500 2.500 0 0 0 0 5ZM2.500 19c0-3 2.500-5 5.500-5s5.500 2 5.500 5m1.500-.5c.2-2.100 1.700-3.500 3.700-3.500 1.700 0 3.100.9 3.600 2.500',
+  phone:
+    'M5 4h3l1.500 4-2 1.300a11 11 0 0 0 5.200 5.200L14 12.500l4 1.500v3a2 2 0 0 1-2 2A13 13 0 0 1 3 6a2 2 0 0 1 2-2Z',
+  pin: 'M12 21s-6.500-5.600-6.500-11a6.500 6.500 0 0 1 13 0c0 5.400-6.500 11-6.500 11Zm0-8.500a2.500 2.500 0 1 0 0-5 2.500 2.500 0 0 0 0 5Z',
+  clock: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-13.500V12l3 2',
+  mail: 'M4 6h16v12H4V6Zm0 1 8 6 8-6',
+  arrow: 'M5 12h14m-5-5 5 5-5 5',
+  chevron: 'm6 9 6 6 6-6',
+  quote:
+    'M9 7H6.500A1.500 1.500 0 0 0 5 8.500V12a1.500 1.500 0 0 0 1.500 1.500H9V16a2 2 0 0 1-2 2m10-11h-2.500A1.500 1.500 0 0 0 13 8.500V12a1.500 1.500 0 0 0 1.500 1.500H17V16a2 2 0 0 1-2 2',
+  sparkle: 'M12 3v4m0 10v4M3 12h4m10 0h4M6 6l2.500 2.500m7 7L18 18M18 6l-2.500 2.500m-7 7L6 18',
+  check: 'm5 12.500 4.500 4.500L19 7.500',
+}
+const ic = (name, extra = '') =>
+  `<svg class="i ${extra}" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${paths[name]}"/></svg>`
+
+// data-r marks an element for the scroll reveal (see assets/main.js).
+const rv = (kind = 'up', i = 0) =>
+  ` data-r="${kind}"${i ? ` style="--d:${Math.min(i * 90, 540)}ms"` : ''}`
 
 function rel(depth) {
   return depth === 0 ? './' : '../'.repeat(depth)
 }
 
-function contactLinks() {
-  const items = []
-  if (clinic.phone)
-    items.push(`<a href="tel:${esc(digits(clinic.phone))}">${esc(clinic.phone)}</a>`)
-  if (clinic.phone2)
-    items.push(`<a href="tel:${esc(digits(clinic.phone2))}">${esc(clinic.phone2)}</a>`)
-  return items.join(' · ')
+function contactLine(depth) {
+  return [
+    clinic.phone && `<a href="tel:${esc(digits(clinic.phone))}">${esc(clinic.phone)}</a>`,
+    clinic.phone2 && `<a href="tel:${esc(digits(clinic.phone2))}">${esc(clinic.phone2)}</a>`,
+  ]
+    .filter(Boolean)
+    .join('<br>')
 }
 
-function bookButtons(depth, extraClass = '') {
+function heroButtons(depth, { variant = 'dark' } = {}) {
   const r = rel(depth)
-  const wa = tg
-    ? `<a class="btn btn-light ${extraClass}" href="https://t.me/${esc(tg)}" data-track="telegram" rel="noopener">Message us on Telegram</a>`
-    : ''
-  return `<a class="btn ${extraClass}" href="${r}contact/#book" data-track="book">Book an appointment</a>${wa}`
+  const parts = [
+    `<a class="btn btn-white" href="${r}contact/#book" data-track="book">Book / Contact</a>`,
+  ]
+  if (clinic.phone)
+    parts.push(
+      `<a class="btn btn-ghost" href="tel:${esc(digits(clinic.phone))}" data-track="phone">${ic('phone')} Call us</a>`
+    )
+  if (tg)
+    parts.push(
+      `<a class="btn btn-ghost" href="https://t.me/${esc(tg)}" data-track="telegram" rel="noopener">Telegram</a>`
+    )
+  parts.push(`<a class="btn btn-ghost" href="${r}services/">Explore treatments</a>`)
+  return parts.join('')
 }
 
 function layout({ title, description, depth, body, path = '' }) {
@@ -80,13 +117,6 @@ function layout({ title, description, depth, body, path = '' }) {
         `<a href="${r}${href}"${path === href ? ' aria-current="page"' : ''}>${label}</a>`
     )
     .join('')
-  const top = [
-    clinic.address ? esc(clinic.address) : '',
-    clinic.hours ? esc(clinic.hours) : '',
-    contactLinks(),
-  ]
-    .filter(Boolean)
-    .join(' &nbsp;|&nbsp; ')
   const social = [
     ['Facebook', clinic.facebook],
     ['Instagram', clinic.instagram],
@@ -95,19 +125,36 @@ function layout({ title, description, depth, body, path = '' }) {
   ]
     .filter(([, url]) => url)
     .map(([n, url]) => `<a href="${esc(url)}" rel="noopener">${n}</a>`)
-    .join(' ')
+    .join('')
   const ld = {
     '@context': 'https://schema.org',
     '@type': 'Dentist',
     name: clinic.name,
     ...(base && { url: base }),
     ...(clinic.phone && { telephone: clinic.phone }),
+    ...(clinic.email && { email: clinic.email }),
     address: {
       '@type': 'PostalAddress',
       addressLocality: clinic.city,
       ...(clinic.address && { streetAddress: clinic.address }),
     },
   }
+  const footContact = [
+    clinic.address && ['pin', 'Address', `${esc(clinic.address)}, ${esc(clinic.city)}`],
+    clinic.hours && ['clock', 'Opening hours', esc(clinic.hours)],
+    contactLine(depth) && ['phone', 'Phone', contactLine(depth)],
+    clinic.email && [
+      'mail',
+      'Email',
+      `<a href="mailto:${esc(clinic.email)}">${esc(clinic.email)}</a>`,
+    ],
+  ]
+    .filter(Boolean)
+    .map(
+      ([i, label, text]) =>
+        `<div><span class="tile">${ic(i)}</span><span><b>${label}</b>${text}</span></div>`
+    )
+    .join('')
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -129,10 +176,9 @@ ${base ? `<link rel="canonical" href="${base}/${esc(path === 'index.html' ? '' :
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
-${top ? `<div class="topbar"><div class="wrap">${top}</div></div>` : ''}
 <header class="site-header">
   <div class="wrap bar">
-    <a class="brand" href="${r}index.html"><span class="brand-mark">${toothIcon}</span><span>${esc(clinic.name)}</span></a>
+    <a class="brand" href="${r}index.html"><span class="brand-mark">${ic('tooth')}</span><span>${esc(clinic.name)}</span></a>
     <button class="menu-btn" aria-expanded="false" aria-controls="nav" aria-label="Open menu"><span></span><span></span><span></span></button>
     <nav id="nav" class="nav" aria-label="Main">${nav}<a class="btn btn-sm" href="${r}contact/#book" data-track="book">Book / Contact</a></nav>
   </div>
@@ -143,21 +189,22 @@ ${body}
 <footer class="site-footer">
   <div class="wrap foot">
     <div>
-      <div class="brand brand-foot"><span class="brand-mark">${toothIcon}</span><span>${esc(clinic.name)}</span></div>
-      <p>${esc(clinic.tagline)}</p>
+      <div class="brand brand-foot"><span class="brand-mark">${ic('tooth')}</span><span>${esc(clinic.name)}</span></div>
+      <p>We treat you with care. Dental care in ${esc(clinic.area || clinic.city)}${clinic.area ? `, ${esc(clinic.city)}` : ''}.</p>
+      <p><strong style="color:#fff">${esc(clinic.tagline)}</strong></p>
       ${social ? `<p class="social">${social}</p>` : ''}
     </div>
     <div>
       <h3>Explore</h3>
-      ${pages.map(([href, label]) => `<a href="${r}${href}">${label}</a>`).join('')}
+      ${pages.map(([href, label]) => `<a class="link" href="${r}${href}">${label}</a>`).join('')}
     </div>
     <div>
-      <h3>Visit us</h3>
-      <p>${esc(clinic.city)}</p>
-      ${clinic.address ? `<p>${esc(clinic.address)}</p>` : ''}
-      ${clinic.hours ? `<p>${esc(clinic.hours)}</p>` : ''}
-      ${contactLinks() ? `<p>${contactLinks()}</p>` : ''}
-      ${clinic.email ? `<p><a href="mailto:${esc(clinic.email)}">${esc(clinic.email)}</a></p>` : ''}
+      <h3>Treatments</h3>
+      ${c.services.map((s) => `<a class="link" href="${r}services/${esc(s.slug)}/">${esc(s.name)}</a>`).join('')}
+    </div>
+    <div>
+      <h3>Contact</h3>
+      <div class="foot-contact">${footContact}</div>
     </div>
   </div>
   <div class="wrap legal">&copy; ${new Date().getFullYear()} ${esc(clinic.name)}. All rights reserved.</div>
@@ -168,7 +215,8 @@ ${body}
 `
 }
 
-function doctorCard(d, depth = 0) {
+// ---- Components -------------------------------------------------------------
+function doctorCard(d, depth = 0, i = 0) {
   const initials = d.name
     .replace(/^Dr\.?\s*/, '')
     .split(' ')
@@ -176,60 +224,125 @@ function doctorCard(d, depth = 0) {
     .join('')
     .slice(0, 2)
   const photo = d.photo
-    ? `<img src="${rel(depth)}${esc(d.photo)}" alt="${esc(d.name)}, ${esc(d.title)}" loading="lazy" width="320" height="320">`
+    ? `<img src="${rel(depth)}${esc(d.photo)}" alt="${esc(d.name)}, ${esc(d.title)}" loading="lazy" width="160" height="160">`
     : `<span class="avatar" aria-hidden="true">${esc(initials)}</span>`
-  return `<article class="card doctor">
+  return `<article class="card doctor"${rv('up', i)}>
   <div class="doctor-photo">${photo}</div>
   <h3>${esc(d.name)}</h3>
-  <p class="muted">${esc(d.title)}</p>
+  <p class="role">${esc(d.title)}</p>
   ${d.bio ? `<p>${esc(d.bio)}</p>` : ''}
 </article>`
 }
 
-function serviceCard(s, depth) {
+const mediaTones = [
+  'linear-gradient(135deg,#5c2626,#8c3e3e)',
+  'linear-gradient(135deg,#8c3e3e,#ba923b)',
+  'linear-gradient(135deg,#6e2e2e,#a8625a)',
+  'linear-gradient(135deg,#7a5a12,#ba923b)',
+  'linear-gradient(135deg,#4a1d1d,#7a3434)',
+  'linear-gradient(135deg,#a8625a,#d3a58b)',
+]
+function serviceCard(s, depth, i = 0) {
   const r = rel(depth)
   const names = s.doctors.map((id) => doctorById[id]?.name).filter(Boolean)
-  return `<article class="card service">
-  <div class="icon">${toothIcon}</div>
-  <h3>${esc(s.name)}</h3>
-  <p>${esc(s.short)}</p>
-  <ul class="chips">${s.includes
-    .slice(0, 3)
-    .map((i) => `<li>${esc(i)}</li>`)
-    .join('')}</ul>
-  ${names.length ? `<p class="muted small">Specialists: ${esc(names.join(', '))}</p>` : ''}
-  <a class="more" href="${r}services/${esc(s.slug)}/">Learn more</a>
+  return `<article class="card service"${rv('up', i)}>
+  <div class="media" style="background:${mediaTones[i % mediaTones.length]}">${ic('tooth')}</div>
+  <span class="badge">${ic('sparkle')}</span>
+  <div class="body">
+    <h3>${esc(s.name)}</h3>
+    <p>${esc(s.short)}</p>
+    <ul class="chips">${s.includes
+      .slice(0, 3)
+      .map((x) => `<li>${esc(x)}</li>`)
+      .join('')}</ul>
+    ${names.length ? `<p class="muted small">Specialists: ${esc(names.join(', '))}</p>` : ''}
+    <a class="more" href="${r}services/${esc(s.slug)}/">Learn more ${ic('arrow')}</a>
+  </div>
 </article>`
 }
 
-function cta(
+function ctaPanel(
   depth,
-  heading = 'Ready to book your visit?',
-  text = 'Send an appointment request or message us. We will confirm a time with you.'
+  heading = 'Ready for a smile you feel good about?',
+  text = 'Get in touch and our team will help you choose the right first step.'
 ) {
-  return `<section class="cta"><div class="wrap center">
+  const r = rel(depth)
+  return `<section class="cta-section"><div class="wrap"><div class="cta-panel"${rv('zoom')}>
   <h2>${esc(heading)}</h2>
   <p>${esc(text)}</p>
-  <div class="btn-row">${bookButtons(depth, 'btn-on-dark')}</div>
-</div></section>`
+  <div class="btn-row"><a class="btn btn-white" href="${r}contact/#book" data-track="book">Book / Contact</a>${
+    clinic.phone
+      ? `<a class="btn btn-ghost" href="tel:${esc(digits(clinic.phone))}" data-track="phone">${ic('phone')} Call us</a>`
+      : ''
+  }</div>
+</div></div></section>`
 }
 
-function hero({ eyebrow, h1, text, depth, image, alt = '', position = 'center' }) {
-  return `<section class="hero"><div class="wrap hero-grid">
-  <div>
-    ${eyebrow ? `<p class="eyebrow">${esc(eyebrow)}</p>` : ''}
-    <h1>${esc(h1)}</h1>
-    <p class="lead">${esc(text)}</p>
-    <div class="btn-row">${bookButtons(depth)}</div>
+// Big maroon hero on the home page.
+function heroHome({ pill, kicker, h1, text, depth, image, alt }) {
+  return `<section class="hero">
+  <div class="hero-bg"></div><div class="orb orb-a"></div><div class="orb orb-b"></div><span class="dot dot-a"></span><span class="dot dot-b"></span>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      ${pill ? `<p class="pill">${esc(pill)}</p>` : '<span></span>'}
+      <p class="kicker">${esc(kicker)}</p>
+      <h1>${esc(h1)}</h1>
+      <p class="lead">${esc(text)}</p>
+      <div class="btn-row">${heroButtons(depth)}</div>
+    </div>
+    <div class="hero-frame"><img src="${rel(depth)}${esc(image)}" alt="${esc(alt)}" width="1000" height="800" fetchpriority="high"></div>
   </div>
-  <div class="hero-art">${image ? `<img src="${rel(depth)}${esc(image)}" alt="${esc(alt)}" width="1000" height="800" style="object-position:${esc(position)}" fetchpriority="high">` : `<div class="art-ph" aria-hidden="true">${toothIcon}</div>`}</div>
+</section>`
+}
+
+// Smaller maroon header used on inner pages.
+function pageHero({ crumbs, h1, text, depth, image, alt = '' }) {
+  const r = rel(depth)
+  const trail = [`<a href="${r}index.html">Home</a>`, ...crumbs].join(' / ')
+  return `<section class="hero compact">
+  <div class="hero-bg"></div><div class="orb orb-a"></div><div class="orb orb-b"></div><span class="dot dot-b"></span>
+  <div class="wrap hero-grid${image ? '' : ' solo'}">
+    <div class="hero-copy">
+      <p class="crumbs">${trail}</p>
+      <p class="kicker">${esc(clinic.name)}</p>
+      <h1>${esc(h1)}</h1>
+      <p class="lead">${esc(text)}</p>
+      <div class="btn-row">${heroButtons(depth)}</div>
+    </div>
+    ${image ? `<div class="hero-frame"><img src="${r}${esc(image)}" alt="${esc(alt)}" width="1000" height="800" fetchpriority="high"></div>` : ''}
+  </div>
+</section>`
+}
+
+function sectionHead(eyebrow, title, text = '') {
+  return `<div class="section-head"${rv()}><p class="eyebrow">${esc(eyebrow)}</p><h2>${esc(title)}</h2>${text ? `<p>${esc(text)}</p>` : ''}</div>`
+}
+
+function founderStory(depth) {
+  const f = c.founder
+  const d = doctorById[f.doctor]
+  return `<section class="section tinted" id="story"><div class="wrap split">
+  <div class="story-photo"${rv('left')}>
+    <div class="frame"><img src="${rel(depth)}${esc(f.image)}" alt="${esc(d.name)}, ${esc(d.title)}" width="800" height="1000" loading="lazy"></div>
+    <div class="founder-tag"><strong>${esc(d.name)}</strong><span>${esc(d.title)}</span></div>
+  </div>
+  <div${rv('right')}>
+    <p class="eyebrow">Our story</p>
+    <h2>Founded by ${esc(d.name)}</h2>
+    <p>${esc(story)}</p>
+    ${c.storyMotto ? `<p>${esc(c.storyMotto)}</p>` : ''}
+    <p class="quote">${ic('quote')} ${esc(f.quote)}</p>
+  </div>
 </div></section>`
 }
 
-const writes = []
-function page(path, opts) {
-  const depth = path === 'index.html' ? 0 : path.split('/').length - 1
-  writes.push([path.endsWith('/') ? `${path}index.html` : path, layout({ ...opts, depth, path })])
+function trustRow() {
+  return `<section class="trust"><div class="wrap trust-row">${c.stats
+    .map((s, i) => {
+      const text = `${Number(s.value).toLocaleString('en-US')}${s.suffix || ''}`
+      return `<div${rv('up', i)}><strong data-count="${s.value}" data-suffix="${esc(s.suffix || '')}">${text}</strong><span>${esc(s.label)}</span></div>`
+    })
+    .join('')}</div></section>`
 }
 
 const imageExt = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif'])
@@ -256,84 +369,119 @@ function beforeAfterPairs() {
       ...p,
     }))
 }
-function baFigure(pair, prefix) {
+function baFigure(pair, prefix, i = 0) {
   const src = (f) => `${prefix}photos/before-after/${esc(f)}`
-  return `<figure class="ba"><div class="ba-pair"><div><img src="${src(pair.before)}" alt="Before treatment: ${esc(pair.label.toLowerCase())}" loading="lazy" width="800" height="1000"><span>Before</span></div><div><img src="${src(pair.after)}" alt="After treatment: ${esc(pair.label.toLowerCase())}" loading="lazy" width="800" height="1000"><span>After</span></div></div><figcaption>${esc(pair.label)}</figcaption></figure>`
+  return `<figure class="ba"${rv('up', i)}><div class="ba-pair"><div><img src="${src(pair.before)}" alt="Before treatment: ${esc(pair.label.toLowerCase())}" loading="lazy" width="800" height="1000"><span>Before</span></div><div><img src="${src(pair.after)}" alt="After treatment: ${esc(pair.label.toLowerCase())}" loading="lazy" width="800" height="1000"><span>After</span></div></div><figcaption>${esc(pair.label)}</figcaption></figure>`
 }
 
-// Home
+const writes = []
+function page(path, opts) {
+  const depth = path === 'index.html' ? 0 : path.split('/').length - 1
+  writes.push([path.endsWith('/') ? `${path}index.html` : path, layout({ ...opts, depth, path })])
+}
+
+const whyIcons = ['heart', 'sparkle', 'shield', 'tooth']
+const mosaic = [
+  ['images/clinic-building.jpg', 'Our clinic building', ''],
+  ['images/clinic-team.jpg', 'The Dalian team', 'wide'],
+  ['images/doctor-gloves.jpg', 'Ready for your care', ''],
+  ['images/doctors-team.jpg', 'Our doctors', ''],
+]
+
+// ---- Home -------------------------------------------------------------------
 page('index.html', {
   title: c.seo.title,
   description: c.seo.description,
-  body: `${hero({
-    eyebrow: `Dental clinic in ${clinic.city}`,
-    h1: `Gentle, specialist dental care in ${clinic.city}`,
-    text: `${clinic.name} brings orthodontists, dental surgeons and oral and maxillofacial surgeons together under one roof, so the whole family can be treated in one place.`,
+  body: `${heroHome({
+    pill: clinic.hoursShort,
+    kicker: `${clinic.name}${clinic.area ? ` · ${clinic.area}` : ''}`,
+    h1: clinic.tagline,
+    text: `We treat you with care. Thorough consultations, tailored treatment plans and specialist doctors, all under one roof in ${clinic.city}.`,
     depth: 0,
     image: 'images/doctors-team.jpg',
     alt: `Doctors at ${clinic.name} in front of the clinic sign`,
-    position: 'center 35%',
   })}
-<section class="stats"><div class="wrap stat-row">
-  <div><strong>${c.services.length}</strong><span>Treatment areas</span></div>
-  <div><strong>${c.doctors.length}</strong><span>Doctors and specialists</span></div>
-  <div><strong>All ages</strong><span>Children to adults</span></div>
-</div></section>
+<div class="wrap"><div class="feature-card">
+  <div class="item"><span class="tile">${ic('shield')}</span><div><h3>Specialist team</h3><p>${c.doctors.length} doctors, including an orthodontist and oral and maxillofacial surgeons.</p></div></div>
+  <div class="item"><span class="tile">${ic('heart')}</span><div><h3>We treat you with care</h3><p>Unhurried consultations and plans built around you.</p></div></div>
+  <div class="item"><span class="tile">${ic('family')}</span><div><h3>Care for all ages</h3><p>From children's dentistry to braces, implants and surgery.</p></div></div>
+</div></div>
+${trustRow()}
 <section class="section"><div class="wrap">
-  <p class="eyebrow">Treatments</p>
-  <h2>Care for every stage of your smile</h2>
-  <div class="grid">${c.services.map((s) => serviceCard(s, 0)).join('')}</div>
+  ${sectionHead('Treatments', 'Care for every stage of your smile', 'From a routine clean to specialist procedures, our team covers the treatments most families need.')}
+  <div class="grid">${c.services.map((s, i) => serviceCard(s, 0, i % 3)).join('')}</div>
 </div></section>
+${founderStory(0)}
 ${
   beforeAfterPairs().length
-    ? `<section class="section"><div class="wrap"><p class="eyebrow">Real results</p><h2>Before and after</h2><p class="muted">Photographs of real patients treated at ${esc(clinic.name)}.</p><div class="ba-grid">${beforeAfterPairs()
+    ? `<section class="section"><div class="wrap">${sectionHead('Real results', 'Before and after', `Photographs of real patients treated at ${clinic.name}.`)}<div class="ba-grid">${beforeAfterPairs()
         .slice(0, 2)
-        .map((pair) => baFigure(pair, './'))
+        .map((pair, i) => baFigure(pair, './', i))
         .join(
           ''
         )}</div><p><a class="btn btn-outline" href="./gallery/#before-after">See more results</a></p></div></section>`
     : ''
 }
-<section class="section alt"><div class="wrap split">
-  <div>
-    <p class="eyebrow">About us</p>
-    <h2>${esc(c.mission)}</h2>
-    <p>${esc(c.story.replace(/\s*TODO:.*$/, ''))}</p>
-    <a class="btn btn-outline" href="./about/">Read more about us</a>
-  </div>
-  <ul class="ticks">
-    ${c.values.map((v) => `<li><strong>${esc(v.title)}.</strong> ${esc(v.text)}</li>`).join('')}
-  </ul>
-</div></section>
 <section class="section"><div class="wrap">
-  <p class="eyebrow">Our team</p>
-  <h2>Specialists you can talk to</h2>
-  <div class="grid grid-doctors">${c.doctors.map((d) => doctorCard(d, 0)).join('')}</div>
+  ${sectionHead('Our team', 'Specialists you can talk to', 'Doctors working together on your care.')}
+  <div class="grid grid-doctors">${c.doctors.map((d, i) => doctorCard(d, 0, i)).join('')}</div>
+  <p style="margin-top:28px"><a class="btn btn-outline" href="./about/#team">Meet the team</a></p>
+</div></section>
+<section class="section dark"><div class="wrap">
+  ${sectionHead('Why Dalian', 'Care you can feel good about', 'The way we work, at every visit.')}
+  <div class="grid">${c.values
+    .map(
+      (v, i) =>
+        `<div class="glass"${rv('up', i)}><span class="tile">${ic(whyIcons[i % whyIcons.length])}</span><h3>${esc(v.title)}</h3><p>${esc(v.text)}</p></div>`
+    )
+    .join('')}</div>
 </div></section>
 ${
   c.testimonials.length
-    ? `<section class="section alt"><div class="wrap"><p class="eyebrow">Patient voices</p><h2>What patients say</h2><div class="grid">${c.testimonials
+    ? `<section class="section"><div class="wrap">${sectionHead('Patient voices', 'What patients say')}</div><div class="marquee"><div class="marquee-track">${[
+        ...c.testimonials,
+        ...c.testimonials,
+      ]
         .map(
           (t) =>
-            `<blockquote class="card"><p>${esc(t.text)}</p><footer>${esc(t.name)}</footer></blockquote>`
+            `<blockquote class="card">${ic('quote')}<p>${esc(t.text)}</p><footer>${esc(t.name)}</footer></blockquote>`
         )
         .join('')}</div></div></section>`
     : ''
 }
-<section class="section"><div class="wrap narrow">
-  <h2>Questions, answered</h2>
-  ${c.faq.map((f) => `<details class="faq"><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join('')}
+<section class="section"><div class="wrap">
+  ${sectionHead('Inside the clinic', 'A look at Dalian', 'Our building, our team and our doctors.')}
+  <div class="mosaic">${mosaic
+    .map(
+      ([src, label, cls], i) =>
+        `<a class="tile-photo ${cls}"${rv('zoom', i)} href="./gallery/"><img src="./${src}" alt="${esc(label)}" loading="lazy"><span class="chip">${esc(label)}</span></a>`
+    )
+    .join('')}</div>
 </div></section>
-${cta(0)}`,
+<section class="section tinted"><div class="wrap faq-wrap">
+  <div${rv('left')}>
+    <p class="eyebrow">FAQ</p>
+    <h2>Common questions</h2>
+    <p>Quick answers before your first visit.</p>
+    <a class="btn btn-outline" href="./contact/#book">Ask us anything</a>
+  </div>
+  <div class="faq-card"${rv('right')}>${c.faq
+    .map(
+      (f) =>
+        `<details class="faq"><summary>${esc(f.q)} ${ic('chevron')}</summary><p>${esc(f.a)}</p></details>`
+    )
+    .join('')}</div>
+</div></section>
+${ctaPanel(0)}`,
 })
 
-// Services index + detail pages
+// ---- Treatments -------------------------------------------------------------
 page('services/', {
   title: `Dental Services in Addis Ababa | ${clinic.name}`,
   description: `Braces, implants, root canal, crowns, cosmetic dentistry, hygiene, emergency and children's dental care at ${clinic.name}.`,
-  body: `${hero({ eyebrow: 'Services and treatments', h1: `Our ${c.services.length} dental treatment areas`, text: 'Choose a treatment to see what it includes and which doctors provide it.', depth: 1, image: 'images/doctor-gloves.jpg', alt: 'A dentist putting on gloves before treatment', position: 'center 30%' })}
-<section class="section"><div class="wrap"><div class="grid">${c.services.map((s) => serviceCard(s, 1)).join('')}</div></div></section>
-${cta(1)}`,
+  body: `${pageHero({ crumbs: ['Treatments'], h1: `Our ${c.services.length} dental treatment areas`, text: 'Choose a treatment to see what it includes and which doctors provide it.', depth: 1, image: 'images/doctor-gloves.jpg', alt: 'A dentist putting on gloves before treatment' })}
+<section class="section"><div class="wrap"><div class="grid">${c.services.map((s, i) => serviceCard(s, 1, i % 3)).join('')}</div></div></section>
+${ctaPanel(1)}`,
 })
 
 for (const s of c.services) {
@@ -341,31 +489,32 @@ for (const s of c.services) {
   page(`services/${s.slug}/`, {
     title: `${s.name} in Addis Ababa | ${clinic.name}`,
     description: `${s.short} Book ${s.name.toLowerCase()} at ${clinic.name}, Addis Ababa.`,
-    body: `${hero({ eyebrow: 'Treatment', h1: `${s.name} in ${clinic.city}`, text: s.short, depth: 2 })}
-<section class="section"><div class="wrap split">
-  <div>
-    <h2>What is included</h2>
+    body: `${pageHero({ crumbs: ['<a href="../">Treatments</a>', esc(s.name)], h1: `${s.name} in ${clinic.city}`, text: s.short, depth: 2 })}
+<section class="section"><div class="wrap split" style="align-items:start">
+  <div${rv('left')}>
+    <p class="eyebrow">What is included</p>
+    <h2>${esc(s.name)}</h2>
     <ul class="ticks">${s.includes.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>
     <p class="muted small">Your doctor will examine you first and explain the options, the steps and the cost before any treatment starts.</p>
   </div>
-  <div>
-    <h2>Your specialists</h2>
-    <div class="grid grid-doctors">${docs.map((d) => doctorCard(d, 2)).join('')}</div>
+  <div${rv('right')}>
+    <p class="eyebrow">Your specialists</p>
+    <div class="grid grid-doctors" style="margin-top:8px">${docs.map((d) => doctorCard(d, 2)).join('')}</div>
   </div>
 </div></section>
-<section class="section alt"><div class="wrap">
-  <h2>Other treatments</h2>
+<section class="section tinted"><div class="wrap">
+  ${sectionHead('More care', 'Other treatments')}
   <div class="grid">${c.services
     .filter((x) => x.slug !== s.slug)
     .slice(0, 3)
-    .map((x) => serviceCard(x, 2))
+    .map((x, i) => serviceCard(x, 2, i))
     .join('')}</div>
 </div></section>
-${cta(2)}`,
+${ctaPanel(2)}`,
   })
 }
 
-// Gallery: photos are read from the photos/ folder so adding a picture needs no code change.
+// ---- Gallery: photos are read from the photos/ folder so adding a picture needs no code change.
 const gallerySections = [
   ['before-after', 'Before and after', 'Real treatment results, shown side by side.'],
   [
@@ -377,83 +526,92 @@ const gallerySections = [
   ['treatments', 'Treatments', 'Our doctors at work.'],
   ['activities', 'Our activities', 'Team, training and events.'],
 ]
-function gallerySection([key, title, blurb]) {
+function gallerySection([key, title, blurb], idx) {
   const files = photosIn(key)
   let items
   if (key === 'before-after') {
     items = beforeAfterPairs()
-      .map((pair) => baFigure(pair, '../'))
+      .map((pair, i) => baFigure(pair, '../', i))
       .join('')
   } else {
     items = files
       .map(
-        (f) =>
-          `<a class="shot" href="../photos/${key}/${esc(f)}"><img src="../photos/${key}/${esc(f)}" alt="${esc(title)}" loading="lazy"></a>`
+        (f, i) =>
+          `<a class="shot"${rv('zoom', i)} href="../photos/${key}/${esc(f)}"><img src="../photos/${key}/${esc(f)}" alt="${esc(title)}" loading="lazy"></a>`
       )
       .join('')
   }
-  return `<section class="section" id="${key}"><div class="wrap"><h2>${esc(title)}</h2><p class="muted">${esc(blurb)}</p>
+  return `<section class="section${idx % 2 ? ' tinted' : ''}" id="${key}"><div class="wrap">${sectionHead('Gallery', title, blurb)}
 ${items ? `<div class="shots">${items}</div>` : `<p class="empty">Photos for this section are being added.</p>`}
 </div></section>`
 }
 page('gallery/', {
   title: `Gallery | ${clinic.name}`,
   description: `See our clinic, our team and real treatment results at ${clinic.name} in Addis Ababa.`,
-  body: `${hero({ eyebrow: 'Gallery', h1: 'See our clinic and our work', text: 'Real photographs from the clinic, our patients and our treatments.', depth: 1 })}
+  body: `${pageHero({ crumbs: ['Gallery'], h1: 'See our clinic and our work', text: 'Real photographs from the clinic, our patients and our treatments.', depth: 1 })}
 ${gallerySections.map(gallerySection).join('')}
-${cta(1, 'Want results like these?')}`,
+${ctaPanel(1, 'Want results like these?')}`,
 })
 
-// About
+// ---- About ------------------------------------------------------------------
 page('about/', {
   title: `About Us | ${clinic.name}`,
   description: `Meet the doctors and learn about the story, mission and values of ${clinic.name} in Addis Ababa.`,
-  body: `${hero({ eyebrow: 'About us', h1: `About ${clinic.name}`, text: clinic.tagline, depth: 1 })}
-<section class="section"><div class="wrap narrow"><h2>Our story</h2><p>${esc(c.story.replace(/\s*TODO:.*$/, ''))}</p></div></section>
-<section class="section tight"><div class="wrap"><figure class="feature"><img src="../images/clinic-team.jpg" alt="The ${esc(clinic.name)} team in front of the clinic sign" width="1600" height="1067" loading="lazy"><figcaption>The ${esc(clinic.name)} team</figcaption></figure></div></section>
-<section class="section alt"><div class="wrap">
+  body: `${pageHero({ crumbs: ['About'], h1: `About ${clinic.name}`, text: clinic.tagline, depth: 1, image: 'images/clinic-team.jpg', alt: `The ${clinic.name} team in front of the clinic sign` })}
+${founderStory(1)}
+<section class="section"><div class="wrap">
+  ${sectionHead('Mission and values', 'What guides our care')}
   <div class="grid">
-    <article class="card"><h3>Our mission</h3><p>${esc(c.mission)}</p></article>
-    <article class="card"><h3>Our vision</h3><p>${esc(c.vision)}</p></article>
-    ${c.values.map((v) => `<article class="card"><h3>${esc(v.title)}</h3><p>${esc(v.text)}</p></article>`).join('')}
+    <article class="card narrow-card" style="padding:24px"${rv('up', 0)}><h3>Our mission</h3><p>${esc(c.mission)}</p></article>
+    <article class="card" style="padding:24px"${rv('up', 1)}><h3>Our vision</h3><p>${esc(c.vision)}</p></article>
+    ${c.values.map((v, i) => `<article class="card" style="padding:24px"${rv('up', i + 2)}><h3>${esc(v.title)}</h3><p>${esc(v.text)}</p></article>`).join('')}
   </div>
 </div></section>
-<section class="section"><div class="wrap"><p class="eyebrow">Meet our team</p><h2>The doctors who will treat you</h2>
-  <div class="grid grid-doctors">${c.doctors.map((d) => doctorCard(d, 1)).join('')}</div></div></section>
-<section class="section alt"><div class="wrap narrow"><h2>Your visit, step by step</h2>
-  <ol class="steps">
-    <li><strong>Consultation.</strong> We listen to your concern and examine your teeth.</li>
-    <li><strong>Plan.</strong> The doctor explains the diagnosis, the options and the cost.</li>
-    <li><strong>Treatment.</strong> Your care is carried out by the right specialist.</li>
-    <li><strong>Follow-up.</strong> We check your recovery and advise you on aftercare.</li>
-  </ol></div></section>
-${cta(1)}`,
+<section class="section tinted" id="team"><div class="wrap">
+  ${sectionHead('Meet our team', 'The doctors who will treat you')}
+  <div class="grid grid-doctors">${c.doctors.map((d, i) => doctorCard(d, 1, i)).join('')}</div>
+</div></section>
+<section class="section dark"><div class="wrap">
+  ${sectionHead('Your visit', 'Step by step')}
+  <div class="grid">${[
+    ['Consultation', 'We listen to your concern and examine your teeth.'],
+    ['Plan', 'The doctor explains the diagnosis, the options and the cost.'],
+    ['Treatment', 'Your care is carried out by the right specialist.'],
+    ['Follow-up', 'We check your recovery and advise you on aftercare.'],
+  ]
+    .map(
+      ([t, x], i) =>
+        `<div class="glass"${rv('up', i)}><span class="tile">${ic(['check', 'sparkle', 'tooth', 'heart'][i])}</span><h3>${i + 1}. ${t}</h3><p>${x}</p></div>`
+    )
+    .join('')}</div>
+</div></section>
+${ctaPanel(1)}`,
 })
 
-// Educational / blog
+// ---- Educational ------------------------------------------------------------
 page('blog/', {
   title: `Dental Health Guides | ${clinic.name}`,
   description: `Dental health information from the doctors at ${clinic.name}, Addis Ababa.`,
-  body: `${hero({ eyebrow: 'Educational', h1: 'Dental health guides', text: 'Information from our doctors about common dental treatments and care.', depth: 1 })}
+  body: `${pageHero({ crumbs: ['Learn'], h1: 'Dental health guides', text: 'Information from our doctors about common dental treatments and care.', depth: 1 })}
 <section class="section"><div class="wrap">
 ${
   c.articles.length
-    ? `<div class="grid">${c.articles.map((a) => `<article class="card"><h3>${esc(a.title)}</h3><p>${esc(a.summary)}</p></article>`).join('')}</div>`
+    ? `<div class="grid">${c.articles.map((a, i) => `<article class="card"${rv('up', i)} style="padding:24px"><h3>${esc(a.title)}</h3><p>${esc(a.summary)}</p></article>`).join('')}</div>`
     : `<p class="empty">Articles from our doctors are coming soon. In the meantime, each treatment page explains what the treatment includes.</p>
-<div class="grid">${c.services.map((s) => serviceCard(s, 1)).join('')}</div>`
+<div class="grid" style="margin-top:24px">${c.services.map((s, i) => serviceCard(s, 1, i % 3)).join('')}</div>`
 }
 </div></section>
-${cta(1)}`,
+${ctaPanel(1)}`,
 })
 
-// Contact + appointment request
+// ---- Contact + appointment request -----------------------------------------
 const serviceOptions = c.services.map((s) => `<option>${esc(s.name)}</option>`).join('')
 page('contact/', {
   title: `Contact and Book an Appointment | ${clinic.name}`,
   description: `Book an appointment or contact ${clinic.name} in ${clinic.city}.`,
-  body: `${hero({ eyebrow: 'Contact', h1: 'Book an appointment', text: 'Tell us what you need and when suits you. We will confirm your time with you.', depth: 1 })}
-<section class="section" id="book"><div class="wrap split">
-  <form id="appointment" class="card form" novalidate data-telegram="${esc(tg)}" data-clinic="${esc(clinic.name)}">
+  body: `${pageHero({ crumbs: ['Contact'], h1: 'Book an appointment', text: 'Tell us what you need and when suits you. We will confirm your time with you.', depth: 1 })}
+<section class="section" id="book"><div class="wrap split" style="align-items:start">
+  <form id="appointment" class="card form" novalidate data-telegram="${esc(tg)}" data-clinic="${esc(clinic.name)}"${rv('left')}>
     <h2>Appointment request</h2>
     <label>Full name<input name="name" required autocomplete="name"></label>
     <label>Phone number<input name="phone" required inputmode="tel" autocomplete="tel"></label>
@@ -468,15 +626,16 @@ page('contact/', {
     <button class="btn" type="submit">${tg ? 'Send request on Telegram' : 'Prepare my request'}</button>
     <p class="form-msg" role="status" aria-live="polite"></p>
   </form>
-  <div>
-    <h2>Find us</h2>
-    <figure class="feature small-feature"><img src="../images/clinic-building.jpg" alt="The building where ${esc(clinic.name)} is located" width="1200" height="1800" loading="lazy"><figcaption>Our building in ${esc(clinic.city)}</figcaption></figure>
+  <div${rv('right')}>
+    <p class="eyebrow">Find us</p>
+    <h2>Visit the clinic</h2>
+    <figure class="feature small-feature"><img src="../images/clinic-building.jpg" alt="The building where ${esc(clinic.name)} is located" width="1200" height="1800" loading="lazy"><figcaption>Our building in ${esc(clinic.area || clinic.city)}</figcaption></figure>
     <ul class="contact-list">
-      <li><strong>Location</strong> ${esc(clinic.city)}${clinic.address ? `, ${esc(clinic.address)}` : ''}</li>
-      ${clinic.hours ? `<li><strong>Hours</strong> ${esc(clinic.hours)}</li>` : ''}
-      ${contactLinks() ? `<li><strong>Phone</strong> ${contactLinks()}</li>` : ''}
-      ${tg ? `<li><strong>Telegram</strong> <a href="https://t.me/${esc(tg)}" data-track="telegram" rel="noopener">@${esc(tg)}</a></li>` : ''}
-      ${clinic.email ? `<li><strong>Email</strong> <a href="mailto:${esc(clinic.email)}">${esc(clinic.email)}</a></li>` : ''}
+      <li><span class="tile">${ic('pin')}</span><span><strong>Location</strong>${esc(clinic.address ? `${clinic.address}, ` : '')}${esc(clinic.city)}</span></li>
+      ${clinic.hours ? `<li><span class="tile">${ic('clock')}</span><span><strong>Hours</strong>${esc(clinic.hours)}</span></li>` : ''}
+      ${contactLine(1) ? `<li><span class="tile">${ic('phone')}</span><span><strong>Phone</strong>${contactLine(1)}</span></li>` : ''}
+      ${tg ? `<li><span class="tile">${ic('arrow')}</span><span><strong>Telegram</strong><a href="https://t.me/${esc(tg)}" data-track="telegram" rel="noopener">@${esc(tg)}</a></span></li>` : ''}
+      ${clinic.email ? `<li><span class="tile">${ic('mail')}</span><span><strong>Email</strong><a href="mailto:${esc(clinic.email)}">${esc(clinic.email)}</a></span></li>` : ''}
     </ul>
     ${clinic.mapEmbedUrl ? `<iframe class="map" title="Map" src="${esc(clinic.mapEmbedUrl)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>` : ''}
     ${clinic.mapUrl ? `<p><a class="btn btn-outline" href="${esc(clinic.mapUrl)}" rel="noopener">Get directions</a></p>` : ''}
@@ -485,7 +644,7 @@ page('contact/', {
 </div></section>`,
 })
 
-// 404 and crawler files
+// ---- 404 and crawler files --------------------------------------------------
 writes.push([
   '404.html',
   layout({
