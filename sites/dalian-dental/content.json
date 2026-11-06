@@ -28,18 +28,18 @@
   },
   "doctors": [
     {
-      "id": "fithalew-lijindi",
-      "name": "Dr. Fithalew Lijindi",
-      "title": "Senior Orthodontist and Dentofacial Orthopedics",
-      "bio": "Senior orthodontist and dentofacial orthopedics specialist. Dr. Fithalew treats children and adults with braces, myofunctional appliances and invisible aligners, and cares for children's teeth.",
-      "photo": "images/doctors/fithalew-lijindi.jpg"
-    },
-    {
       "id": "ferhana-adem",
       "name": "Dr. Ferhana Adem",
       "title": "Founder / Expert Dental Surgeon",
       "bio": "Founder of Dalian Dental Clinic and an expert dental surgeon. Dr. Ferhana provides prosthodontic and cosmetic dental care, root canal treatment, dental hygiene, emergency care and children's dentistry.",
       "photo": "images/doctors/ferhana-adem.jpg"
+    },
+    {
+      "id": "fithalew-lijindi",
+      "name": "Dr. Fithalew Lijindi",
+      "title": "Senior Orthodontist and Dentofacial Orthopedics",
+      "bio": "Senior orthodontist and dentofacial orthopedics specialist. Dr. Fithalew treats children and adults with braces, myofunctional appliances and invisible aligners, and cares for children's teeth.",
+      "photo": "images/doctors/fithalew-lijindi.jpg"
     },
     {
       "id": "abyalew-zewdu",
@@ -519,7 +519,7 @@
       "short": "Urgent help for toothache, knocked-out teeth and jaw injuries.",
       "icon": "emergency",
       "includes": ["Knocked-out teeth", "Toothache", "Mandibular fracture"],
-      "doctors": ["shimelis-megersa", "melese-tabor", "ferhana-adem"],
+      "doctors": ["ferhana-adem", "shimelis-megersa", "melese-tabor"],
       "keywords": "emergency dentist Addis Ababa, toothache",
       "image": "images/treatments/emergency-care.jpg",
       "imageAlt": "A person holding their cheek because of toothache",
@@ -806,11 +806,11 @@
           },
           {
             "src": "photos/treatments/treatment-scene-1.jpg",
-            "caption": "Treatment in progress"
+            "caption": "Examination in the treatment room"
           },
           {
             "src": "photos/treatments/treatment-scene-2.jpg",
-            "caption": "Examination in the treatment room"
+            "caption": "Treatment in progress"
           }
         ]
       },

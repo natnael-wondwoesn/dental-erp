@@ -240,6 +240,30 @@ describe('Dalian Dental landing site', () => {
     expect(sitemap).not.toContain('/blog/')
   })
 
+  it('the founder is listed first wherever doctors are shown', () => {
+    const content = JSON.parse(readFileSync(join(site, 'content.json'), 'utf8'))
+    const founder = content.doctors.find((d: { id: string }) => d.id === content.founder.doctor)
+    const firstDoctor = (html: string, from: string, to: string) => {
+      const part = html.slice(html.indexOf(from), html.indexOf(to, html.indexOf(from)))
+      const names = content.doctors
+        .map((d: { name: string }) => ({ name: d.name, at: part.indexOf(d.name) }))
+        .filter((x: { at: number }) => x.at >= 0)
+        .sort((a: { at: number }, b: { at: number }) => a.at - b.at)
+      return names[0]?.name
+    }
+    const home = readFileSync(join(dist, 'index.html'), 'utf8')
+    expect(firstDoctor(home, 'Specialists you can talk to', 'Behind the scenes')).toBe(founder.name)
+    const gallery = readFileSync(join(dist, 'gallery/index.html'), 'utf8')
+    expect(firstDoctor(gallery, 'id="doctors"', 'id="clinic"')).toBe(founder.name)
+    const about = readFileSync(join(dist, 'about/index.html'), 'utf8')
+    expect(firstDoctor(about, 'id="team"', 'Nurses and staff')).toBe(founder.name)
+    for (const s of content.services) {
+      if (!s.doctors.includes(founder.id)) continue
+      const html = readFileSync(join(dist, 'services', s.slug, 'index.html'), 'utf8')
+      expect(firstDoctor(html, 'id="specialists"', 'id="faq"'), s.slug).toBe(founder.name)
+    }
+  })
+
   it('uses Telegram, not WhatsApp, and shows no unfilled placeholders', () => {
     for (const file of htmlFiles(dist)) {
       const html = readFileSync(file, 'utf8')
