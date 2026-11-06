@@ -159,6 +159,7 @@ describe('Dalian Dental landing site', () => {
     }
     // The four values live inside the Core Values card, not as cards of their own.
     expect(section).not.toMatch(/<h3>(Care|Clarity|Safety|Quality)<\/h3>/)
+  })
 
   it('every treatment page has the five sections, its own title and only its own doctors', () => {
     const content = JSON.parse(readFileSync(join(site, 'content.json'), 'utf8'))
