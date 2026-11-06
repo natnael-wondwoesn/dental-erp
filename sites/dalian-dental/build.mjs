@@ -1,4 +1,4 @@
-// Builds the Dalian Dental Clinic site into ./dist as plain HTML, CSS and JS.
+// Builds the Dalian Speciality Dental Clinic site into ./dist as plain HTML, CSS and JS.
 // No framework and no server: the output can be served by any web server.
 //
 //   node sites/dalian-dental/build.mjs
@@ -254,12 +254,12 @@ function doctorCard(d, depth = 0, i = 0) {
 }
 
 const mediaTones = [
-  'linear-gradient(135deg,#5c2626,#8c3e3e)',
-  'linear-gradient(135deg,#8c3e3e,#ba923b)',
-  'linear-gradient(135deg,#6e2e2e,#a8625a)',
-  'linear-gradient(135deg,#7a5a12,#ba923b)',
-  'linear-gradient(135deg,#4a1d1d,#7a3434)',
-  'linear-gradient(135deg,#a8625a,#d3a58b)',
+  'linear-gradient(135deg,#0a4a7c,#1196e8)',
+  'linear-gradient(135deg,#0b78bf,#5cc4ff)',
+  'linear-gradient(135deg,#0e5f9f,#2aa8f0)',
+  'linear-gradient(135deg,#0a5c99,#7ccbff)',
+  'linear-gradient(135deg,#083a63,#0b78bf)',
+  'linear-gradient(135deg,#2aa8f0,#9ed4f7)',
 ]
 function serviceCard(s, depth, i = 0) {
   const r = rel(depth)
@@ -611,7 +611,7 @@ for (const s of c.services) {
     .join('')}</div>
 </div></section>
 <section class="section" id="specialists"><div class="wrap">
-  ${sectionHead('Assigned medical staff', `Meet Your Specialists for ${s.name}`, 'The doctors who provide this treatment at Dalian Dental Clinic.')}
+  ${sectionHead('Assigned medical staff', `Meet Your Specialists for ${s.name}`, 'The doctors who provide this treatment at Dalian Speciality Dental Clinic.')}
   <div class="spec-grid">${docs.map((d, i) => specialistCard(d, 2, i)).join('')}</div>
 </div></section>
 <section class="section tinted" id="faq"><div class="wrap narrow">
