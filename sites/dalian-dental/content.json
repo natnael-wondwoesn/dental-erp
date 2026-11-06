@@ -230,7 +230,28 @@
       "text": "Specialist doctors and careful, lasting work."
     }
   ],
-  "testimonials": [],
+  "testimonials": [
+    {
+      "text": "Placeholder: Easy to find in Bole and always on time.",
+      "name": "Patient name (placeholder)",
+      "placeholder": true
+    },
+    {
+      "text": "Placeholder: The team explained everything clearly and I felt at ease throughout.",
+      "name": "Patient name (placeholder)",
+      "placeholder": true
+    },
+    {
+      "text": "Placeholder: A calm clinic, a thorough consultation and a clear plan.",
+      "name": "Patient name (placeholder)",
+      "placeholder": true
+    },
+    {
+      "text": "Placeholder: My child was nervous, and the staff were patient and kind.",
+      "name": "Parent name (placeholder)",
+      "placeholder": true
+    }
+  ],
   "articles": [],
   "stats": [
     {
