@@ -1,6 +1,7 @@
-// Small, dependency-free behaviour: mobile menu, slide/fade-in on scroll, count-up statistics and the
-// appointment form. The form does not store anything: it copies the visitor's
-// request and opens a Telegram chat with the clinic, where they paste it.
+// Small, dependency-free behaviour: mobile menu, header that settles on scroll,
+// slide/fade-in reveals, count-up statistics and the appointment form. The form
+// stores nothing: it copies the visitor's request and opens a Telegram chat with
+// the clinic, where they paste it.
 ;(function () {
   var btn = document.querySelector('.menu-btn')
   var nav = document.getElementById('nav')
@@ -10,11 +11,17 @@
       btn.setAttribute('aria-expanded', open ? 'true' : 'false')
       btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu')
     })
+    nav.addEventListener('click', function (e) {
+      if (e.target.closest('a')) {
+        nav.classList.remove('open')
+        btn.setAttribute('aria-expanded', 'false')
+      }
+    })
   }
 
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-  // Header gains a soft shadow once the page scrolls.
+  // Header gains a border and shadow and gets a little shorter once the page scrolls.
   var header = document.querySelector('.site-header')
   if (header) {
     var onScroll = function () {
@@ -24,77 +31,46 @@
     window.addEventListener('scroll', onScroll, { passive: true })
   }
 
-  // Counts a number up when its statistic scrolls into view.
+  // Counts a statistic up from zero when it scrolls into view.
   function countUp(el) {
-    var target = parseInt(el.textContent, 10)
-    if (isNaN(target) || String(target) !== el.textContent.trim()) return
+    var target = parseInt(el.getAttribute('data-count'), 10)
+    var suffix = el.getAttribute('data-suffix') || ''
+    if (isNaN(target) || reduce) return
     var start = null
     function step(ts) {
       if (start === null) start = ts
-      var p = Math.min((ts - start) / 1100, 1)
-      el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)))
+      var p = Math.min((ts - start) / 1400, 1)
+      el.textContent =
+        Math.round(target * (1 - Math.pow(1 - p, 3))).toLocaleString('en-US') + suffix
       if (p < 1) requestAnimationFrame(step)
     }
-    el.textContent = '0'
+    el.textContent = '0' + suffix
     requestAnimationFrame(step)
   }
 
-  if (!reduce && 'IntersectionObserver' in window) {
-    // Items slide in from below; the two halves of a split layout slide in from
-    // opposite sides; siblings in a grid arrive one after another.
-    var selector = [
-      '.card',
-      '.section h2',
-      '.section .eyebrow',
-      '.section .muted',
-      '.section .lead',
-      '.cta .wrap',
-      '.faq',
-      '.ticks li',
-      '.stat-row > div',
-      '.shot',
-      '.ba',
-      '.steps li',
-      '.contact-list li',
-      '.empty',
-      '.map',
-    ].join(',')
-    var items = Array.prototype.slice.call(document.querySelectorAll(selector))
-    document
-      .querySelectorAll('.grid, .shots, .stat-row, .ticks, .steps, .contact-list')
-      .forEach(function (group) {
-        Array.prototype.forEach.call(group.children, function (child, i) {
-          child.style.setProperty('--d', Math.min(i * 90, 540) + 'ms')
-        })
-      })
-    document.querySelectorAll('.split').forEach(function (split) {
-      if (split.children[0]) split.children[0].classList.add('from-left')
-      if (split.children[1]) split.children[1].classList.add('from-right')
-      Array.prototype.forEach.call(split.children, function (child) {
-        if (items.indexOf(child) === -1) items.push(child)
-      })
-    })
+  var targets = Array.prototype.slice.call(document.querySelectorAll('[data-r]'))
+  if (!reduce && 'IntersectionObserver' in window && targets.length) {
+    document.documentElement.classList.add('js-reveal')
     var io = new IntersectionObserver(
       function (entries) {
         entries.forEach(function (e) {
           if (!e.isIntersecting) return
           e.target.classList.add('in')
-          if (e.target.matches('.stat-row > div')) countUp(e.target.querySelector('strong'))
+          e.target.querySelectorAll('[data-count]').forEach(countUp)
           io.unobserve(e.target)
         })
       },
       { threshold: 0, rootMargin: '0px 0px -8% 0px' }
     )
-    items.forEach(function (el) {
-      el.classList.add('reveal')
+    targets.forEach(function (el) {
       io.observe(el)
     })
     // Never leave content hidden if the observer does not fire.
     setTimeout(function () {
-      items.forEach(function (el) {
+      targets.forEach(function (el) {
         el.classList.add('in')
       })
-    }, 3000)
+    }, 4000)
   }
 
   var form = document.getElementById('appointment')
