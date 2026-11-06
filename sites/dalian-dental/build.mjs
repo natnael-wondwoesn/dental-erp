@@ -46,7 +46,7 @@ const pages = [
   ['services/', 'Treatments'],
   ['gallery/', 'Gallery'],
   ['about/', 'About'],
-  ['blog/', 'Learn'],
+  ['learn/', 'Learn'],
   ['contact/', 'Contact'],
 ]
 
@@ -109,7 +109,7 @@ function heroButtons(depth, { variant = 'dark' } = {}) {
   return parts.join('')
 }
 
-function layout({ title, description, depth, body, path = '', jsonld = [] }) {
+function layout({ title, description, depth, body, path = '', jsonld = [], scripts = '' }) {
   const r = rel(depth)
   const nav = pages
     .map(
@@ -217,6 +217,7 @@ ${body}
   <div class="wrap legal">&copy; ${new Date().getFullYear()} ${esc(clinic.name)}. All rights reserved.</div>
 </footer>
 <script src="${r}assets/main.js" defer></script>
+${scripts}
 </body>
 </html>
 `
@@ -739,21 +740,350 @@ ${founderStory(1)}
 ${ctaPanel(1)}`,
 })
 
-// ---- Educational ------------------------------------------------------------
-page('blog/', {
-  title: `Dental Health Guides | ${clinic.name}`,
-  description: `Dental health information from the doctors at ${clinic.name}, Addis Ababa.`,
-  body: `${pageHero({ crumbs: ['Learn'], h1: 'Dental health guides', text: 'Information from our doctors about common dental treatments and care.', depth: 1 })}
-<section class="section"><div class="wrap">
-${
-  c.articles.length
-    ? `<div class="grid">${c.articles.map((a, i) => `<article class="card"${rv('up', i)} style="padding:24px"><h3>${esc(a.title)}</h3><p>${esc(a.summary)}</p></article>`).join('')}</div>`
-    : `<p class="empty">Articles from our doctors are coming soon. In the meantime, each treatment page explains what the treatment includes.</p>
-<div class="grid" style="margin-top:24px">${c.services.map((s, i) => serviceCard(s, 1, i % 3)).join('')}</div>`
+// ---- Learn: SEO education hub and article pages ---------------------------------
+// Articles live in articles/*.md: a JSON header, then a small Markdown body. Adding a file
+// there publishes a new article (own URL, listed on the hub, added to the sitemap).
+const slugify = (s) =>
+  String(s)
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+const categoryOrder = [
+  'Tooth Pain & Sensitivity',
+  'Gum Health',
+  'Dental Treatments',
+  'Cosmetic Dentistry',
+  'Oral Hygiene & Prevention',
+  "Children's Dental Health",
+  'Dental Implants',
+  'Braces & Teeth Alignment',
+  'Dental Emergencies',
+]
+const inline = (s) =>
+  esc(s)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" rel="noopener">$1</a>')
+function renderMarkdown(src) {
+  const html = []
+  const toc = []
+  let list = null
+  let ordered = false
+  const close = () => {
+    if (list) html.push(ordered ? '</ol>' : '</ul>')
+    list = null
+  }
+  let para = []
+  const flush = () => {
+    if (para.length) html.push(`<p>${inline(para.join(' '))}</p>`)
+    para = []
+  }
+  for (const raw of src.split('\n')) {
+    const line = raw.trimEnd()
+    if (/^## /.test(line)) {
+      flush()
+      close()
+      const text = line.slice(3)
+      const id = slugify(text)
+      toc.push({ id, text })
+      html.push(`<h2 id="${id}">${esc(text)}</h2>`)
+    } else if (/^### /.test(line)) {
+      flush()
+      close()
+      html.push(`<h3>${esc(line.slice(4))}</h3>`)
+    } else if (/^- /.test(line)) {
+      flush()
+      if (!list || ordered) {
+        close()
+        list = []
+        ordered = false
+        html.push('<ul>')
+      }
+      html.push(`<li>${inline(line.slice(2))}</li>`)
+    } else if (/^\d+\. /.test(line)) {
+      flush()
+      if (!list || !ordered) {
+        close()
+        list = []
+        ordered = true
+        html.push('<ol>')
+      }
+      html.push(`<li>${inline(line.replace(/^\d+\. /, ''))}</li>`)
+    } else if (line.trim() === '') {
+      flush()
+      close()
+    } else {
+      para.push(line.trim())
+    }
+  }
+  flush()
+  close()
+  return { html: html.join('\n'), toc }
 }
+const articlesDir = join(here, 'articles')
+const articles = existsSync(articlesDir)
+  ? readdirSync(articlesDir)
+      .filter((f) => f.endsWith('.md'))
+      .map((f) => {
+        const raw = readFileSync(join(articlesDir, f), 'utf8')
+        const m = raw.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/)
+        const meta = JSON.parse(m[1])
+        const { html, toc } = renderMarkdown(m[2])
+        const words =
+          m[2].split(/\s+/).length +
+          (meta.faq || []).reduce((n, q) => n + q.a.split(/\s+/).length, 0)
+        return {
+          ...meta,
+          html,
+          toc,
+          minutes: Math.max(1, Math.round(words / 200)),
+          catSlug: slugify(meta.category),
+        }
+      })
+      .sort(
+        (x, y) =>
+          (y.published || '').localeCompare(x.published || '') || x.title.localeCompare(y.title)
+      )
+  : []
+const articleBySlug = Object.fromEntries(articles.map((a) => [a.slug, a]))
+const usedCategories = categoryOrder.filter((n) => articles.some((a) => a.category === n))
+const longDate = (iso) =>
+  new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
+
+function articleCard(a, depth, i = 0, extra = '') {
+  const r = rel(depth)
+  const media = a.image
+    ? `<img src="${r}${esc(a.image)}" alt="${esc(a.imageAlt || a.title)}" loading="lazy" width="600" height="400">`
+    : `<span class="ph">${ic('tooth')}</span>`
+  const text = `${a.title} ${a.description} ${a.keywords || ''} ${a.category}`.toLowerCase()
+  return `<article class="card acard${extra}"${rv('up', i % 3)} data-cat="${a.catSlug}" data-text="${esc(text)}">
+  <a class="amedia" href="${r}learn/${esc(a.slug)}/" tabindex="-1" aria-hidden="true">${media}</a>
+  <div class="abody">
+    <p class="achip">${esc(a.category)}</p>
+    <h3><a href="${r}learn/${esc(a.slug)}/">${esc(a.title)}</a></h3>
+    <p>${esc(a.description)}</p>
+    <p class="ameta">${a.minutes} min read</p>
+    <a class="more" href="${r}learn/${esc(a.slug)}/">Read article ${ic('arrow')}</a>
+  </div>
+</article>`
+}
+
+const featuredSlugs = [
+  'bleeding-gums-causes-and-treatment',
+  'why-do-my-teeth-hurt-with-cold-drinks',
+  'brushing-flossing-and-preventing-cavities',
+]
+const popularTopics = ['Bleeding gums', 'Tooth sensitivity', 'Root canal', 'Whitening', 'Braces']
+const commonQuestions = [
+  [
+    'What causes bleeding gums?',
+    'Most often plaque and tartar building up along the gum line and inflaming the gums.',
+    'bleeding-gums-causes-and-treatment',
+  ],
+  [
+    'Why do my teeth hurt when drinking cold water?',
+    'Often exposed dentine, but a cavity or crack can feel the same, so it is worth having it checked.',
+    'why-do-my-teeth-hurt-with-cold-drinks',
+  ],
+  [
+    'How often should I visit a dentist?',
+    'It depends on your risk of dental disease. Guidance says the interval should be set for each person.',
+    'how-often-should-i-see-a-dentist',
+  ],
+  [
+    'Is teeth whitening safe?',
+    'For most healthy adults, when done properly. Sensitivity and gum irritation are the main side effects.',
+    'is-teeth-whitening-safe',
+  ],
+  [
+    'What should I do if a tooth is knocked out?',
+    'Pick it up by the crown, rinse gently and put it back if you can, then see a dentist immediately.',
+    'knocked-out-tooth-first-aid',
+  ],
+]
+
+function learnCta(depth) {
+  const r = rel(depth)
+  return `<section class="cta-section"><div class="wrap"><div class="cta-panel"${rv('zoom')}>
+  <h2>Ready to Take Care of Your Smile?</h2>
+  <p>Book a visit and our doctors will examine you, explain the options and answer your questions.</p>
+  <div class="btn-row"><a class="btn btn-white" href="${r}contact/#book" data-track="book">Book an Appointment</a><a class="btn btn-ghost" href="${r}contact/" data-track="contact">Contact Our Clinic</a></div>
+</div></div></section>`
+}
+
+page('learn/', {
+  title: `Dental Health Guides and Advice | ${clinic.name}`,
+  description: `Evidence-based dental health information: tooth pain, gum health, treatments, cosmetic dentistry, oral hygiene, children's teeth, implants and braces, from ${clinic.name} in Addis Ababa.`,
+  scripts: '<script src="../assets/learn.js" defer></script>',
+  jsonld: [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: 'Dental health guides',
+      ...(base && { url: `${base}/learn/` }),
+      hasPart: articles.map((a) => ({
+        '@type': 'Article',
+        headline: a.title,
+        ...(base && { url: `${base}/learn/${a.slug}/` }),
+      })),
+    },
+  ],
+  body: `<section class="hero compact">
+  <div class="hero-bg"></div><div class="orb orb-a"></div><div class="orb orb-b"></div><span class="dot dot-b"></span>
+  <div class="wrap hero-grid solo">
+    <div class="hero-copy">
+      <p class="crumbs"><a href="../index.html">Home</a> / Learn</p>
+      <p class="kicker">Dental education</p>
+      <h1>Your Guide to Better Oral Health</h1>
+      <p class="lead">Clear, evidence-based answers to common dental questions, with sources, from the team at ${esc(clinic.name)}.</p>
+      <form class="learn-search" role="search" id="learn-search-form">
+        <label class="sr" for="learn-search">Search dental health topics</label>
+        <input id="learn-search" type="search" placeholder="Search dental health topics..." autocomplete="off">
+        <button class="btn btn-white" type="submit">Search</button>
+      </form>
+      <div class="pop"><span>Popular:</span>${popularTopics.map((t) => `<a href="?q=${encodeURIComponent(t.toLowerCase())}#latest" data-q="${esc(t.toLowerCase())}">${esc(t)}</a>`).join('')}</div>
+    </div>
+  </div>
+</section>
+<section class="section" id="topics"><div class="wrap">
+  ${sectionHead('Browse by topic', 'Find what you are looking for')}
+  <div class="grid topics">${usedCategories
+    .map((n, i) => {
+      const count = articles.filter((a) => a.category === n).length
+      return `<a class="card topic"${rv('up', i % 4)} href="?cat=${slugify(n)}#latest" data-cat="${slugify(n)}"><span class="tile">${ic(['sparkle', 'heart', 'tooth', 'sparkle', 'check', 'family', 'shield', 'tooth', 'phone'][i % 9])}</span><strong>${esc(n)}</strong><small>${count} article${count === 1 ? '' : 's'}</small></a>`
+    })
+    .join('')}</div>
 </div></section>
-${ctaPanel(1)}`,
+<section class="section tinted"><div class="wrap">
+  ${sectionHead('Featured', 'Start here')}
+  <div class="grid">${featuredSlugs
+    .map((s) => articleBySlug[s])
+    .filter(Boolean)
+    .map((a, i) => articleCard(a, 1, i, ' featured'))
+    .join('')}</div>
+</div></section>
+<section class="section" id="latest"><div class="wrap">
+  ${sectionHead('Latest articles', 'All dental articles')}
+  <div class="chips-row" id="learn-chips" role="group" aria-label="Filter by topic"><button type="button" class="chip-btn active" data-cat="all">All</button>${usedCategories.map((n) => `<button type="button" class="chip-btn" data-cat="${slugify(n)}">${esc(n)}</button>`).join('')}</div>
+  <p class="result-count" id="learn-count" role="status" aria-live="polite"></p>
+  <div class="grid" id="learn-grid">${articles.map((a, i) => articleCard(a, 1, i)).join('')}</div>
+  <p class="empty" id="learn-empty" hidden>No articles match your search. Try another word or choose All.</p>
+  <nav class="pager" id="learn-pager" aria-label="Article pages"></nav>
+</div></section>
+<section class="section tinted"><div class="wrap faq-wrap">
+  <div${rv('left')}>
+    <p class="eyebrow">Common dental questions</p>
+    <h2>Quick answers</h2>
+    <p>Short answers, with a link to the full article behind each one.</p>
+  </div>
+  <div class="faq-card"${rv('right')}>${commonQuestions
+    .map(
+      ([q, a, slug]) =>
+        `<details class="faq"><summary>${esc(q)} ${ic('chevron')}</summary><p>${esc(a)} <a href="./${slug}/">Read the full article</a>.</p></details>`
+    )
+    .join('')}</div>
+</div></section>
+${learnCta(1)}`,
 })
+
+for (const a of articles) {
+  const related = (a.related || []).map((s) => articleBySlug[s]).filter(Boolean)
+  const url = base ? `${base}/learn/${a.slug}/` : ''
+  const service = c.services.find((s) => (a.serviceLinks || []).includes(s.slug))
+  page(`learn/${a.slug}/`, {
+    title: `${a.title} | ${clinic.name}`,
+    description: a.description,
+    jsonld: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: a.title,
+        description: a.description,
+        datePublished: a.published,
+        dateModified: a.published,
+        author: { '@type': 'Organization', name: a.author },
+        publisher: { '@type': 'Organization', name: clinic.name },
+        ...(url && { mainEntityOfPage: url }),
+        ...(base && a.image && { image: `${base}/${a.image}` }),
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', ...(base && { item: `${base}/` }) },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Learn',
+            ...(base && { item: `${base}/learn/` }),
+          },
+          { '@type': 'ListItem', position: 3, name: a.title, ...(url && { item: url }) },
+        ],
+      },
+      ...((a.faq || []).length
+        ? [
+            {
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: a.faq.map((f) => ({
+                '@type': 'Question',
+                name: f.q,
+                acceptedAnswer: { '@type': 'Answer', text: f.a },
+              })),
+            },
+          ]
+        : []),
+    ],
+    body: `<section class="hero compact article-hero">
+  <div class="hero-bg"></div><div class="orb orb-a"></div><span class="dot dot-b"></span>
+  <div class="wrap">
+    <div class="hero-copy narrow-hero">
+      <p class="crumbs"><a href="../../index.html">Home</a> / <a href="../">Learn</a> / ${esc(a.category)}</p>
+      <h1>${esc(a.title)}</h1>
+      <p class="lead">${esc(a.intro)}</p>
+      <p class="byline"><span>By ${esc(a.author)}</span><span>Published ${longDate(a.published)}</span><span>${a.minutes} min read</span></p>
+    </div>
+  </div>
+</section>
+<section class="section article"><div class="wrap article-grid">
+  <aside class="toc" aria-label="Table of contents"${rv('left')}>
+    <p class="eyebrow">In this article</p>
+    <ol>${a.toc.map((t) => `<li><a href="#${t.id}">${esc(t.text)}</a></li>`).join('')}${(a.faq || []).length ? '<li><a href="#faq">Frequently asked questions</a></li>' : ''}<li><a href="#sources">Sources</a></li></ol>
+  </aside>
+  <article class="prose">
+    ${a.image ? `<figure class="featured-img"><img src="../../${esc(a.image)}" alt="${esc(a.imageAlt || a.title)}" width="900" height="600" fetchpriority="high"></figure>` : ''}
+    <p class="notice"><strong>Medical review:</strong> ${esc(a.reviewStatus)} This page is general information, not a diagnosis. Please see a dentist about your own teeth.</p>
+    ${a.html}
+    ${(a.faq || []).length ? `<h2 id="faq">Frequently asked questions</h2><div class="faq-card inline">${a.faq.map((f) => `<details class="faq"><summary>${esc(f.q)} ${ic('chevron')}</summary><p>${esc(f.a)}</p></details>`).join('')}</div>` : ''}
+    <h2 id="sources">Sources</h2>
+    <ol class="sources">${a.sources
+      .map(
+        (s) =>
+          `<li>${s.url ? `<a href="${esc(s.url)}" rel="noopener">${esc(s.label)}</a>` : esc(s.label)}</li>`
+      )
+      .join('')}</ol>
+    <p class="muted small">Information can change as new research is published. Last reviewed ${longDate(a.published)}.</p>
+  </article>
+</div></section>
+${
+  related.length
+    ? `<section class="section tinted"><div class="wrap">${sectionHead('Keep reading', 'Related articles')}<div class="grid">${related.map((x, i) => articleCard(x, 2, i)).join('')}</div></div></section>`
+    : ''
+}
+${learnCta(2)}`,
+  })
+}
+
+// The old /blog/ address now points at /learn/.
+writes.push([
+  'blog/index.html',
+  `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Moved to Learn</title><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0; url=../learn/"><link rel="canonical" href="${base ? `${base}/learn/` : '../learn/'}"></head><body><h1>Moved to Learn</h1><p>This page has moved to <a href="../learn/">Learn</a>.</p></body></html>\n`,
+])
 
 // ---- Contact + appointment request -----------------------------------------
 const serviceOptions = c.services.map((s) => `<option>${esc(s.name)}</option>`).join('')
@@ -811,7 +1141,9 @@ writes.push([
   `User-agent: *\nAllow: /\n${base ? `Sitemap: ${base}/sitemap.xml\n` : ''}`,
 ])
 if (base) {
-  const urls = writes.map(([p]) => p).filter((p) => p.endsWith('.html') && p !== '404.html')
+  const urls = writes
+    .map(([p]) => p)
+    .filter((p) => p.endsWith('.html') && p !== '404.html' && p !== 'blog/index.html')
   writes.push([
     'sitemap.xml',
     `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
@@ -827,7 +1159,8 @@ for (const [path, html] of writes) {
   writeFileSync(file, html)
 }
 mkdirSync(join(out, 'assets'), { recursive: true })
-for (const f of ['style.css', 'main.js']) cpSync(join(here, 'assets', f), join(out, 'assets', f))
+for (const f of ['style.css', 'main.js', 'learn.js'])
+  cpSync(join(here, 'assets', f), join(out, 'assets', f))
 // House fonts shared by every landing site: Inter (primary) and Poppins (secondary).
 cpSync(join(here, '..', '_shared', 'fonts.css'), join(out, 'assets', 'fonts.css'))
 cpSync(join(here, '..', '_shared', 'fonts'), join(out, 'assets', 'fonts'), { recursive: true })

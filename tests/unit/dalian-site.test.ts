@@ -22,7 +22,7 @@ describe('Dalian Dental landing site', () => {
 
   it('builds every page, including one page per treatment', () => {
     const content = JSON.parse(readFileSync(join(site, 'content.json'), 'utf8'))
-    for (const path of ['index.html', 'services', 'gallery', 'about', 'blog', 'contact']) {
+    for (const path of ['index.html', 'services', 'gallery', 'about', 'learn', 'contact']) {
       expect(existsSync(join(dist, path === 'index.html' ? path : `${path}/index.html`))).toBe(true)
     }
     for (const s of content.services) {
@@ -202,6 +202,42 @@ describe('Dalian Dental landing site', () => {
     // The Services page links every card to its own treatment page.
     const index = readFileSync(join(dist, 'services/index.html'), 'utf8')
     for (const s of content.services) expect(index).toContain(`href="../services/${s.slug}/"`)
+  })
+
+  it('Learn hub: every article has its own page, unique SEO tags, structured data, sources and a sitemap entry', () => {
+    const dir = join(site, 'articles')
+    const slugs = readdirSync(dir)
+      .filter((f) => f.endsWith('.md'))
+      .map((f) => f.replace(/\.md$/, ''))
+    expect(slugs.length).toBeGreaterThanOrEqual(9)
+    const titles = new Set<string>()
+    const descriptions = new Set<string>()
+    for (const slug of slugs) {
+      const html = readFileSync(join(dist, 'learn', slug, 'index.html'), 'utf8')
+      const title = html.match(/<title>([^<]+)<\/title>/)![1]
+      const description = html.match(/<meta name="description" content="([^"]+)"/)![1]
+      expect(titles.has(title), `duplicate title ${title}`).toBe(false)
+      expect(descriptions.has(description), `duplicate description ${slug}`).toBe(false)
+      titles.add(title)
+      descriptions.add(description)
+      expect(html).toContain('"@type":"Article"')
+      expect(html).toContain('"@type":"BreadcrumbList"')
+      expect(html).toContain('id="sources"')
+      expect(html).toContain('id="faq"')
+      expect(html).toContain('Table of contents')
+      expect(html.match(/<h1/g)?.length).toBe(1)
+      // Every article cites at least one source and says medical review is pending.
+      expect(html.match(/<ol class="sources">[\s\S]*?<li>/)).not.toBeNull()
+      expect(html).toContain('Clinical review by a Dalian Dental Clinic dentist is pending')
+    }
+    const hub = readFileSync(join(dist, 'learn/index.html'), 'utf8')
+    expect(hub).toContain('Your Guide to Better Oral Health')
+    expect(hub).toContain('Search dental health topics...')
+    expect(hub).toContain('Ready to Take Care of Your Smile?')
+    for (const slug of slugs) expect(hub).toContain(`/learn/${slug}/`)
+    const sitemap = readFileSync(join(dist, 'sitemap.xml'), 'utf8')
+    for (const slug of slugs) expect(sitemap).toContain(`/learn/${slug}/`)
+    expect(sitemap).not.toContain('/blog/')
   })
 
   it('uses Telegram, not WhatsApp, and shows no unfilled placeholders', () => {

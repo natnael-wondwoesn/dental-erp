@@ -8,3 +8,6 @@ uploads
 package-lock.json
 prisma/migrations
 *.tsbuildinfo
+
+# Article sources are Markdown with a JSON header; Prettier would rewrite the header.
+sites/dalian-dental/articles/
