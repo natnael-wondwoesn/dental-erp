@@ -43,8 +43,6 @@ const baseMetadata: Metadata = {
     'dental lab management',
     'multi-branch dental software',
   ],
-  authors: [{ name: 'Abinauv Selvaraj' }],
-  creator: 'Abinauv Selvaraj',
   manifest: '/manifest.json',
   openGraph: {
     type: 'website',
@@ -74,11 +72,17 @@ export async function generateMetadata(): Promise<Metadata> {
   if (saasEnforcement() === 'disabled') return baseMetadata
   const profile = await publicBrand()
   const name = profile?.branding.displayName || profile?.name || 'Dental Clinic'
+  // Link previews (Telegram, WhatsApp, Facebook) show these fields, so they must describe the
+  // clinic itself: its name, not the software's author or the generic product description.
+  const description = `${name}: dental care, appointments and patient services.`
   return {
     ...baseMetadata,
     title: { default: name, template: `%s | ${name}` },
-    openGraph: { ...baseMetadata.openGraph, title: name, siteName: name },
-    twitter: { ...baseMetadata.twitter, title: name },
+    description,
+    authors: [{ name }],
+    creator: name,
+    openGraph: { ...baseMetadata.openGraph, title: name, description, siteName: name },
+    twitter: { ...baseMetadata.twitter, title: name, description },
     appleWebApp: { capable: true, title: name },
     robots: { index: false, follow: false },
   }
