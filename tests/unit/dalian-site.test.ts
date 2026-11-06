@@ -299,6 +299,34 @@ describe('Dalian Dental landing site', () => {
     }
   })
 
+  it('service copy matches the latest wording from the clinic', () => {
+    const page = (slug: string) => readFileSync(join(dist, 'services', slug, 'index.html'), 'utf8')
+    for (const [slug, name] of [
+      ['prosthodontics', 'Prosthodontics'],
+      ['root-canal', 'Root Canal Treatment'],
+      ['cosmetic-dentistry', 'Cosmetic Dentistry'],
+      ['dental-hygiene', 'Dental Hygiene'],
+      ['pediatric-dentistry', 'Pediatric Dentistry'],
+    ]) {
+      expect(page(slug)).toContain(`Meet Your Expert and Senior Dentist for ${name}`)
+    }
+    expect(page('pediatric-dentistry')).toContain('Baby Root Canal')
+    const hygiene = page('dental-hygiene')
+    expect(hygiene).toContain('Oral Hygiene Guidance')
+    expect(hygiene).toContain('Scaling and Root Planing')
+    expect(hygiene).not.toContain('Mouth Hygiene Guidance')
+    const surgery = page('oral-surgery')
+    expect(surgery).toContain('Disimpaction')
+    expect(surgery).not.toContain('Disinfection')
+    expect(surgery).toContain('Treatment of Serious Pathologies')
+    expect(surgery.match(/<details class="faq"/g)?.length).toBe(3)
+    const implants = page('dental-implants')
+    expect(implants).toContain('Implants After Bone Grafts')
+    expect(implants).not.toContain('Implant-Supported Bridges')
+    expect(implants).toContain('images/treatments/dental-implants.jpg')
+    expect(page('root-canal')).toContain('Treatment to relieve pain and save the tooth.')
+  })
+
   it('every page has the floating WhatsApp button linking to the clinic number', () => {
     for (const file of htmlFiles(dist)) {
       const html = readFileSync(file, 'utf8')
