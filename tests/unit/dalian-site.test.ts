@@ -327,6 +327,12 @@ describe('Dalian Dental landing site', () => {
     expect(page('root-canal')).toContain('Treatment to relieve pain and save the tooth.')
   })
 
+  it('home hero headline is "We Care For Your Smile!"', () => {
+    const home = readFileSync(join(dist, 'index.html'), 'utf8')
+    expect(home).toMatch(/<h1>We Care For Your Smile!<\/h1>/)
+    expect(home).not.toMatch(/<h1>Changing Lives One Smile At A Time<\/h1>/)
+  })
+
   it('every page has the floating WhatsApp button linking to the clinic number', () => {
     for (const file of htmlFiles(dist)) {
       const html = readFileSync(file, 'utf8')

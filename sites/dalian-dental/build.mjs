@@ -465,7 +465,7 @@ page('index.html', {
   body: `${heroHome({
     pill: clinic.hoursShort,
     kicker: `${clinic.name}${clinic.area ? ` · ${clinic.area}` : ''}`,
-    h1: clinic.tagline,
+    h1: clinic.heroTitle || clinic.tagline,
     text: `We treat you with care. Thorough consultations, tailored treatment plans and specialist doctors, all under one roof in ${clinic.city}.`,
     depth: 0,
     image: 'images/doctors-team.jpg',
