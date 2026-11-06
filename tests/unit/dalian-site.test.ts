@@ -346,6 +346,14 @@ describe('Dalian Dental landing site', () => {
     }
   })
 
+  it('prosthodontics page shows the before-and-after video in its results grid', () => {
+    const html = readFileSync(join(dist, 'services/prosthodontics/index.html'), 'utf8')
+    expect(html).toContain('<video')
+    expect(html).toContain('videos/prosthodontics-before-after.mp4')
+    expect(existsSync(join(dist, 'videos/prosthodontics-before-after.mp4'))).toBe(true)
+    expect(existsSync(join(dist, 'videos/prosthodontics-before-after.jpg'))).toBe(true)
+  })
+
   it('every page has the floating WhatsApp button linking to the clinic number', () => {
     for (const file of htmlFiles(dist)) {
       const html = readFileSync(file, 'utf8')

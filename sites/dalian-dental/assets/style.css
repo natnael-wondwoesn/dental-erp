@@ -2507,3 +2507,34 @@ body.lb-open .wa-float {
 .site-header .brand:hover .brand-mark {
   transform: scale(1.06);
 }
+
+.video-case .video-frame {
+  position: relative;
+  background: #0f2336;
+}
+.video-case video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  background: #0f2336;
+}
+.video-case .video-chip {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  background: var(--brand-2);
+  color: #fff;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font: 600 0.72rem var(--font-secondary);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+.ba.video-case figcaption span {
+  display: block;
+  color: var(--muted, #66727f);
+  font-size: 0.9rem;
+  margin-top: 4px;
+}

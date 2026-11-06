@@ -435,6 +435,11 @@ function baFigure(pair, prefix, i = 0, extra = '') {
   return `<figure class="ba case${extra}"${rv('up', i % 3)}><div class="ba-pair">${half(pair.before, 'Before')}${half(pair.after, 'After')}</div><figcaption><strong>${esc(pair.title)}</strong>${pair.text ? `<span>${esc(pair.text)}</span>` : ''}</figcaption></figure>`
 }
 
+// A short, muted, looping clip in the same card style as the before/after photo cases.
+function videoFigure(v, prefix, i = 0) {
+  return `<figure class="ba case video-case"${rv('up', i % 3)}><div class="video-frame"><video controls muted loop playsinline preload="metadata" poster="${prefix}${esc(v.poster)}" aria-label="${esc(v.alt || v.title)}"><source src="${prefix}${esc(v.src)}#t=2" type="video/mp4">Your browser cannot play this video.</video><span class="video-chip">Video</span></div><figcaption><strong>${esc(v.title)}</strong>${v.text ? `<span>${esc(v.text)}</span>` : ''}</figcaption></figure>`
+}
+
 const writes = []
 function page(path, opts) {
   const depth = path === 'index.html' ? 0 : path.split('/').length - 1
@@ -628,10 +633,10 @@ for (const s of c.services) {
     .join('')}</div>
 </div></section>
 <section class="section" id="results"><div class="wrap">
-  ${sectionHead('Real results', `${s.name}: Before & After`, cases.length ? `Photographs of real ${clinic.name} patients.` : '')}
+  ${sectionHead('Real results', `${s.name}: Before & After`, cases.length || s.video ? `Photographs${s.video ? ' and video' : ''} of real ${clinic.name} patients.` : '')}
   ${
-    cases.length
-      ? `<div class="case-grid">${cases.map((pair, i) => baFigure(pair, '../../', i)).join('')}</div>`
+    cases.length || s.video
+      ? `<div class="case-grid">${cases.map((pair, i) => baFigure(pair, '../../', i)).join('')}${s.video ? videoFigure(s.video, '../../', cases.length) : ''}</div>`
       : `<div class="empty">Before-and-after photographs for ${esc(s.name.toLowerCase())} will be added here. In the meantime, see our <a href="../../gallery/#results">other treatment results</a> or ask us about this treatment at your consultation.</div>`
   }
 </div></section>
@@ -1186,6 +1191,8 @@ cpSync(join(here, '..', '_shared', 'fonts.css'), join(out, 'assets', 'fonts.css'
 cpSync(join(here, '..', '_shared', 'fonts'), join(out, 'assets', 'fonts'), { recursive: true })
 if (existsSync(join(here, 'images')))
   cpSync(join(here, 'images'), join(out, 'images'), { recursive: true })
+if (existsSync(join(here, 'videos')))
+  cpSync(join(here, 'videos'), join(out, 'videos'), { recursive: true })
 if (existsSync(join(here, 'photos')))
   cpSync(join(here, 'photos'), join(out, 'photos'), { recursive: true })
 if (existsSync(join(here, 'public'))) cpSync(join(here, 'public'), out, { recursive: true })

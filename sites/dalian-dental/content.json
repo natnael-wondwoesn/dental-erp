@@ -207,6 +207,13 @@
           }
         ],
         "specialistsHeading": "Meet Your Expert and Senior Dentist for Prosthodontics"
+      },
+      "video": {
+        "src": "videos/prosthodontics-before-after.mp4",
+        "poster": "videos/prosthodontics-before-after.jpg",
+        "title": "Treatment Video",
+        "text": "Footage from the clinic: the patient's mouth before restoration.",
+        "alt": "Video of a patient's mouth with damaged upper and lower teeth before prosthodontic treatment"
       }
     },
     {
