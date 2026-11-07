@@ -83,8 +83,11 @@ describe('Dalian Dental landing site', () => {
     ]) {
       expect(home).toContain(label)
     }
-    expect(home).toContain('data-count="1000"')
+    expect(home).toContain('data-count="5000"')
     expect(home).toContain('data-count="13"')
+    expect(home).toContain('data-count="4"')
+    expect(home).not.toContain('What we stand for')
+    expect(home).toContain('Step by step')
     expect(home).toContain('Founded by Dr. Ferhana Adem')
     expect(home).toContain('Founder / Expert Dental Surgeon')
     expect(home).toContain('images/doctor-gloves.jpg')
@@ -269,7 +272,7 @@ describe('Dalian Dental landing site', () => {
       return names[0]?.name
     }
     const home = readFileSync(join(dist, 'index.html'), 'utf8')
-    expect(firstDoctor(home, 'Specialists you can talk to', 'Our core values')).toBe(founder.name)
+    expect(firstDoctor(home, 'Specialists you can talk to', 'Your visit')).toBe(founder.name)
     const gallery = readFileSync(join(dist, 'gallery/index.html'), 'utf8')
     expect(firstDoctor(gallery, 'id="doctors"', 'id="clinic"')).toBe(founder.name)
     const about = readFileSync(join(dist, 'about/index.html'), 'utf8')

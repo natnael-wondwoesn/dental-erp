@@ -367,6 +367,23 @@ function founderStory(depth) {
 </div></section>`
 }
 
+function visitSteps() {
+  return `<section class="section dark"><div class="wrap">
+  ${sectionHead('Your visit', 'Step by step')}
+  <div class="grid">${[
+    ['Consultation', 'We listen to your concern and examine your teeth.'],
+    ['Plan', 'The doctor explains the diagnosis, the options and the cost.'],
+    ['Treatment', 'Your care is carried out by the right specialist.'],
+    ['Follow-up', 'We check your recovery and advise you on aftercare.'],
+  ]
+    .map(
+      ([t, x], i) =>
+        `<div class="glass"${rv('up', i)}><span class="tile">${ic(['check', 'sparkle', 'tooth', 'heart'][i])}</span><h3>${i + 1}. ${t}</h3><p>${x}</p></div>`
+    )
+    .join('')}</div>
+</div></section>`
+}
+
 function trustRow() {
   return `<section class="trust"><div class="wrap trust-row">${c.stats
     .map((s, i) => {
@@ -449,16 +466,6 @@ function page(path, opts) {
   writes.push([path.endsWith('/') ? `${path}index.html` : path, layout({ ...opts, depth, path })])
 }
 
-const valueIcons = {
-  Professionalism: 'check',
-  Integrity: 'shield',
-  'Patient Safety': 'shield',
-  Compassion: 'heart',
-  Teamwork: 'family',
-  'Continuous Improvement': 'sparkle',
-  Trust: 'check',
-  Innovation: 'tooth',
-}
 const mosaic = [
   ['images/clinic-building.jpg', 'Our clinic building', ''],
   ['images/clinic-team.jpg', 'The Dalian team', 'wide'],
@@ -495,15 +502,7 @@ ${founderStory(0)}
   <div class="grid grid-doctors">${c.doctors.map((d, i) => doctorCard(d, 0, i)).join('')}</div>
   <p style="margin-top:28px"><a class="btn btn-outline" href="./about/#team">Meet the team</a></p>
 </div></section>
-<section class="section dark"><div class="wrap">
-  ${sectionHead('Our core values', 'What we stand for', 'The principles behind every visit.')}
-  <div class="grid values-grid">${c.values
-    .map(
-      (v, i) =>
-        `<div class="glass compact"${rv('up', i % 4)}><span class="tile">${ic(valueIcons[v.title] || 'check')}</span><h3>${esc(v.title)}</h3></div>`
-    )
-    .join('')}</div>
-</div></section>
+${visitSteps()}
 ${
   c.testimonials.length
     ? `<section class="section"><div class="wrap">${sectionHead('Patient voices', 'What patients say', c.testimonials.some((t) => t.placeholder) ? 'Placeholder testimonials. Replace with real, consented patient feedback before launch.' : '')}</div><div class="marquee" aria-label="Patient testimonials"><div class="marquee-track">${[
@@ -751,20 +750,7 @@ ${founderStory(1)}
   ${sectionHead('Meet our team', 'The doctors who will treat you')}
   <div class="grid grid-doctors">${c.doctors.map((d, i) => doctorCard(d, 1, i)).join('')}</div>
 </div></section>
-<section class="section dark"><div class="wrap">
-  ${sectionHead('Your visit', 'Step by step')}
-  <div class="grid">${[
-    ['Consultation', 'We listen to your concern and examine your teeth.'],
-    ['Plan', 'The doctor explains the diagnosis, the options and the cost.'],
-    ['Treatment', 'Your care is carried out by the right specialist.'],
-    ['Follow-up', 'We check your recovery and advise you on aftercare.'],
-  ]
-    .map(
-      ([t, x], i) =>
-        `<div class="glass"${rv('up', i)}><span class="tile">${ic(['check', 'sparkle', 'tooth', 'heart'][i])}</span><h3>${i + 1}. ${t}</h3><p>${x}</p></div>`
-    )
-    .join('')}</div>
-</div></section>
+${visitSteps()}
 ${ctaPanel(1)}`,
 })
 
