@@ -4,7 +4,7 @@
   "title": "Why Do My Teeth Hurt When I Drink Something Cold?",
   "category": "Tooth Pain & Sensitivity",
   "description": "A short, sharp twinge from cold drinks is often tooth sensitivity. Learn the common causes, what helps, and when a dentist should check your teeth.",
-  "image": "images/treatments/emergency-care.jpg",
+  "image": "images/treatments/emergency-care.webp",
   "imageAlt": "A person holding their cheek because of tooth pain",
   "keywords": "tooth sensitivity, cold sensitivity, dentin hypersensitivity, tooth pain Addis Ababa",
   "intro": "A quick, sharp pain from ice water or cold air is one of the most common dental complaints. It is often called dentin hypersensitivity, and it can usually be managed. It can also hide other problems, so it is worth understanding.",
@@ -38,7 +38,10 @@
   ],
   "published": "2026-11-06",
   "author": "Dalian Speciality Dental Clinic editorial team",
-  "reviewStatus": "Based on peer-reviewed research and guidelines. Clinical review by a Dalian Speciality Dental Clinic dentist is pending."
+  "reviewStatus": "Based on peer-reviewed research and guidelines. Clinical review by a Dalian Speciality Dental Clinic dentist is pending.",
+  "serviceLinks": [
+    "root-canal"
+  ]
 }
 ---
 

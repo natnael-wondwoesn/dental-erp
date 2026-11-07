@@ -4,7 +4,7 @@
   "title": "Knocked-Out Tooth: What to Do Right Now",
   "category": "Dental Emergencies",
   "description": "A knocked-out adult tooth is a true dental emergency. Follow these first-aid steps from international guidelines and see a dentist immediately.",
-  "image": "images/treatments/emergency-care.jpg",
+  "image": "images/treatments/emergency-care.webp",
   "imageAlt": "A person holding their cheek because of tooth pain",
   "keywords": "knocked-out tooth, avulsed tooth, dental emergency, tooth first aid, emergency dentist Addis Ababa",
   "intro": "A knocked-out adult tooth is one of the few real emergencies in dentistry. What you do in the first minutes makes a big difference.",
@@ -34,7 +34,10 @@
   ],
   "published": "2026-11-06",
   "author": "Dalian Speciality Dental Clinic editorial team",
-  "reviewStatus": "Based on peer-reviewed research and guidelines. Clinical review by a Dalian Speciality Dental Clinic dentist is pending."
+  "reviewStatus": "Based on peer-reviewed research and guidelines. Clinical review by a Dalian Speciality Dental Clinic dentist is pending.",
+  "serviceLinks": [
+    "emergency-care"
+  ]
 }
 ---
 

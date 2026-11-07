@@ -4,7 +4,7 @@
   "title": "Is Teeth Whitening Safe?",
   "category": "Cosmetic Dentistry",
   "description": "Peroxide whitening works, but it can cause sensitivity and gum irritation. Learn how to whiten safely and who should ask a dentist first.",
-  "image": "images/treatments/cosmetic-dentistry.jpg",
+  "image": "images/treatments/cosmetic-dentistry.webp",
   "imageAlt": "Example of veneers: before and after",
   "keywords": "teeth whitening, tooth bleaching, whitening safety, cosmetic dentistry Addis Ababa",
   "intro": "Teeth whitening is one of the most popular cosmetic treatments. For most healthy adults it is considered safe when done properly, but it has known side effects and it is not right for every mouth.",
@@ -38,7 +38,10 @@
   ],
   "published": "2026-11-06",
   "author": "Dalian Speciality Dental Clinic editorial team",
-  "reviewStatus": "Based on peer-reviewed research and guidelines. Clinical review by a Dalian Speciality Dental Clinic dentist is pending."
+  "reviewStatus": "Based on peer-reviewed research and guidelines. Clinical review by a Dalian Speciality Dental Clinic dentist is pending.",
+  "serviceLinks": [
+    "cosmetic-dentistry"
+  ]
 }
 ---
 

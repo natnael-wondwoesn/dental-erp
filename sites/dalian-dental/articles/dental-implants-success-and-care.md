@@ -4,7 +4,7 @@
   "title": "Dental Implants: Success Rates, Risks and Aftercare",
   "category": "Dental Implants",
   "description": "Dental implants replace missing teeth with high five-year survival. Learn what research shows about success, complications and care.",
-  "image": "photos/before-after/fixed-teeth-restoration-after.jpg",
+  "image": "photos/before-after/fixed-teeth-restoration-after.webp",
   "imageAlt": "Missing front teeth replaced with fixed prosthetic teeth",
   "keywords": "dental implants, missing teeth, implant success rate, peri-implantitis, implants Addis Ababa",
   "intro": "A dental implant is a small post placed in the jaw to support a replacement tooth. Research shows high survival rates, but implants still need care, and complications can happen.",
@@ -33,7 +33,10 @@
   ],
   "published": "2026-11-06",
   "author": "Dalian Speciality Dental Clinic editorial team",
-  "reviewStatus": "Based on peer-reviewed research and guidelines. Clinical review by a Dalian Speciality Dental Clinic dentist is pending."
+  "reviewStatus": "Based on peer-reviewed research and guidelines. Clinical review by a Dalian Speciality Dental Clinic dentist is pending.",
+  "serviceLinks": [
+    "dental-implants"
+  ]
 }
 ---
 

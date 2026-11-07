@@ -67,7 +67,7 @@ describe('Dalian Dental landing site', () => {
     expect(css).toMatch(/data-r='left'/)
     expect(css).toMatch(/data-r='right'/)
     expect(css).toMatch(/@keyframes slide-in-right/)
-    expect(css).toMatch(/prefers-reduced-motion: reduce[\s\S]*animation: none/)
+    expect(css).toMatch(/prefers-reduced-motion:\s*reduce[\s\S]*animation:\s*none/)
     expect(js).toContain('prefers-reduced-motion: reduce')
     // Content must stay visible without JavaScript: hiding is only ever added by the script.
     expect(css).not.toMatch(/^\s*(?:body|main|section)[^{]*\{[^}]*opacity:\s*0/m)
@@ -90,7 +90,7 @@ describe('Dalian Dental landing site', () => {
     expect(home).toContain('Step by step')
     expect(home).toContain('Founded by Dr. Ferhana Adem')
     expect(home).toContain('Founder / Expert Dental Surgeon')
-    expect(home).toContain('images/doctor-gloves.jpg')
+    expect(home).toContain('images/doctor-gloves.webp')
   })
 
   it('shows the map, the logo and the clinic photos', () => {
@@ -103,7 +103,7 @@ describe('Dalian Dental landing site', () => {
     expect(existsSync(join(dist, 'images/brand/favicon.ico'))).toBe(true)
     const gallery = readFileSync(join(dist, 'gallery/index.html'), 'utf8')
     expect(gallery).toContain('smile-makeover-1')
-    expect(gallery).toContain('treatment-room-window.jpg')
+    expect(gallery).toContain('treatment-room-window.webp')
   })
 
   it('gallery follows the redesigned structure: hero, category nav, doctors, clinic, results, CTA', () => {
@@ -272,7 +272,9 @@ describe('Dalian Dental landing site', () => {
       return names[0]?.name
     }
     const home = readFileSync(join(dist, 'index.html'), 'utf8')
-    expect(firstDoctor(home, 'Specialists you can talk to', 'Your visit')).toBe(founder.name)
+    expect(
+      firstDoctor(home, 'Dental Specialists in Addis Ababa You Can Talk To', 'Your visit')
+    ).toBe(founder.name)
     const gallery = readFileSync(join(dist, 'gallery/index.html'), 'utf8')
     expect(firstDoctor(gallery, 'id="doctors"', 'id="clinic"')).toBe(founder.name)
     const about = readFileSync(join(dist, 'about/index.html'), 'utf8')
@@ -326,8 +328,8 @@ describe('Dalian Dental landing site', () => {
     const implants = page('dental-implants')
     expect(implants).toContain('Implants After Bone Grafts')
     expect(implants).not.toContain('Implant-Supported Bridges')
-    expect(implants).toContain('images/treatments/dental-implants.jpg')
-    expect(page('root-canal')).toContain('Treatment to relieve pain and save the tooth.')
+    expect(implants).toContain('images/treatments/dental-implants.webp')
+    expect(page('root-canal')).toContain('to relieve tooth pain and save your natural tooth')
   })
 
   it('home hero headline is "We Care For Your Smile!"', () => {
@@ -406,5 +408,51 @@ describe('Dalian Dental landing site', () => {
     }
     const contact = readFileSync(join(dist, 'contact/index.html'), 'utf8')
     expect(contact).toContain('data-telegram="+251939237777"')
+  })
+
+  it('SEO: every page has a unique title and meta description, one H1, and a canonical-ready structure', () => {
+    const titles = new Set<string>()
+    const descriptions = new Set<string>()
+    for (const file of htmlFiles(dist)) {
+      const html = readFileSync(file, 'utf8')
+      if (/noindex/.test(html)) continue
+      const title = html.match(/<title>([^<]+)<\/title>/)?.[1]
+      const desc = html.match(/<meta name="description" content="([^"]+)"/)?.[1]
+      expect(title, file).toBeTruthy()
+      expect(desc, file).toBeTruthy()
+      expect(titles.has(title!), `duplicate title ${title}`).toBe(false)
+      expect(descriptions.has(desc!), `duplicate description in ${file}`).toBe(false)
+      titles.add(title!)
+      descriptions.add(desc!)
+      expect(html.match(/<h1[ >]/g)?.length, file).toBe(1)
+    }
+  })
+
+  it('SEO: location keywords, structured data and image dimensions are present', () => {
+    const home = readFileSync(join(dist, 'index.html'), 'utf8')
+    expect(home).toMatch(/<title>[^<]*Addis Ababa/)
+    expect(home).toContain('"@type":"Dentist"')
+    expect(home).toContain('"@type":"WebSite"')
+    expect(home).toContain('property="og:image"')
+    expect(home).toContain('twitter:card')
+    const implants = readFileSync(join(dist, 'services/dental-implants/index.html'), 'utf8')
+    expect(implants).toContain('"@type":"Service"')
+    expect(implants).toContain('"@type":"FAQPage"')
+    expect(implants).toContain('Dental health guides about')
+    expect(implants).toMatch(/<h1>[^<]*Addis Ababa/)
+    for (const file of htmlFiles(dist)) {
+      const imgs = readFileSync(file, 'utf8').match(/<img [^>]*>/g) ?? []
+      for (const img of imgs) {
+        expect(img, file).toMatch(/alt="/)
+        expect(img, file).toMatch(/width="\d+"/)
+      }
+    }
+  })
+
+  it('SEO: sitemap lists every page with lastmod and robots.txt points to it', () => {
+    const sitemap = readFileSync(join(dist, 'sitemap.xml'), 'utf8')
+    expect(sitemap).toContain('<lastmod>')
+    expect(sitemap).toContain('/services/dental-implants/')
+    expect(readFileSync(join(dist, 'robots.txt'), 'utf8')).toContain('Sitemap:')
   })
 })

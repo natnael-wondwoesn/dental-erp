@@ -4,7 +4,7 @@
   "title": "How to Brush, Clean Between Your Teeth and Prevent Cavities",
   "category": "Oral Hygiene & Prevention",
   "description": "Simple, evidence-based habits that prevent most tooth decay and gum disease: fluoride toothpaste, cleaning between teeth and limiting sugar.",
-  "image": "images/treatments/dental-hygiene.jpg",
+  "image": "images/treatments/dental-hygiene.webp",
   "imageAlt": "Everyday oral care products: toothpaste, floss, mouthwash and toothbrush",
   "keywords": "oral hygiene, prevent cavities, fluoride toothpaste, flossing, tooth decay Addis Ababa",
   "intro": "Most tooth decay and gum disease can be prevented with a few simple habits. Here is what the evidence supports.",
@@ -46,7 +46,10 @@
   ],
   "published": "2026-11-06",
   "author": "Dalian Speciality Dental Clinic editorial team",
-  "reviewStatus": "Based on peer-reviewed research and guidelines. Clinical review by a Dalian Speciality Dental Clinic dentist is pending."
+  "reviewStatus": "Based on peer-reviewed research and guidelines. Clinical review by a Dalian Speciality Dental Clinic dentist is pending.",
+  "serviceLinks": [
+    "dental-hygiene"
+  ]
 }
 ---
 

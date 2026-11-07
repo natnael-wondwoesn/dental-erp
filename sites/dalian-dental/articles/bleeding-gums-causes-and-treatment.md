@@ -4,7 +4,7 @@
   "title": "Bleeding Gums: Causes, Treatment and Prevention",
   "category": "Gum Health",
   "description": "Gums that bleed when you brush are often a sign of early gum disease. Learn what causes it, how it is treated and how to prevent it.",
-  "image": "images/treatments/oral-surgery.jpg",
+  "image": "images/treatments/oral-surgery.webp",
   "imageAlt": "A dentist examining a patient's mouth",
   "keywords": "bleeding gums, gum disease, gingivitis, periodontitis, gum health Addis Ababa",
   "intro": "If your gums are red, swollen or bleed when you brush, they are asking for attention. Bleeding gums are often the first sign of gum disease, which is common and, caught early, can be treated.",
@@ -42,7 +42,10 @@
   ],
   "published": "2026-11-06",
   "author": "Dalian Speciality Dental Clinic editorial team",
-  "reviewStatus": "Based on peer-reviewed research and guidelines. Clinical review by a Dalian Speciality Dental Clinic dentist is pending."
+  "reviewStatus": "Based on peer-reviewed research and guidelines. Clinical review by a Dalian Speciality Dental Clinic dentist is pending.",
+  "serviceLinks": [
+    "dental-hygiene"
+  ]
 }
 ---
 

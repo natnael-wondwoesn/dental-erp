@@ -4,7 +4,7 @@
   "title": "Root Canal Treatment: What It Is and How Well It Works",
   "category": "Dental Treatments",
   "description": "Root canal treatment treats the inside of an infected or damaged tooth to save it. Learn how it works and what research says about success rates.",
-  "image": "images/treatments/root-canal.jpg",
+  "image": "images/treatments/root-canal.webp",
   "imageAlt": "Illustration of root canal treatment inside a tooth",
   "keywords": "root canal treatment, endodontic treatment, tooth infection, save a tooth Addis Ababa",
   "intro": "A root canal is treatment for the inside of a tooth. It is usually done to save a tooth that would otherwise need to be removed.",
@@ -41,7 +41,10 @@
   ],
   "published": "2026-11-06",
   "author": "Dalian Speciality Dental Clinic editorial team",
-  "reviewStatus": "Based on peer-reviewed research and guidelines. Clinical review by a Dalian Speciality Dental Clinic dentist is pending."
+  "reviewStatus": "Based on peer-reviewed research and guidelines. Clinical review by a Dalian Speciality Dental Clinic dentist is pending.",
+  "serviceLinks": [
+    "root-canal"
+  ]
 }
 ---
 
