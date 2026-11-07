@@ -24,11 +24,46 @@
     "whatsapp": "+251912638003",
     "whatsappMessage": "Hello Dalian Speciality Dental Clinic, I would like to book an appointment.",
     "heroTitle": "We Care For Your Smile!",
-    "callPhone": "+251 93 923 7777"
+    "callPhone": "+251 93 923 7777",
+    "geo": {
+      "lat": 8.9946209,
+      "lng": 38.790487
+    },
+    "openingHours": [
+      {
+        "days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+        "opens": "08:30",
+        "closes": "18:00"
+      }
+    ],
+    "ga4Id": "",
+    "gscVerification": ""
   },
   "seo": {
     "title": "Dalian Speciality Dental Clinic | Professional Dental Clinic in Addis Ababa",
-    "description": "Looking for professional dental care in Addis Ababa? Visit Dalian Speciality Dental Clinic for braces, implants, root canal, cosmetic dentistry and family care from experienced dental professionals. Book your appointment today."
+    "description": "Looking for professional dental care in Addis Ababa? Visit Dalian Speciality Dental Clinic for braces, implants, root canal, cosmetic dentistry and family care from experienced dental professionals. Book your appointment today.",
+    "pages": {
+      "home": {
+        "title": "Dental Clinic in Bole, Addis Ababa",
+        "description": "Dental specialists in Bole, Addis Ababa for braces, implants, root canal, Hollywood smile and teeth whitening. Book an appointment today."
+      },
+      "services": {
+        "title": "Dental Treatments in Addis Ababa",
+        "description": "Specialized dental treatment in Addis Ababa: braces, implants, root canal, crowns, cosmetic dentistry, cleaning, emergency and children's care in Bole."
+      },
+      "gallery": {
+        "title": "Dental Clinic Gallery and Treatment Results in Addis Ababa",
+        "description": "See our dental clinic in Bole, meet our dentists and view before and after results of braces, crowns and smile treatments in Addis Ababa."
+      },
+      "about": {
+        "title": "About Our Dentists in Addis Ababa",
+        "description": "Meet the experienced dentists and specialists of our dental clinic in Bole, Addis Ababa, founded by Dr. Ferhana Adem."
+      },
+      "contact": {
+        "title": "Book a Dentist in Bole, Addis Ababa",
+        "description": "Book an appointment at a private dental clinic in Bole, Addis Ababa. Find our address, opening hours, phone and map, or send your request by email."
+      }
+    }
   },
   "doctors": [
     {
@@ -36,14 +71,14 @@
       "name": "Dr. Ferhana Adem",
       "title": "Founder / Expert Dental Surgeon",
       "bio": "Founder of Dalian Speciality Dental Clinic and an expert dental surgeon. Dr. Ferhana provides prosthodontic and cosmetic dental care, root canal treatment, dental hygiene, emergency care and children's dentistry.",
-      "photo": "images/doctors/ferhana-adem.jpg"
+      "photo": "images/doctors/ferhana-adem.webp"
     },
     {
       "id": "fithalew-lijindi",
       "name": "Dr. Fithalew Lijindi",
       "title": "Senior Orthodontist and Dentofacial Orthopedics",
       "bio": "Senior orthodontist and dentofacial orthopedics specialist. Dr. Fithalew treats children and adults with braces, myofunctional appliances and invisible aligners, and cares for children's teeth.",
-      "photo": "images/doctors/fithalew-lijindi.jpg"
+      "photo": "images/doctors/fithalew-lijindi.webp"
     },
     {
       "id": "abyalew-zewdu",
@@ -57,7 +92,7 @@
       "name": "Dr. Shimelis Megersa",
       "title": "Senior Oral & Maxillofacial Surgeon",
       "bio": "Senior oral and maxillofacial surgeon. Dr. Shimelis places dental implants, performs oral surgery and treats dental and jaw emergencies.",
-      "photo": "images/doctors/shimelis-megersa.jpg"
+      "photo": "images/doctors/shimelis-megersa.webp"
     },
     {
       "id": "melese-tabor",
@@ -76,14 +111,13 @@
       "includes": ["Kids braces", "Myofunctional appliance", "Invisible aligners"],
       "doctors": ["fithalew-lijindi"],
       "keywords": "braces in Addis Ababa, kids braces, orthodontist, invisible aligners",
-      "hero": "photos/doctors/doctor-model.jpg",
+      "hero": "photos/doctors/doctor-model.webp",
       "heroAlt": "A dentist holding a model of teeth with braces",
       "results": ["braces"],
-      "image": "photos/before-after/braces-after.jpg",
+      "image": "photos/before-after/braces-after.webp",
       "imageAlt": "Teeth with metal braces after orthodontic treatment",
       "detail": {
-        "metaTitle": "Orthodontic Treatment & Braces in Addis Ababa | Dalian Speciality Dental Clinic",
-        "metaDescription": "Braces, kids' braces, myofunctional appliances and invisible aligners for children and adults in Bole, Addis Ababa. Meet our orthodontist and book your consultation.",
+        "metaDescription": "Looking for an orthodontist in Addis Ababa? Dental braces, kids' braces, myofunctional appliances and invisible aligners in Bole. Book your consultation.",
         "bookLabel": "Book an orthodontic consultation",
         "subcategories": [
           {
@@ -131,7 +165,10 @@
             "q": "Can adults have braces?",
             "a": "Yes. Orthodontic treatment is possible at any age as long as your teeth and gums are healthy."
           }
-        ]
+        ],
+        "seoTitle": "Dental Braces & Orthodontist in Addis Ababa",
+        "h1": "Dental Braces and Orthodontic Treatment in Addis Ababa",
+        "lead": "Braces, kids' braces, myofunctional appliances and invisible aligners from an orthodontist at our clinic in Bole, Addis Ababa. Treatment for children and adults."
       }
     },
     {
@@ -147,11 +184,10 @@
       "doctors": ["ferhana-adem", "abyalew-zewdu"],
       "keywords": "dental crowns, bridges, dentures, zirconia crown Addis Ababa",
       "results": ["smile-makeover-1", "fixed-teeth-restoration", "smile-brightening"],
-      "image": "images/treatments/prosthodontics.jpg",
+      "image": "images/treatments/prosthodontics.webp",
       "imageAlt": "Ceramic crowns and a bridge",
       "detail": {
-        "metaTitle": "Crowns, Bridges & Dentures in Addis Ababa | Dalian Speciality Dental Clinic",
-        "metaDescription": "Zirconia and ceramic crowns, bridges, jacket crowns and full or partial dentures in Bole, Addis Ababa. Meet our dental surgeons and book your visit.",
+        "metaDescription": "Dental crowns, bridges and dentures in Addis Ababa. Zirconia and ceramic options from experienced dentists in Bole. Book your visit.",
         "bookLabel": "Book a crown, bridge or denture visit",
         "subcategories": [
           {
@@ -200,7 +236,10 @@
             "a": "New dentures can feel strange at first. Most people adjust within a few weeks, and your dentist will adjust the fit if any area rubs."
           }
         ],
-        "specialistsHeading": "Meet Your Expert and Senior Dentist for Prosthodontics"
+        "specialistsHeading": "Meet Your Expert and Senior Dentist for Prosthodontics",
+        "seoTitle": "Crowns, Bridges & Dentures in Addis Ababa",
+        "h1": "Dental Crowns, Bridges and Dentures in Addis Ababa",
+        "lead": "Zirconia and ceramic crowns, bridges, jacket crowns and full or partial dentures from experienced dentists in Bole, Addis Ababa."
       },
       "video": {
         "src": "videos/prosthodontics-before-after-full.mp4",
@@ -219,8 +258,7 @@
       "doctors": ["shimelis-megersa", "melese-tabor"],
       "keywords": "dental implants in Addis Ababa",
       "detail": {
-        "metaTitle": "Dental Implants in Addis Ababa | Dalian Speciality Dental Clinic",
-        "metaDescription": "Single-tooth dental implants and implants after bone grafts placed by oral and maxillofacial surgeons in Bole, Addis Ababa. Book an implant consultation.",
+        "metaDescription": "Dental implants in Addis Ababa: single-tooth implants and implant-supported bridges placed by oral and maxillofacial surgeons in Bole. Book a consultation.",
         "bookLabel": "Book an implant consultation",
         "subcategories": [
           {
@@ -260,10 +298,13 @@
             "q": "How do I look after an implant?",
             "a": "Brush and floss as you would for natural teeth and attend regular check-ups. Good hygiene is the best way to keep the implant healthy."
           }
-        ]
+        ],
+        "seoTitle": "Dental Implants in Addis Ababa",
+        "h1": "Dental Implants in Addis Ababa",
+        "lead": "Single-tooth implants and implant-supported bridges placed by oral and maxillofacial surgeons at our dental clinic in Bole, Addis Ababa."
       },
       "results": [],
-      "image": "images/treatments/dental-implants.jpg",
+      "image": "images/treatments/dental-implants.webp",
       "imageAlt": "Panoramic dental X-ray showing a dental implant"
     },
     {
@@ -280,11 +321,10 @@
       ],
       "doctors": ["shimelis-megersa", "melese-tabor"],
       "keywords": "tooth extraction, oral surgery, apicoectomy, gingivectomy",
-      "image": "images/treatments/oral-surgery.jpg",
+      "image": "images/treatments/oral-surgery.webp",
       "imageAlt": "A dentist examining a patient's mouth",
       "detail": {
-        "metaTitle": "Oral & Maxillofacial Surgery in Addis Ababa | Dalian Speciality Dental Clinic",
-        "metaDescription": "Tooth extraction, apicoectomy, gingivectomy and orthognathic (jaw) surgery by oral and maxillofacial surgeons in Bole, Addis Ababa. Book a surgical consultation.",
+        "metaDescription": "Jaw correction surgery and oral surgery in Addis Ababa: orthognathic surgery, tooth extraction, apicoectomy and gingivectomy in Bole. Book a consultation.",
         "bookLabel": "Book a surgical consultation",
         "subcategories": [
           {
@@ -326,7 +366,10 @@
             "q": "How does an oral surgeon remove a deeply impacted tooth?",
             "a": "An oral surgeon removes a deeply impacted tooth by making a small incision in the gum, carefully removing surrounding bone if needed, and extracting the tooth in sections. The area is then cleaned and stitched to support healing."
           }
-        ]
+        ],
+        "seoTitle": "Jaw Correction & Oral Surgery in Addis Ababa",
+        "h1": "Oral Surgery and Jaw Correction Surgery in Addis Ababa",
+        "lead": "Tooth extraction, orthognathic (jaw correction) surgery, apicoectomy and gingivectomy by oral and maxillofacial surgeons in Bole, Addis Ababa."
       },
       "results": []
     },
@@ -338,11 +381,10 @@
       "includes": ["Root canal treatment"],
       "doctors": ["ferhana-adem", "abyalew-zewdu"],
       "keywords": "root canal treatment in Addis Ababa",
-      "image": "images/treatments/root-canal.jpg",
+      "image": "images/treatments/root-canal.webp",
       "imageAlt": "Illustration of root canal treatment inside a tooth",
       "detail": {
-        "metaTitle": "Root Canal Treatment in Addis Ababa | Dalian Speciality Dental Clinic",
-        "metaDescription": "Root canal treatment to relieve tooth pain and save your natural tooth, by experienced dental surgeons in Bole, Addis Ababa. Book your visit.",
+        "metaDescription": "Root canal treatment in Addis Ababa to relieve tooth pain and save your natural tooth. Experienced dentists at our clinic in Bole. Book a visit.",
         "bookLabel": "Book a root canal visit",
         "subcategories": [
           {
@@ -383,7 +425,10 @@
             "a": "The infection can spread and cause more pain and swelling, and the tooth may eventually be lost. Early treatment gives the best chance of saving it."
           }
         ],
-        "specialistsHeading": "Meet Your Expert and Senior Dentist for Root Canal Treatment"
+        "specialistsHeading": "Meet Your Expert and Senior Dentist for Root Canal Treatment",
+        "seoTitle": "Root Canal Treatment in Addis Ababa",
+        "h1": "Root Canal Treatment in Addis Ababa",
+        "lead": "Relieve tooth pain and save your natural tooth with root canal treatment from experienced dentists at our clinic in Bole, Addis Ababa."
       },
       "results": []
     },
@@ -399,11 +444,10 @@
       ],
       "doctors": ["ferhana-adem", "abyalew-zewdu"],
       "keywords": "Hollywood smile, veneers, teeth whitening Addis Ababa",
-      "image": "images/treatments/cosmetic-dentistry.jpg",
+      "image": "images/treatments/cosmetic-dentistry.webp",
       "imageAlt": "Example of veneers: before and after",
       "detail": {
-        "metaTitle": "Cosmetic Dentistry, Veneers & Whitening in Addis Ababa | Dalian Speciality Dental Clinic",
-        "metaDescription": "Hollywood smile design, porcelain, E.max and zirconia veneers, and teeth whitening in Bole, Addis Ababa. Meet our dental surgeons and book your smile consultation.",
+        "metaDescription": "Cosmetic dentistry in Addis Ababa: Hollywood smile, veneers and teeth whitening by experienced dentists in Bole. Book your smile consultation.",
         "bookLabel": "Book a smile consultation",
         "subcategories": [
           {
@@ -448,7 +492,10 @@
             "a": "Your teeth and gums need to be healthy first. We will examine you and explain which options are suitable before any treatment starts."
           }
         ],
-        "specialistsHeading": "Meet Your Expert and Senior Dentist for Cosmetic Dentistry"
+        "specialistsHeading": "Meet Your Expert and Senior Dentist for Cosmetic Dentistry",
+        "seoTitle": "Hollywood Smile & Teeth Whitening in Addis Ababa",
+        "h1": "Cosmetic Dentistry in Addis Ababa: Hollywood Smile, Veneers and Whitening",
+        "lead": "Hollywood smile design, porcelain, E.max and zirconia veneers and professional teeth whitening at our cosmetic dentistry clinic in Bole, Addis Ababa."
       },
       "results": ["smile-makeover-1"]
     },
@@ -460,11 +507,10 @@
       "includes": ["Stain removal", "Scaling and root planing", "Oral hygiene guidance"],
       "doctors": ["ferhana-adem", "abyalew-zewdu"],
       "keywords": "teeth cleaning and whitening in Addis Ababa, scaling",
-      "image": "images/treatments/dental-hygiene.jpg",
+      "image": "images/treatments/dental-hygiene.webp",
       "imageAlt": "Everyday oral care products: toothpaste, floss, mouthwash and toothbrush",
       "detail": {
-        "metaTitle": "Teeth Cleaning & Scaling in Addis Ababa | Dalian Speciality Dental Clinic",
-        "metaDescription": "Professional teeth cleaning, scaling and root planing, stain removal and oral hygiene guidance in Bole, Addis Ababa. Book a dental hygiene visit.",
+        "metaDescription": "Professional dental cleaning in Addis Ababa: scaling, stain removal and hygiene advice from dentists in Bole. Book a cleaning visit.",
         "bookLabel": "Book a cleaning visit",
         "subcategories": [
           {
@@ -509,7 +555,10 @@
             "a": "We show you how to brush and clean between your teeth properly and suggest products and habits that suit your mouth."
           }
         ],
-        "specialistsHeading": "Meet Your Expert and Senior Dentist for Dental Hygiene"
+        "specialistsHeading": "Meet Your Expert and Senior Dentist for Dental Hygiene",
+        "seoTitle": "Professional Dental Cleaning in Addis Ababa",
+        "h1": "Professional Dental Cleaning in Addis Ababa",
+        "lead": "Scaling, stain removal and mouth hygiene guidance at our dental clinic in Bole, Addis Ababa, for healthier gums and a brighter smile."
       },
       "results": []
     },
@@ -521,11 +570,10 @@
       "includes": ["Knocked-out teeth", "Toothache", "Mandibular fracture"],
       "doctors": ["ferhana-adem", "shimelis-megersa", "melese-tabor"],
       "keywords": "emergency dentist Addis Ababa, toothache",
-      "image": "images/treatments/emergency-care.jpg",
+      "image": "images/treatments/emergency-care.webp",
       "imageAlt": "A person holding their cheek because of toothache",
       "detail": {
-        "metaTitle": "Emergency Dentist in Addis Ababa | Dalian Speciality Dental Clinic",
-        "metaDescription": "Urgent dental care for toothache, knocked-out teeth and jaw fractures in Bole, Addis Ababa. Call the clinic for emergency dental help.",
+        "metaDescription": "Emergency dentist in Addis Ababa for toothache, knocked-out teeth and jaw injuries. Call our Bole dental clinic for urgent help.",
         "bookLabel": "Call or book urgent care",
         "subcategories": [
           {
@@ -571,7 +619,10 @@
           }
         ],
         "specialistsHeading": "Meet Your Dentists, Oral and Maxillofacial Surgeon for Emergency Dental Care",
-        "specialistsLabel": "Dentists, Oral and Maxillofacial Surgeon"
+        "specialistsLabel": "Dentists, Oral and Maxillofacial Surgeon",
+        "seoTitle": "Emergency Dentist in Addis Ababa",
+        "h1": "Emergency Dentist in Addis Ababa",
+        "lead": "Urgent care for toothache, knocked-out teeth and jaw fractures from dentists and oral and maxillofacial surgeons in Bole, Addis Ababa."
       },
       "results": []
     },
@@ -583,11 +634,10 @@
       "includes": ["Treatment and fillings", "Dental cleanings", "Baby tooth extraction"],
       "doctors": ["ferhana-adem", "fithalew-lijindi"],
       "keywords": "pediatric dentist Addis Ababa, kids dentist",
-      "image": "images/treatments/pediatric-dentistry.jpg",
+      "image": "images/treatments/pediatric-dentistry.webp",
       "imageAlt": "A child having a dental check-up",
       "detail": {
-        "metaTitle": "Children's Dentist in Addis Ababa | Dalian Speciality Dental Clinic",
-        "metaDescription": "Gentle dental care for babies, children and teenagers: check-ups, cleanings, fillings and baby tooth extraction in Bole, Addis Ababa. Book your child's visit.",
+        "metaDescription": "Children's dentist in Addis Ababa: gentle check-ups, cleanings, fillings and baby tooth extraction in Bole. Book your child's visit.",
         "bookLabel": "Book a children's dental visit",
         "subcategories": [
           {
@@ -636,7 +686,10 @@
             "a": "Twice a day with a smear or small pea-sized amount of fluoride toothpaste, with a parent helping or checking until the child can brush well alone."
           }
         ],
-        "specialistsHeading": "Meet Your Expert and Senior Dentist for Pediatric Dentistry"
+        "specialistsHeading": "Meet Your Expert and Senior Dentist for Pediatric Dentistry",
+        "seoTitle": "Children's Dentist in Addis Ababa",
+        "h1": "Children's Dentist in Addis Ababa",
+        "lead": "Gentle dental care for babies, children and teenagers: check-ups, cleanings, fillings and baby tooth extraction at our clinic in Bole, Addis Ababa."
       },
       "results": []
     }
@@ -743,7 +796,7 @@
   ],
   "founder": {
     "doctor": "ferhana-adem",
-    "image": "images/doctor-gloves.jpg",
+    "image": "images/doctor-gloves.webp",
     "quote": "We treat you with care."
   },
   "storyMotto": "The clinic's motto, We Care For Your Smile, guides how we work, from the first consultation to the final check-up.",
@@ -791,19 +844,19 @@
         "title": "Treatment Rooms",
         "photos": [
           {
-            "src": "photos/clinic/treatment-room-window.jpg",
+            "src": "photos/clinic/treatment-room-window.webp",
             "caption": "Treatment room with a view over Addis Ababa"
           },
           {
-            "src": "photos/clinic/treatment-room-chair.jpg",
+            "src": "photos/clinic/treatment-room-chair.webp",
             "caption": "Chairside view"
           },
           {
-            "src": "photos/treatments/treatment-scene-1.jpg",
+            "src": "photos/treatments/treatment-scene-1.webp",
             "caption": "Examination in the treatment room"
           },
           {
-            "src": "photos/treatments/treatment-scene-2.jpg",
+            "src": "photos/treatments/treatment-scene-2.webp",
             "caption": "Treatment in progress"
           }
         ]
@@ -818,7 +871,7 @@
         "title": "Clinic Exterior",
         "photos": [
           {
-            "src": "images/clinic-building.jpg",
+            "src": "images/clinic-building.webp",
             "caption": "Our building in Bole, Addis Ababa"
           }
         ]
@@ -826,27 +879,27 @@
     ],
     "team": [
       {
-        "src": "images/clinic-team.jpg",
+        "src": "images/clinic-team.webp",
         "caption": "The Dalian team"
       },
       {
-        "src": "images/doctors-team.jpg",
+        "src": "images/doctors-team.webp",
         "caption": "Our doctors"
       },
       {
-        "src": "photos/doctors/doctor-and-model.jpg",
+        "src": "photos/doctors/doctor-and-model.webp",
         "caption": "Explaining braces"
       },
       {
-        "src": "photos/doctors/doctor-model.jpg",
+        "src": "photos/doctors/doctor-model.webp",
         "caption": "Orthodontic care"
       },
       {
-        "src": "photos/doctors/doctor-stethoscope.jpg",
+        "src": "photos/doctors/doctor-stethoscope.webp",
         "caption": "Our doctors at the clinic"
       },
       {
-        "src": "images/doctor-gloves.jpg",
+        "src": "images/doctor-gloves.webp",
         "caption": "Ready for your care"
       }
     ]

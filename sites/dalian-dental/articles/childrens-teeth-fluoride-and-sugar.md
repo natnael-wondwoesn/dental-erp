@@ -4,7 +4,7 @@
   "title": "Children's Teeth: Fluoride, Sugar and Preventing Decay",
   "category": "Children's Dental Health",
   "description": "How to protect your child's teeth: fluoride toothpaste, less sugar, regular dental visits, and what to ask your dentist.",
-  "image": "images/treatments/pediatric-dentistry.jpg",
+  "image": "images/treatments/pediatric-dentistry.webp",
   "imageAlt": "A child having a dental check-up",
   "keywords": "children's dental health, baby teeth, fluoride children, tooth decay in children, pediatric dentist Addis Ababa",
   "intro": "Baby teeth matter. Decay in children is common but largely preventable with fluoride, less sugar and regular check-ups.",
@@ -50,7 +50,10 @@
   ],
   "published": "2026-11-06",
   "author": "Dalian Speciality Dental Clinic editorial team",
-  "reviewStatus": "Based on peer-reviewed research and guidelines. Clinical review by a Dalian Speciality Dental Clinic dentist is pending."
+  "reviewStatus": "Based on peer-reviewed research and guidelines. Clinical review by a Dalian Speciality Dental Clinic dentist is pending.",
+  "serviceLinks": [
+    "pediatric-dentistry"
+  ]
 }
 ---
 

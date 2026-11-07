@@ -73,6 +73,17 @@
     }, 4000)
   }
 
+  // Analytics events (only when Google Analytics is set up): button and link clicks that matter.
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest && e.target.closest('[data-track]')
+    if (el && typeof window.gtag === 'function') {
+      window.gtag('event', 'contact_click', {
+        method: el.getAttribute('data-track'),
+        page: location.pathname,
+      })
+    }
+  })
+
   var form = document.getElementById('appointment')
   if (form) {
     // A treatment page links here with ?service=<name> so the right service is pre-selected.

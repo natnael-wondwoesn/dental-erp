@@ -119,7 +119,85 @@ function heroButtons(depth, { variant = 'dark' } = {}) {
   return parts.join('')
 }
 
-function layout({ title, description, depth, body, path = '', jsonld = [], scripts = '' }) {
+// ---- Structured data ---------------------------------------------------------
+const clinicId = base ? `${base}/#clinic` : undefined
+const socialLinks = [
+  clinic.facebook,
+  clinic.instagram,
+  clinic.tiktok,
+  tg ? `https://t.me/${tg}` : '',
+].filter(Boolean)
+const ogImage = base ? `${base}/images/og-share.jpg` : undefined
+// A short reference to the clinic, used on every page so Google ties the pages together.
+function clinicRef() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Dentist',
+    ...(clinicId && { '@id': clinicId }),
+    name: clinic.name,
+    ...(base && { url: base }),
+    ...(callNumber && { telephone: callNumber }),
+    address: {
+      '@type': 'PostalAddress',
+      ...(clinic.address && { streetAddress: clinic.address }),
+      addressLocality: clinic.city,
+      addressRegion: clinic.city,
+      addressCountry: 'ET',
+    },
+  }
+}
+// The full local-business record (home and contact pages): name, address, phone, hours,
+// map position, specialty, founder and the list of treatments.
+function clinicLd() {
+  const days = (clinic.openingHours || []).map((h) => ({
+    '@type': 'OpeningHoursSpecification',
+    dayOfWeek: h.days,
+    opens: h.opens,
+    closes: h.closes,
+  }))
+  const founder = doctorById[c.founder?.doctor]
+  return {
+    ...clinicRef(),
+    description: c.seo.description,
+    ...(base && { logo: `${base}/images/brand/logo-mark.png`, image: ogImage }),
+    ...(clinic.email && { email: clinic.email }),
+    medicalSpecialty: 'Dentistry',
+    ...(clinic.geo && {
+      geo: { '@type': 'GeoCoordinates', latitude: clinic.geo.lat, longitude: clinic.geo.lng },
+    }),
+    ...(clinic.mapUrl && { hasMap: clinic.mapUrl }),
+    areaServed: [
+      { '@type': 'City', name: clinic.city },
+      ...(clinic.area ? [{ '@type': 'Place', name: clinic.area }] : []),
+    ],
+    ...(days.length && { openingHoursSpecification: days }),
+    ...(socialLinks.length && { sameAs: socialLinks }),
+    ...(founder && { founder: { '@type': 'Person', name: founder.name, jobTitle: founder.title } }),
+    hasOfferCatalog: {
+      '@type': 'OfferCatalog',
+      name: 'Dental treatments',
+      itemListElement: c.services.map((s) => ({
+        '@type': 'Offer',
+        itemOffered: {
+          '@type': 'Service',
+          name: s.name,
+          ...(base && { url: `${base}/services/${s.slug}/` }),
+        },
+      })),
+    },
+  }
+}
+
+function layout({
+  title,
+  description,
+  depth,
+  body,
+  path = '',
+  jsonld = [],
+  scripts = '',
+  full = false,
+}) {
   const r = rel(depth)
   const nav = pages
     .map(
@@ -136,19 +214,7 @@ function layout({ title, description, depth, body, path = '', jsonld = [], scrip
     .filter(([, url]) => url)
     .map(([n, url]) => `<a href="${esc(url)}" rel="noopener">${n}</a>`)
     .join('')
-  const ld = {
-    '@context': 'https://schema.org',
-    '@type': 'Dentist',
-    name: clinic.name,
-    ...(base && { url: base }),
-    ...(callNumber && { telephone: callNumber }),
-    ...(clinic.email && { email: clinic.email }),
-    address: {
-      '@type': 'PostalAddress',
-      addressLocality: clinic.city,
-      ...(clinic.address && { streetAddress: clinic.address }),
-    },
-  }
+  const ld = full ? clinicLd() : clinicRef()
   const footContact = [
     clinic.address && [
       'pin',
@@ -180,7 +246,20 @@ function layout({ title, description, depth, body, path = '', jsonld = [], scrip
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:type" content="website">
-${base ? `<meta property="og:image" content="${base}/images/doctors-team.jpg">` : ''}
+<meta property="og:site_name" content="${esc(clinic.name)}">
+<meta property="og:locale" content="en_US">
+${base ? `<meta property="og:url" content="${base}/${esc(path === 'index.html' ? '' : path)}">` : ''}
+${base ? `<meta property="og:image" content="${base}/images/og-share.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="${esc(clinic.name)} doctors in Addis Ababa">` : ''}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${esc(title)}">
+<meta name="twitter:description" content="${esc(description)}">
+${base ? `<meta name="twitter:image" content="${base}/images/og-share.jpg">` : ''}
+${clinic.gscVerification ? `<meta name="google-site-verification" content="${esc(clinic.gscVerification)}">` : ''}
+${
+  clinic.ga4Id
+    ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${esc(clinic.ga4Id)}"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${esc(clinic.ga4Id)}',{anonymize_ip:true,allow_google_signals:false,allow_ad_personalization_signals:false})</script>`
+    : ''
+}
 ${base ? `<link rel="canonical" href="${base}/${esc(path === 'index.html' ? '' : path)}">` : ''}
 <link rel="preload" href="${r}assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="${r}assets/fonts/poppins-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
@@ -394,9 +473,21 @@ function trustRow() {
     .join('')}</div></section>`
 }
 
-function jpegSize(file) {
+// Width and height of a JPEG or WebP file, so images can carry real dimensions.
+function imageSize(file) {
   try {
     const buf = readFileSync(file)
+    if (buf.toString('ascii', 0, 4) === 'RIFF' && buf.toString('ascii', 8, 12) === 'WEBP') {
+      const kind = buf.toString('ascii', 12, 16)
+      if (kind === 'VP8 ')
+        return { w: buf.readUInt16LE(26) & 0x3fff, h: buf.readUInt16LE(28) & 0x3fff }
+      if (kind === 'VP8L') {
+        const bits = buf.readUInt32LE(21)
+        return { w: (bits & 0x3fff) + 1, h: ((bits >> 14) & 0x3fff) + 1 }
+      }
+      if (kind === 'VP8X') return { w: buf.readUIntLE(24, 3) + 1, h: buf.readUIntLE(27, 3) + 1 }
+      return null
+    }
     let i = 2
     while (i < buf.length) {
       if (buf[i] !== 0xff) return null
@@ -411,7 +502,7 @@ function jpegSize(file) {
 }
 // Real width/height for an image under the site folder (stops layout shift while loading).
 function dims(src) {
-  const size = jpegSize(join(here, src))
+  const size = imageSize(join(here, src))
   return size ? ` width="${size.w}" height="${size.h}"` : ''
 }
 const imageExt = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif'])
@@ -468,23 +559,33 @@ function page(path, opts) {
 }
 
 const mosaic = [
-  ['images/clinic-building.jpg', 'Our clinic building', ''],
-  ['images/clinic-team.jpg', 'The Dalian team', 'wide'],
-  ['photos/treatments/treatment-scene-1.jpg', 'Chairside care', ''],
-  ['photos/clinic/treatment-room-window.jpg', 'Treatment room', ''],
+  ['images/clinic-building.webp', 'Our clinic building', ''],
+  ['images/clinic-team.webp', 'The Dalian team', 'wide'],
+  ['photos/treatments/treatment-scene-1.webp', 'Chairside care', ''],
+  ['photos/clinic/treatment-room-window.webp', 'Treatment room', ''],
 ]
 
 // ---- Home -------------------------------------------------------------------
 page('index.html', {
-  title: c.seo.title,
-  description: c.seo.description,
+  title: `${c.seo.pages.home.title} | ${clinic.name}`,
+  description: c.seo.pages.home.description,
+  full: true,
+  jsonld: [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: clinic.name,
+      ...(base && { url: base }),
+      inLanguage: 'en',
+    },
+  ],
   body: `${heroHome({
     pill: clinic.hoursShort,
-    kicker: `${clinic.name}${clinic.area ? ` · ${clinic.area}` : ''}`,
+    kicker: `Dental clinic in ${clinic.area ? `${clinic.area.replace(/ Medhanialem$/i, '')}, ` : ''}${clinic.city}`,
     h1: clinic.heroTitle || clinic.tagline,
-    text: `We treat you with care. Thorough consultations, tailored treatment plans and specialist doctors, all under one roof in ${clinic.city}.`,
+    text: `We treat you with care. Thorough consultations, tailored treatment plans and dental specialists, all under one roof in Bole, ${clinic.city}.`,
     depth: 0,
-    image: 'images/doctors-team.jpg',
+    image: 'images/doctors-team.webp',
     alt: `Doctors at ${clinic.name} in front of the clinic sign`,
   })}
 <div class="wrap"><div class="feature-card">
@@ -494,12 +595,12 @@ page('index.html', {
 </div></div>
 ${trustRow()}
 <section class="section"><div class="wrap">
-  ${sectionHead('Treatments', 'Care for every stage of your smile', 'From a routine clean to specialist procedures, our team covers the treatments most families need.')}
+  ${sectionHead('Treatments', 'Dental Treatments in Addis Ababa', 'From a routine clean to specialist procedures, our team covers the dental treatments most families need.')}
   <div class="grid">${c.services.map((s, i) => serviceCard(s, 0, i % 3, true)).join('')}</div>
 </div></section>
 ${founderStory(0)}
 <section class="section"><div class="wrap">
-  ${sectionHead('Our team', 'Specialists you can talk to', 'Doctors working together on your care.')}
+  ${sectionHead('Our team', 'Dental Specialists in Addis Ababa You Can Talk To', 'Dentists and specialists working together on your care.')}
   <div class="grid grid-doctors">${c.doctors.map((d, i) => doctorCard(d, 0, i)).join('')}</div>
   <p style="margin-top:28px"><a class="btn btn-outline" href="./about/#team">Meet the team</a></p>
 </div></section>
@@ -521,7 +622,7 @@ ${
   <div class="mosaic">${mosaic
     .map(
       ([src, label, cls], i) =>
-        `<a class="tile-photo ${cls}"${rv('zoom', i)} href="./gallery/"><img src="./${src}" alt="${esc(label)}" loading="lazy"><span class="chip">${esc(label)}</span></a>`
+        `<a class="tile-photo ${cls}"${rv('zoom', i)} href="./gallery/"><img src="./${src}" alt="${esc(label)}"${dims(src)} loading="lazy"><span class="chip">${esc(label)}</span></a>`
     )
     .join('')}</div>
 </div></section>
@@ -544,9 +645,9 @@ ${ctaPanel(0)}`,
 
 // ---- Treatments -------------------------------------------------------------
 page('services/', {
-  title: `Dental Services in Addis Ababa | ${clinic.name}`,
-  description: `Braces, implants, root canal, crowns, cosmetic dentistry, hygiene, emergency and children's dental care at ${clinic.name}.`,
-  body: `${pageHero({ crumbs: ['Treatments'], h1: `Our ${c.services.length} dental treatment areas`, text: 'Choose a treatment to see what it includes and which doctors provide it.', depth: 1, image: 'images/doctor-gloves.jpg', alt: 'A dentist putting on gloves before treatment' })}
+  title: `${c.seo.pages.services.title} | ${clinic.name}`,
+  description: c.seo.pages.services.description,
+  body: `${pageHero({ crumbs: ['Treatments'], h1: 'Dental Treatments in Addis Ababa', text: 'Specialized dental treatment in Bole, Addis Ababa. Choose a treatment to see what it includes and which doctors provide it.', depth: 1, image: 'images/doctor-gloves.webp', alt: 'A dentist putting on gloves before treatment' })}
 <section class="section"><div class="wrap"><div class="grid">${c.services.map((s, i) => serviceCard(s, 1, i % 3)).join('')}</div></div></section>
 ${ctaPanel(1)}`,
 })
@@ -562,96 +663,6 @@ function specialistCard(d, depth, i = 0) {
     ? `<div class="g-doc-photo"><img src="${rel(depth)}${esc(d.photo)}" alt="${esc(d.name)}, ${esc(d.title)}" loading="lazy"${dims(d.photo)}></div>`
     : `<div class="g-doc-photo g-doc-empty" aria-hidden="true"><span>${esc(initials)}</span></div>`
   return `<article class="card g-doc"${rv('up', i)}>${media}<div class="g-doc-info"><p class="spec-role">${esc(d.title)}</p><h3>${esc(d.name)}</h3>${d.bio ? `<p class="bio">${esc(d.bio)}</p>` : ''}</div></article>`
-}
-
-for (const s of c.services) {
-  const dt = s.detail
-  const docs = s.doctors.map((id) => doctorById[id]).filter(Boolean)
-  const cases = (s.results || [])
-    .map((name) => beforeAfterPairs().find((p) => p.name === name))
-    .filter(Boolean)
-  const faqLd = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: dt.faq.map((f) => ({
-      '@type': 'Question',
-      name: f.q,
-      acceptedAnswer: { '@type': 'Answer', text: f.a },
-    })),
-  }
-  const crumbLd = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      ['Home', ''],
-      ['Treatments', 'services/'],
-      [s.name, `services/${s.slug}/`],
-    ].map(([name, path], i) => ({
-      '@type': 'ListItem',
-      position: i + 1,
-      name,
-      ...(base && { item: `${base}/${path}` }),
-    })),
-  }
-  const bookHref = `../../contact/?service=${encodeURIComponent(s.name)}#book`
-  const buttons = `<a class="btn btn-white" href="${bookHref}" data-track="book">${esc(dt.bookLabel)}</a>${
-    callNumber
-      ? `<a class="btn btn-ghost" href="tel:${esc(digits(callNumber))}" data-track="phone">${ic('phone')} Call us</a>`
-      : ''
-  }`
-  page(`services/${s.slug}/`, {
-    title: dt.metaTitle,
-    description: dt.metaDescription,
-    jsonld: [faqLd, crumbLd],
-    body: `${pageHero({ crumbs: ['<a href="../">Treatments</a>', esc(s.name)], h1: `${s.name} in ${clinic.city}`, text: s.short, depth: 2, image: s.hero || s.image, alt: s.heroAlt || s.imageAlt || '', buttons })}
-<section class="section" id="options"><div class="wrap">
-  ${sectionHead('Specialized options', 'Available Treatment Subcategories', `The ${s.name.toLowerCase()} options we offer.`)}
-  <div class="sub-grid">${dt.subcategories
-    .map(
-      (x, i) =>
-        `<article class="sub-card"${rv('up', i % 2)}><span class="sub-num">${i + 1}</span><div><h3>${esc(x.name)}</h3><p>${esc(x.text)}</p></div></article>`
-    )
-    .join('')}</div>
-</div></section>
-<section class="section tinted" id="benefits"><div class="wrap">
-  ${sectionHead('Clinical outcomes', `Benefits of ${s.name}`)}
-  <div class="benefit-grid">${dt.benefits
-    .map(
-      (x, i) => `<div class="benefit"${rv('up', i % 3)}>${ic('check')}<span>${esc(x)}</span></div>`
-    )
-    .join('')}</div>
-</div></section>
-<section class="section" id="specialists"><div class="wrap">
-  ${sectionHead('Assigned medical staff', dt.specialistsHeading || `Meet Your Specialists for ${s.name}`, 'The doctors who provide this treatment at Dalian Speciality Dental Clinic.')}
-  <div class="spec-grid">${docs.map((d, i) => specialistCard(d, 2, i)).join('')}</div>
-</div></section>
-<section class="section tinted" id="faq"><div class="wrap narrow">
-  ${sectionHead('Patient guidance', `Frequently Asked Questions About ${s.name}`)}
-  <div class="faq-card"${rv('up')}>${dt.faq
-    .map(
-      (f) =>
-        `<details class="faq"><summary>${esc(f.q)} ${ic('chevron')}</summary><p>${esc(f.a)}</p></details>`
-    )
-    .join('')}</div>
-</div></section>
-<section class="section" id="results"><div class="wrap">
-  ${sectionHead('Real results', `${s.name}: Before & After`, cases.length || s.video ? `Photographs${s.video ? ' and video' : ''} of real ${clinic.name} patients.` : '')}
-  ${
-    cases.length || s.video
-      ? `<div class="case-grid">${cases.map((pair, i) => baFigure(pair, '../../', i)).join('')}${s.video ? videoFigure(s.video, '../../', cases.length) : ''}</div>`
-      : `<div class="empty">Before-and-after photographs for ${esc(s.name.toLowerCase())} will be added here. In the meantime, see our <a href="../../gallery/#results">other treatment results</a> or ask us about this treatment at your consultation.</div>`
-  }
-</div></section>
-<section class="section tinted"><div class="wrap">
-  ${sectionHead('More care', 'Other treatments')}
-  <div class="grid">${c.services
-    .filter((x) => x.slug !== s.slug)
-    .slice(0, 3)
-    .map((x, i) => serviceCard(x, 2, i))
-    .join('')}</div>
-</div></section>
-${ctaPanel(2, `Ready to book your ${s.name.toLowerCase()} appointment?`, 'Send us your details and we will confirm a time that suits you.', dt.bookLabel).replace('href="../../contact/#book"', `href="${bookHref}"`)}`,
-  })
 }
 
 // ---- Gallery ----------------------------------------------------------------
@@ -689,7 +700,7 @@ function galleryPage() {
     h1: 'See Our Clinic. Meet Our Team. Discover Our Work.',
     text: 'Explore our dental clinic, meet our team, and discover examples of our dental treatments.',
     depth: 1,
-    image: 'images/doctors-team.jpg',
+    image: 'images/doctors-team.webp',
     alt: `Doctors at ${clinic.name} in front of the clinic sign`,
     buttons,
   })}
@@ -727,16 +738,16 @@ function galleryPage() {
 ${ctaPanel(1, 'Ready to Take Care of Your Smile?', 'Our team is ready to help you take the next step towards better oral health.', 'Book an Appointment')}`
 }
 page('gallery/', {
-  title: `Gallery | ${clinic.name}`,
-  description: `See our clinic, meet our team and discover examples of our dental treatments at ${clinic.name} in Addis Ababa.`,
+  title: `${c.seo.pages.gallery.title} | ${clinic.name}`,
+  description: c.seo.pages.gallery.description,
   body: galleryPage(),
 })
 
 // ---- About ------------------------------------------------------------------
 page('about/', {
-  title: `About Us | ${clinic.name}`,
-  description: `Meet the doctors and learn about the story, mission and values of ${clinic.name} in Addis Ababa.`,
-  body: `${pageHero({ crumbs: ['About'], h1: `About ${clinic.name}`, text: clinic.tagline, depth: 1, image: 'images/clinic-team.jpg', alt: `The ${clinic.name} team in front of the clinic sign` })}
+  title: `${c.seo.pages.about.title} | ${clinic.name}`,
+  description: c.seo.pages.about.description,
+  body: `${pageHero({ crumbs: ['About'], h1: `About ${clinic.name}`, text: clinic.tagline, depth: 1, image: 'images/clinic-team.webp', alt: `The ${clinic.name} team in front of the clinic sign` })}
 ${founderStory(1)}
 <section class="section"><div class="wrap">
   ${sectionHead('About us', 'What guides our care')}
@@ -1102,9 +1113,10 @@ writes.push([
 // ---- Contact + appointment request -----------------------------------------
 const serviceOptions = c.services.map((s) => `<option>${esc(s.name)}</option>`).join('')
 page('contact/', {
-  title: `Contact and Book an Appointment | ${clinic.name}`,
-  description: `Book an appointment or contact ${clinic.name} in ${clinic.city}.`,
-  body: `${pageHero({ crumbs: ['Contact'], h1: 'Book an appointment', text: 'Tell us what you need and when suits you. We will confirm your time with you.', depth: 1 })}
+  title: `${c.seo.pages.contact.title} | ${clinic.name}`,
+  description: c.seo.pages.contact.description,
+  full: true,
+  body: `${pageHero({ crumbs: ['Contact'], h1: 'Book a Dental Appointment in Bole, Addis Ababa', text: 'Tell us what you need and when suits you. We will confirm your time with you.', depth: 1 })}
 <section class="section" id="book"><div class="wrap split" style="align-items:start">
   <form id="appointment" class="card form" novalidate data-email="${esc(clinic.email || '')}" data-telegram="${esc(tg)}" data-clinic="${esc(clinic.name)}"${rv('left')}>
     <h2>Appointment request</h2>
@@ -1124,7 +1136,7 @@ page('contact/', {
   <div${rv('right')}>
     <p class="eyebrow">Find us</p>
     <h2>Visit the clinic</h2>
-    <figure class="feature small-feature"><img src="../images/clinic-building.jpg" alt="The building where ${esc(clinic.name)} is located" width="1200" height="1800" loading="lazy"><figcaption>Our building in ${esc(clinic.area || clinic.city)}</figcaption></figure>
+    <figure class="feature small-feature"><img src="../images/clinic-building.webp" alt="The building where ${esc(clinic.name)} is located" width="1200" height="1800" loading="lazy"><figcaption>Our building in ${esc(clinic.area || clinic.city)}</figcaption></figure>
     <ul class="contact-list">
       <li><span class="tile">${ic('pin')}</span><span><strong>Location</strong>${esc(clinic.address ? `${clinic.address}, ` : '')}${esc(clinic.city)}</span></li>
       ${clinic.hours ? `<li><span class="tile">${ic('clock')}</span><span><strong>Hours</strong>${esc(clinic.hours)}</span></li>` : ''}
@@ -1138,6 +1150,115 @@ page('contact/', {
   </div>
 </div></section>`,
 })
+
+// ---- Treatment pages (after the articles, so each page can list its related guides) ----
+for (const s of c.services) {
+  const dt = s.detail
+  const docs = s.doctors.map((id) => doctorById[id]).filter(Boolean)
+  const cases = (s.results || [])
+    .map((name) => beforeAfterPairs().find((p) => p.name === name))
+    .filter(Boolean)
+  const faqLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: dt.faq.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  }
+  const crumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      ['Home', ''],
+      ['Treatments', 'services/'],
+      [s.name, `services/${s.slug}/`],
+    ].map(([name, path], i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name,
+      ...(base && { item: `${base}/${path}` }),
+    })),
+  }
+  const serviceLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    serviceType: s.name,
+    name: dt.h1,
+    description: dt.metaDescription,
+    ...(base && { url: `${base}/services/${s.slug}/` }),
+    provider: clinicId
+      ? { '@type': 'Dentist', '@id': clinicId, name: clinic.name }
+      : { '@type': 'Dentist', name: clinic.name },
+    areaServed: { '@type': 'City', name: clinic.city },
+  }
+  const guides = articles.filter((a) => (a.serviceLinks || []).includes(s.slug))
+  const bookHref = `../../contact/?service=${encodeURIComponent(s.name)}#book`
+  const buttons = `<a class="btn btn-white" href="${bookHref}" data-track="book">${esc(dt.bookLabel)}</a>${
+    callNumber
+      ? `<a class="btn btn-ghost" href="tel:${esc(digits(callNumber))}" data-track="phone">${ic('phone')} Call us</a>`
+      : ''
+  }`
+  page(`services/${s.slug}/`, {
+    title: `${dt.seoTitle} | ${clinic.name}`,
+    description: dt.metaDescription,
+    jsonld: [faqLd, crumbLd, serviceLd],
+    body: `${pageHero({ crumbs: ['<a href="../">Treatments</a>', esc(s.name)], h1: dt.h1, text: dt.lead, depth: 2, image: s.hero || s.image, alt: s.heroAlt || s.imageAlt || '', buttons })}
+<section class="section" id="options"><div class="wrap">
+  ${sectionHead('Specialized options', 'Available Treatment Subcategories', `The ${s.name.toLowerCase()} options we offer.`)}
+  <div class="sub-grid">${dt.subcategories
+    .map(
+      (x, i) =>
+        `<article class="sub-card"${rv('up', i % 2)}><span class="sub-num">${i + 1}</span><div><h3>${esc(x.name)}</h3><p>${esc(x.text)}</p></div></article>`
+    )
+    .join('')}</div>
+</div></section>
+<section class="section tinted" id="benefits"><div class="wrap">
+  ${sectionHead('Clinical outcomes', `Benefits of ${s.name}`)}
+  <div class="benefit-grid">${dt.benefits
+    .map(
+      (x, i) => `<div class="benefit"${rv('up', i % 3)}>${ic('check')}<span>${esc(x)}</span></div>`
+    )
+    .join('')}</div>
+</div></section>
+<section class="section" id="specialists"><div class="wrap">
+  ${sectionHead('Assigned medical staff', dt.specialistsHeading || `Meet Your Specialists for ${s.name}`, 'The doctors who provide this treatment at Dalian Speciality Dental Clinic.')}
+  <div class="spec-grid">${docs.map((d, i) => specialistCard(d, 2, i)).join('')}</div>
+</div></section>
+<section class="section tinted" id="faq"><div class="wrap narrow">
+  ${sectionHead('Patient guidance', `Frequently Asked Questions About ${s.name}`)}
+  <div class="faq-card"${rv('up')}>${dt.faq
+    .map(
+      (f) =>
+        `<details class="faq"><summary>${esc(f.q)} ${ic('chevron')}</summary><p>${esc(f.a)}</p></details>`
+    )
+    .join('')}</div>
+</div></section>
+<section class="section" id="results"><div class="wrap">
+  ${sectionHead('Real results', `${s.name}: Before & After`, cases.length || s.video ? `Photographs${s.video ? ' and video' : ''} of real ${clinic.name} patients.` : '')}
+  ${
+    cases.length || s.video
+      ? `<div class="case-grid">${cases.map((pair, i) => baFigure(pair, '../../', i)).join('')}${s.video ? videoFigure(s.video, '../../', cases.length) : ''}</div>`
+      : `<div class="empty">Before-and-after photographs for ${esc(s.name.toLowerCase())} will be added here. In the meantime, see our <a href="../../gallery/#results">other treatment results</a> or ask us about this treatment at your consultation.</div>`
+  }
+</div></section>
+${
+  guides.length
+    ? `<section class="section tight"><div class="wrap">${sectionHead('Learn more', `Dental health guides about ${s.name.toLowerCase()}`)}<div class="grid">${guides.map((a, i) => articleCard(a, 2, i)).join('')}</div></div></section>`
+    : ''
+}
+<section class="section tinted"><div class="wrap">
+  ${sectionHead('More care', 'Other treatments')}
+  <div class="grid">${c.services
+    .filter((x) => x.slug !== s.slug)
+    .slice(0, 3)
+    .map((x, i) => serviceCard(x, 2, i))
+    .join('')}</div>
+</div></section>
+${ctaPanel(2, `Ready to book your ${s.name.toLowerCase()} appointment?`, 'Send us your details and we will confirm a time that suits you.', dt.bookLabel).replace('href="../../contact/#book"', `href="${bookHref}"`)}`,
+  })
+}
 
 // ---- 404 and crawler files --------------------------------------------------
 writes.push([
@@ -1161,7 +1282,10 @@ if (base) {
   writes.push([
     'sitemap.xml',
     `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
-      .map((p) => `  <url><loc>${base}/${p.replace(/index\.html$/, '')}</loc></url>`)
+      .map(
+        (p) =>
+          `  <url><loc>${base}/${p.replace(/index\.html$/, '')}</loc><lastmod>${new Date().toISOString().slice(0, 10)}</lastmod></url>`
+      )
       .join('\n')}\n</urlset>\n`,
   ])
 }
@@ -1173,8 +1297,19 @@ for (const [path, html] of writes) {
   writeFileSync(file, html)
 }
 mkdirSync(join(out, 'assets'), { recursive: true })
-for (const f of ['style.css', 'main.js', 'learn.js'])
-  cpSync(join(here, 'assets', f), join(out, 'assets', f))
+// Smaller CSS means a faster first paint: strip comments and extra whitespace.
+const minifyCss = (css) =>
+  css
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\s*([{}:;,>~])\s*/g, '$1')
+    .replace(/;}/g, '}')
+    .trim()
+writeFileSync(
+  join(out, 'assets', 'style.css'),
+  minifyCss(readFileSync(join(here, 'assets', 'style.css'), 'utf8'))
+)
+for (const f of ['main.js', 'learn.js']) cpSync(join(here, 'assets', f), join(out, 'assets', f))
 // House fonts shared by every landing site: Inter (primary) and Poppins (secondary).
 cpSync(join(here, '..', '_shared', 'fonts.css'), join(out, 'assets', 'fonts.css'))
 cpSync(join(here, '..', '_shared', 'fonts'), join(out, 'assets', 'fonts'), { recursive: true })
