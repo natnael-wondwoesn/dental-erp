@@ -9,7 +9,7 @@
     "phone": "+251 91 263 8003",
     "phone2": "+251 94 119 1958",
     "email": "dentadalian@gmail.com",
-    "telegram": "",
+    "telegram": "+251939237777",
     "address": "Abyssinia Building, 4th floor, Bole Medhanialem",
     "city": "Addis Ababa",
     "mapUrl": "https://maps.app.goo.gl/2UyXoSpZfLedUp3F7",
@@ -64,13 +64,6 @@
       "name": "Dr. Melese Tabor",
       "title": "Oral & Maxillofacial Surgeon",
       "bio": "Oral and maxillofacial surgeon at Dalian Speciality Dental Clinic. Dr. Melese places dental implants, performs oral surgery and treats dental and jaw emergencies.",
-      "photo": ""
-    },
-    {
-      "id": "merhawit-zerabiruk",
-      "name": "Dr. Merhawit Zerabiruk",
-      "title": "Expert Dental Surgeon",
-      "bio": "Expert dental surgeon at Dalian Speciality Dental Clinic.",
       "photo": ""
     }
   ],
@@ -701,24 +694,28 @@
   ],
   "testimonials": [
     {
-      "text": "Placeholder: Easy to find in Bole and always on time.",
-      "name": "Patient name (placeholder)",
-      "placeholder": true
+      "text": "I am very happy with the treatment I received at Dalian Dental. The dentists and staff were kind, professional and caring. My dental health has improved significantly and I feel more confident about my smile. Highly recommended!",
+      "name": "Felemon Abebe"
     },
     {
-      "text": "Placeholder: The team explained everything clearly and I felt at ease throughout.",
-      "name": "Patient name (placeholder)",
-      "placeholder": true
+      "text": "I had my teeth cleaned at Dalian Dental and had a great experience. The hospitality was excellent, the prices were very reasonable and the entire team, including the front desk staff, was wonderful. Highly recommended!",
+      "name": "Beniyam Y. Gebru"
     },
     {
-      "text": "Placeholder: A calm clinic, a thorough consultation and a clear plan.",
-      "name": "Patient name (placeholder)",
-      "placeholder": true
+      "text": "I had my braces done here and the team was very accommodating and polite. The orthodontic specialist answered all my questions and gave me helpful advice about my treatment and care. A truly professional team!",
+      "name": "Hibreselam Dejene"
     },
     {
-      "text": "Placeholder: My child was nervous, and the staff were patient and kind.",
-      "name": "Parent name (placeholder)",
-      "placeholder": true
+      "text": "I'm currently undergoing braces treatment and have had a great experience so far. The staff are professional, welcoming and supportive. I highly recommend this clinic!",
+      "name": "Segenet Tekeste"
+    },
+    {
+      "text": "I visited Dalian Dental with tooth pain. The doctor took an X-ray and performed a root canal. The team was welcoming and took great care of me. Thank you, Dalian Dental!",
+      "name": "Fuad Mohammed"
+    },
+    {
+      "text": "My wife and I traveled from America and had a wonderful experience at Dalian Dental. Dr. Ferhana, Dr. Kalkidan and the entire team were welcoming, professional and caring. We were both very happy with the treatment and service. Thank you for taking such great care of us!",
+      "name": "Mered Kassahun & Audrey Jones"
     }
   ],
   "articles": [],
@@ -768,8 +765,8 @@
     },
     {
       "id": "smile-brightening",
-      "title": "Smile Brightening",
-      "text": "Yellowed, uneven front teeth restored to a brighter, more even smile."
+      "title": "Fixed Teeth Restoration",
+      "text": "Damaged and discoloured teeth replaced with fixed prosthetic teeth!"
     },
     {
       "id": "front-view",
@@ -808,24 +805,6 @@
           {
             "src": "photos/treatments/treatment-scene-2.jpg",
             "caption": "Treatment in progress"
-          }
-        ]
-      },
-      {
-        "key": "equipment",
-        "title": "Dental Equipment",
-        "photos": [
-          {
-            "src": "photos/clinic/unit-light-and-monitor.jpg",
-            "caption": "Dental unit with overhead light and monitor"
-          },
-          {
-            "src": "photos/clinic/ultrasonic-scaler-unit.jpg",
-            "caption": "Ultrasonic scaler and handpieces"
-          },
-          {
-            "src": "photos/clinic/instrument-holders.jpg",
-            "caption": "Handpiece holders"
           }
         ]
       },

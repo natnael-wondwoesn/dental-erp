@@ -99,7 +99,7 @@ describe('Dalian Dental landing site', () => {
     expect(contact).toContain('maps.app.goo.gl/2UyXoSpZfLedUp3F7')
     const home = readFileSync(join(dist, 'index.html'), 'utf8')
     expect(home).toContain('images/brand/logo-mark.png')
-    expect(home).toContain('Dr. Merhawit Zerabiruk')
+    expect(home).not.toContain('Merhawit')
     expect(existsSync(join(dist, 'images/brand/favicon.ico'))).toBe(true)
     const gallery = readFileSync(join(dist, 'gallery/index.html'), 'utf8')
     expect(gallery).toContain('smile-makeover-1')
@@ -357,6 +357,30 @@ describe('Dalian Dental landing site', () => {
     expect(existsSync(join(dist, 'videos/prosthodontics-before-after-full.jpg'))).toBe(true)
   })
 
+  it('home shows the six real patient testimonials in a slider, with names', () => {
+    const home = readFileSync(join(dist, 'index.html'), 'utf8')
+    expect(home).toContain('data-slider')
+    expect(home.match(/class="card tcard"/g)?.length).toBe(6)
+    for (const n of [
+      'Felemon Abebe',
+      'Beniyam Y. Gebru',
+      'Hibreselam Dejene',
+      'Segenet Tekeste',
+      'Fuad Mohammed',
+      'Mered Kassahun &amp; Audrey Jones',
+    ])
+      expect(home).toContain(n)
+    expect(home).not.toMatch(/placeholder/i)
+  })
+
+  it('no page shows the removed doctor card or the Dental Equipment section', () => {
+    for (const file of htmlFiles(dist)) {
+      const html = readFileSync(file, 'utf8')
+      expect(html, file).not.toContain('Merhawit')
+      expect(html, file).not.toContain('Dental Equipment')
+    }
+  })
+
   it('every page has the floating WhatsApp button linking to the clinic number', () => {
     for (const file of htmlFiles(dist)) {
       const html = readFileSync(file, 'utf8')
@@ -381,6 +405,6 @@ describe('Dalian Dental landing site', () => {
       expect(html, file).not.toContain('TODO')
     }
     const contact = readFileSync(join(dist, 'contact/index.html'), 'utf8')
-    expect(contact).toContain('data-telegram=')
+    expect(contact).toContain('data-telegram="+251939237777"')
   })
 })

@@ -2538,3 +2538,67 @@ body.lb-open .wa-float {
   font-size: 0.9rem;
   margin-top: 4px;
 }
+
+/* Testimonials slider */
+.tslider-track {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 6px 2px 18px;
+  scrollbar-width: thin;
+}
+.tslider .tcard {
+  flex: 0 0 min(380px, 86%);
+  scroll-snap-align: start;
+  margin: 0;
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.tslider .tcard svg {
+  color: var(--blue, #1196e8);
+  width: 28px;
+  height: 28px;
+}
+.tslider .tcard p {
+  margin: 0;
+  flex: 1;
+}
+.tslider .tcard footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.95rem;
+}
+.tavatar {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #e6f3fd;
+  color: #0b6fb8;
+  font-weight: 700;
+  font-family: Poppins, sans-serif;
+}
+.tslider-nav {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 6px;
+}
+.tslider-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid #cfe4f5;
+  background: #fff;
+  color: #0b6fb8;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.tslider-btn:hover {
+  background: #e6f3fd;
+}
