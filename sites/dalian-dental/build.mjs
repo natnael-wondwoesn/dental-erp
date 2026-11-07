@@ -561,8 +561,8 @@ function page(path, opts) {
 const mosaic = [
   ['images/clinic-building.webp', 'Our clinic building', ''],
   ['images/clinic-team.webp', 'The Dalian team', 'wide'],
-  ['photos/treatments/treatment-scene-1.webp', 'Chairside care', ''],
-  ['photos/clinic/treatment-room-window.webp', 'Treatment room', ''],
+  ['photos/clinic/patient-care-consultation.webp', 'Chairside care', ''],
+  ['photos/clinic/treatment-room-teal-chair.webp', 'Treatment room', ''],
 ]
 
 // ---- Home -------------------------------------------------------------------
