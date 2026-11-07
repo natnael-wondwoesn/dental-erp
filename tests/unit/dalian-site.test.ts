@@ -103,7 +103,8 @@ describe('Dalian Dental landing site', () => {
     expect(existsSync(join(dist, 'images/brand/favicon.ico'))).toBe(true)
     const gallery = readFileSync(join(dist, 'gallery/index.html'), 'utf8')
     expect(gallery).toContain('smile-makeover-1')
-    expect(gallery).toContain('treatment-room-window.webp')
+    expect(gallery).toContain('treatment-room-teal-chair.webp')
+    expect(gallery).not.toContain('treatment-room-window')
   })
 
   it('gallery follows the redesigned structure: hero, category nav, doctors, clinic, results, CTA', () => {
@@ -129,7 +130,7 @@ describe('Dalian Dental landing site', () => {
     )
     expect(g).toContain('Book an Appointment')
     // Clinic photos have captions and every image opens in the lightbox.
-    expect(g).toContain('<figcaption>Chairside view</figcaption>')
+    expect(g).toContain('<figcaption>Dental unit and instruments</figcaption>')
     expect(g).toContain('class="lb')
     // Case cards have real titles and BEFORE/AFTER labels, not "Smile Makeover 1".
     expect(g).toContain('<strong>Orthodontic Treatment</strong>')

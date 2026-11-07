@@ -4,7 +4,7 @@
   "title": "How Often Should I See a Dentist?",
   "category": "Oral Hygiene & Prevention",
   "description": "There is no single rule for everyone. NICE guidance sets check-up intervals by your risk of dental disease, from 3 months to 24 months.",
-  "image": "photos/treatments/treatment-scene-1.webp",
+  "image": "photos/clinic/patient-care-consultation.webp",
   "imageAlt": "A dentist examining a patient in the treatment room",
   "keywords": "how often to see a dentist, dental check-up, recall interval, dental check-up frequency Addis Ababa",
   "intro": "Many people are told to visit every six months. In fact, guidance recommends that the interval is set for each person, based on their risk of dental disease.",

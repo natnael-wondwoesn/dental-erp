@@ -861,22 +861,6 @@
         "title": "Treatment Rooms",
         "photos": [
           {
-            "src": "photos/clinic/treatment-room-window.webp",
-            "caption": "Treatment room with a view over Addis Ababa"
-          },
-          {
-            "src": "photos/clinic/treatment-room-chair.webp",
-            "caption": "Chairside view"
-          },
-          {
-            "src": "photos/treatments/treatment-scene-1.webp",
-            "caption": "Examination in the treatment room"
-          },
-          {
-            "src": "photos/treatments/treatment-scene-2.webp",
-            "caption": "Treatment in progress"
-          },
-          {
             "src": "photos/clinic/treatment-room-teal-chair.webp",
             "caption": "Treatment room with modern dental chair"
           },
