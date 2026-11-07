@@ -34,11 +34,12 @@ const digits = (s) => String(s).replace(/[^\d+]/g, '')
 // Telegram username without the @ or a t.me/ prefix.
 // Digits only, no + sign: the format wa.me links need.
 const waNumber = String(clinic.whatsapp || '').replace(/\D/g, '')
+// A phone number (+251...) also works: t.me/+251... opens the chat with that number.
 const tg = String(clinic.telegram || '')
   .trim()
   .replace(/^https?:\/\/t\.me\//i, '')
   .replace(/^@/, '')
-  .replace(/[^A-Za-z0-9_]/g, '')
+  .replace(/[^A-Za-z0-9_+]/g, '')
 // The founder is always listed first, wherever doctors appear.
 const founderFirst = (a, b) => Number(b === c.founder.doctor) - Number(a === c.founder.doctor)
 c.doctors.sort((x, y) => founderFirst(x.id, y.id))
@@ -505,15 +506,14 @@ ${founderStory(0)}
 ${visitSteps()}
 ${
   c.testimonials.length
-    ? `<section class="section"><div class="wrap">${sectionHead('Patient voices', 'What patients say', c.testimonials.some((t) => t.placeholder) ? 'Placeholder testimonials. Replace with real, consented patient feedback before launch.' : '')}</div><div class="marquee" aria-label="Patient testimonials"><div class="marquee-track">${[
-        ...c.testimonials,
-        ...c.testimonials,
-      ]
+    ? `<section class="section"><div class="wrap">${sectionHead('Patient voices', 'What patients say')}<div class="tslider" data-slider><div class="tslider-track" tabindex="0" aria-label="Patient testimonials">${c.testimonials
         .map(
-          (t) =>
-            `<blockquote class="card">${ic('quote')}<p>${esc(t.text)}</p><footer>${esc(t.name)}</footer></blockquote>`
+          (t, i) =>
+            `<blockquote class="card tcard"${rv('up', i % 3)}>${ic('quote')}<p>${esc(t.text)}</p><footer><span class="tavatar" aria-hidden="true">${esc(t.name.trim().charAt(0))}</span><strong>${esc(t.name)}</strong></footer></blockquote>`
         )
-        .join('')}</div></div></section>`
+        .join(
+          ''
+        )}</div><div class="tslider-nav"><button type="button" class="tslider-btn" data-dir="-1" aria-label="Previous testimonials">&#8592;</button><button type="button" class="tslider-btn" data-dir="1" aria-label="Next testimonials">&#8594;</button></div></div></div></section>`
     : ''
 }
 <section class="section"><div class="wrap">
@@ -1118,7 +1118,7 @@ page('contact/', {
     <label>Service needed<select name="service"><option value="">Not sure yet</option>${serviceOptions}</select></label>
     <label>Message<textarea name="message" rows="4"></textarea></label>
     <p class="honeypot"><label>Leave this empty<input name="website" tabindex="-1" autocomplete="off"></label></p>
-    <button class="btn" type="submit">${clinic.email ? 'Send request by email' : tg ? 'Send request on Telegram' : 'Prepare my request'}</button>
+    <button class="btn" type="submit">${tg ? 'Send request on Telegram' : clinic.email ? 'Send request by email' : 'Prepare my request'}</button>
     <p class="form-msg" role="status" aria-live="polite"></p>
   </form>
   <div${rv('right')}>
@@ -1129,7 +1129,7 @@ page('contact/', {
       <li><span class="tile">${ic('pin')}</span><span><strong>Location</strong>${esc(clinic.address ? `${clinic.address}, ` : '')}${esc(clinic.city)}</span></li>
       ${clinic.hours ? `<li><span class="tile">${ic('clock')}</span><span><strong>Hours</strong>${esc(clinic.hours)}</span></li>` : ''}
       ${contactLine(1) ? `<li><span class="tile">${ic('phone')}</span><span><strong>Phone</strong>${contactLine(1)}</span></li>` : ''}
-      ${tg ? `<li><span class="tile">${ic('arrow')}</span><span><strong>Telegram</strong><a href="https://t.me/${esc(tg)}" data-track="telegram" rel="noopener">@${esc(tg)}</a></span></li>` : ''}
+      ${tg ? `<li><span class="tile">${ic('arrow')}</span><span><strong>Telegram</strong><a href="https://t.me/${esc(tg)}" data-track="telegram" rel="noopener">${tg.startsWith('+') ? esc(tg) : '@' + esc(tg)}</a></span></li>` : ''}
       ${clinic.email ? `<li><span class="tile">${ic('mail')}</span><span><strong>Email</strong><a href="mailto:${esc(clinic.email)}">${esc(clinic.email)}</a></span></li>` : ''}
     </ul>
     ${clinic.mapEmbedUrl ? `<iframe class="map" title="Map" src="${esc(clinic.mapEmbedUrl)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>` : ''}

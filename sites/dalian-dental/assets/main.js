@@ -108,7 +108,7 @@
       ].filter(Boolean)
       var email = form.dataset.email
       var user = form.dataset.telegram
-      if (email) {
+      if (email && !user) {
         // A static site cannot send email itself, so open the visitor's email app with the
         // request already written and addressed to the clinic.
         var subject = 'Appointment request - ' + name
@@ -282,5 +282,19 @@
     if (e.key === 'Escape') close()
     else if (e.key === 'ArrowLeft') show(index - 1)
     else if (e.key === 'ArrowRight') show(index + 1)
+  })
+})()
+
+// Testimonials slider: scroll-snap track with previous/next buttons.
+;(function () {
+  document.querySelectorAll('[data-slider]').forEach(function (box) {
+    var track = box.querySelector('.tslider-track')
+    box.querySelectorAll('.tslider-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var card = track.querySelector('.tcard')
+        var step = card ? card.getBoundingClientRect().width + 20 : track.clientWidth
+        track.scrollBy({ left: Number(btn.dataset.dir) * step, behavior: 'smooth' })
+      })
+    })
   })
 })()
