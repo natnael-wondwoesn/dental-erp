@@ -837,7 +837,24 @@
       {
         "key": "reception",
         "title": "Reception & Waiting Area",
-        "photos": []
+        "photos": [
+          {
+            "src": "photos/clinic/reception-desk.webp",
+            "caption": "Reception desk"
+          },
+          {
+            "src": "photos/clinic/reception-desk-close.webp",
+            "caption": "Welcome to Dalian"
+          },
+          {
+            "src": "photos/clinic/waiting-area-kids-corner.webp",
+            "caption": "Comfortable waiting area with a children's corner"
+          },
+          {
+            "src": "photos/clinic/waiting-area-posters.webp",
+            "caption": "A calm place to wait"
+          }
+        ]
       },
       {
         "key": "treatment-rooms",
@@ -858,6 +875,88 @@
           {
             "src": "photos/treatments/treatment-scene-2.webp",
             "caption": "Treatment in progress"
+          },
+          {
+            "src": "photos/clinic/treatment-room-teal-chair.webp",
+            "caption": "Treatment room with modern dental chair"
+          },
+          {
+            "src": "photos/clinic/treatment-room-cabinet.webp",
+            "caption": "A fully equipped treatment room"
+          },
+          {
+            "src": "photos/clinic/treatment-room-blue-chair.webp",
+            "caption": "Dental chair and overhead light"
+          },
+          {
+            "src": "photos/clinic/treatment-room-blue-chair-window.webp",
+            "caption": "Treatment chair by the window"
+          },
+          {
+            "src": "photos/clinic/treatment-room-and-lounge.webp",
+            "caption": "Treatment room next to our lounge"
+          },
+          {
+            "src": "photos/clinic/dental-unit-lounge-view.webp",
+            "caption": "Dental unit and instruments"
+          }
+        ]
+      },
+      {
+        "key": "lounge",
+        "title": "Consultation Lounge",
+        "photos": [
+          {
+            "src": "photos/clinic/lounge-sofas-desk.webp",
+            "caption": "Consultation lounge"
+          },
+          {
+            "src": "photos/clinic/lounge-office.webp",
+            "caption": "Where we discuss your treatment plan"
+          },
+          {
+            "src": "photos/clinic/lounge-map-wall-gifts.webp",
+            "caption": "Our welcome gifts for patients"
+          }
+        ]
+      },
+      {
+        "key": "patient-care",
+        "title": "Patient Care",
+        "photos": [
+          {
+            "src": "photos/clinic/patient-care-smile.webp",
+            "caption": "A relaxed, friendly visit"
+          },
+          {
+            "src": "photos/clinic/patient-care-consultation.webp",
+            "caption": "Dentist and patient chairside"
+          },
+          {
+            "src": "photos/clinic/patient-care-chairside.webp",
+            "caption": "Gentle, attentive care"
+          },
+          {
+            "src": "photos/clinic/patient-exam-portrait.webp",
+            "caption": "Careful examination"
+          },
+          {
+            "src": "photos/clinic/patient-exam-overhead.webp",
+            "caption": "Examination under the dental light"
+          }
+        ]
+      },
+      {
+        "key": "xray",
+        "title": "Digital X-Ray",
+        "photos": [
+          {
+            "src": "photos/clinic/portable-xray.webp",
+            "caption": "Portable dental X-ray unit"
+          },
+          {
+            "src": "photos/clinic/portable-xray-portrait.webp",
+            "caption": "Portable dental X-ray unit"
           }
         ]
       },
