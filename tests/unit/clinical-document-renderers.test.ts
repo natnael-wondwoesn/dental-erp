@@ -51,7 +51,7 @@ describe('clinical document renderers', () => {
     expect(
       isClinicPrintableAllowedForClinic(
         'megenagna-treatment-consent',
-        'Megenagna Speciality Dental Clinic P.L.C.'
+        'Megenagna Speciality Dental Clinic'
       )
     ).toBe(true)
     expect(
@@ -63,7 +63,7 @@ describe('clinical document renderers', () => {
     expect(
       isClinicPrintableAllowedForClinic(
         'berhanu-pre-treatment-notice',
-        'Megenagna Speciality Dental Clinic P.L.C.'
+        'Megenagna Speciality Dental Clinic'
       )
     ).toBe(false)
     expect(isClinicPrintableAllowedForClinic('consent', 'Any Dental Clinic')).toBe(true)
