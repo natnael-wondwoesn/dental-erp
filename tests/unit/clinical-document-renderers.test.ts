@@ -69,6 +69,23 @@ describe('clinical document renderers', () => {
     expect(isClinicPrintableAllowedForClinic('consent', 'Any Dental Clinic')).toBe(true)
   })
 
+  it('keeps other clinic fiscal details off the Megenagna cash sales attachment', () => {
+    const other = renderClinicPrintableHtml(
+      'cash-sales-attachment',
+      { name: 'Megnagna speciality dental clinic' },
+      '001'
+    )
+    expect(other).not.toContain('CFF00006511')
+    expect(other).not.toContain('ወረዳ 09')
+    const berhanu = renderClinicPrintableHtml(
+      'cash-sales-attachment',
+      { name: 'Dr Berhanu Belta Specialty Dental Clinic' },
+      '001'
+    )
+    expect(berhanu).toContain('CFF00006511')
+    expect(berhanu).toContain('ወረዳ 09')
+  })
+
   it('numbers cash sales attachments from the supplied sequence and omits the clinic name from lab orders', () => {
     expect(renderClinicPrintableHtml('cash-sales-attachment', clinic, '001')).toContain(
       '<strong>001</strong>'
