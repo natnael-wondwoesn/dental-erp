@@ -31,9 +31,12 @@ describe('clinical document renderers', () => {
         expect(html).toContain('ጥርስ ከማስነቀልዎ በፊት')
         expect(html).not.toContain('<img class="patient-guide-image"')
       } else if (template === 'megenagna-treatment-consent') {
-        expect(html).toContain('/assets/megenagna/treatment-consent-reference.jpg')
+        expect(html).toContain('የጥርስ ህክምና ውል ስምምነት')
+        expect(html).not.toContain('<img src="/assets/megenagna')
       } else if (template === 'megenagna-medical-history') {
-        expect(html).toContain('/assets/megenagna/medical-history-reference.jpg')
+        expect(html).toContain('በታካሚ የሚሞላ ስምምነት')
+        expect(html).toContain('ስኳር ህመም')
+        expect(html).toContain('ሪቴይነር')
       } else if (template === 'cash-sales-attachment') {
         expect(html).toContain('MRC CFF00006511')
         expect(html).toContain('ATTACHMENT')

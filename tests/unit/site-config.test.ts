@@ -116,7 +116,12 @@ describe('loadSiteConfig', () => {
     const config = loadSiteConfig()
     expect(config.clinic.name.en).toBe('Megenagna Speciality Dental Clinic P.L.C.')
     expect(config.clinic.name.am).toBe('መገናኛ ስፔሻሊቲ የጥርስ ሕክምና ክሊኒክ ኃ/የተ/የግ/ማ')
-    expect(config.contact.phones).toEqual(['+251911423397', '+251965177676'])
+    expect(config.contact.phones).toEqual([
+      '+251912109045',
+      '+251911423397',
+      '+251965177676',
+      '+251118684968',
+    ])
     expect(config.location.landmark).toContain('Maraton Business Center')
   })
 
