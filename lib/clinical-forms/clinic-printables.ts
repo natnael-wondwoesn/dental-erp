@@ -121,26 +121,59 @@ function berhanuPatientGuide(
   return `${masthead(clinic)}<div class="guide-title am">${guide.title}</div><ul class="guide-list">${guide.items.map((item) => `<li>${item}</li>`).join('')}</ul>${guide.footer ? `<p class="guide-footer">${guide.footer}</p>` : ''}`
 }
 
-function megenagnaReferenceForm(
-  clinic: MedicalCertificateClinic,
-  key: 'megenagna-treatment-consent' | 'megenagna-medical-history'
-) {
-  const source =
-    key === 'megenagna-treatment-consent'
-      ? '/assets/megenagna/treatment-consent-reference.jpg'
-      : '/assets/megenagna/medical-history-reference.jpg'
-  const alt =
-    key === 'megenagna-treatment-consent'
-      ? 'Megenagna dental treatment consent form'
-      : 'Megenagna patient medical history form'
-  return (
-    masthead(clinic) +
-    '<div class="reference-scan"><img src="' +
-    source +
-    '" alt="' +
-    alt +
-    '"></div>'
-  )
+const MEGENAGNA_CONDITIONS = [
+  'ስኳር ህመም',
+  'ደም ግፊት',
+  'የልብ ችግር',
+  'ቲቢ',
+  'ደም ያለመርጋት ችግር',
+  'የሚጥል በሽታ',
+  'የጉበት ህመም',
+  'የኤች አይ ቪ',
+  'የነርቭ ችግር',
+  'አስም',
+  'የኩላሊት ህመም',
+  'የመድሃኒት አለርጂ',
+  'ደም ማነስ',
+  'እርግዝና',
+]
+
+const MEGENAGNA_SERVICES = [
+  'አክሬሊክ ጥርስ',
+  'ወርቅ እና ነጭ ጥርስ',
+  'ሴራሚክ',
+  'ክሮምኮባልት',
+  'ፓርሻል ዴንቸር',
+  'ፉል ዴንቸር',
+  'የጥርስ ሙሌት',
+  'ጥርስ መንቀል (የጥርሱ አይነት)',
+  'ጥርስ ስር ህክምና (የጥርሱ አይነት)',
+  'የድድ ህክምና',
+  'አርች ባር',
+  'ኦርቶዶንቲክ ህክምና',
+  'ጥርስ ማፅዳት',
+  'ሪቴይነር',
+]
+
+function megenagnaTreatmentConsent(clinic: MedicalCertificateClinic) {
+  return `${masthead(clinic)}<div class="field am" style="justify-content:flex-end;margin-top:3mm"><span>ቀን፦</span><b style="max-width:55mm"></b></div>
+  <div class="title am">የጥርስ ህክምና ውል ስምምነት</div>
+  <div class="grid" style="grid-template-columns:2fr 1fr 1fr 2fr">${line('የታካሚ ስም')}${line('ፆታ')}${line('ዕድሜ')}${line('አድራሻ')}</div>
+  <div class="grid two">${line('ካርድ ቁ.')}${line('ስልክ ቁጥር')}</div>
+  <div class="am megenagna-text"><p>እኔ ስሜ ከዚህ በታች የተጠቀሰው ታካሚ በዶ/ር</p>${line('', 'wide')}<p>እና በስራ ባልደረቦቹ የጥርስ ህክምና እንዲደረግልኝ ስል ተስማምቻለሁ።</p>${line('የበሽታው አይነት የጥርስ ህክምናው የሚደረግበት ምክንያት')}<p style="margin-top:5mm">እኔ ${'_'.repeat(34)} የተባልኩ ታካሚ የታመመውን ጥርሴን ለማስነቀል ወይም ማንኛውንም አይነት የጥርስ ህክምና ለማድረግ ማደንዘዣ ተሰጥቶኝ ህክምና እንዲደረግልኝ ስል በፊርማዬ አረጋግጣለሁ።</p>${line('ታካሚ ወይም ታካሚውን የሚወክል ስም')}</div>
+  <div class="signature-row am"><div>የታካሚው ስምና ፊርማ</div><div>የሀኪሙ/ሚ ስምና ፊርማ</div></div>`
+}
+
+function megenagnaMedicalHistory(clinic: MedicalCertificateClinic) {
+  const box = '<i class="mbox"></i>'
+  return `${masthead(clinic)}<div class="grid two am" style="margin-top:3mm">${line('ቀን፦')}${line('ቁጥር፦')}</div>
+  <div class="title am">በታካሚ የሚሞላ ስምምነት</div>
+  <div class="grid" style="grid-template-columns:2fr 1fr 1fr">${line('ስም')}${line('ፆታ')}${line('ዕድሜ')}</div>
+  <div class="mh-cols am"><section><p><b>በሀኪም የተረጋገጡ በሽታዎች</b></p><table class="mh-table"><thead><tr><th></th><th>ካለብዎት</th><th>ከሌለብዎት</th></tr></thead><tbody>${MEGENAGNA_CONDITIONS.map((c, i) => `<tr><td>${i + 1}. ${c}</td><td>${box}</td><td>${box}</td></tr>`).join('')}</tbody></table>
+  <p style="margin-top:4mm"><b>ማሳሰቢያ</b></p><p>• ላለብዎ ህመም መድኃኒት</p><p><span class="check">ይወስዳሉ</span> &nbsp; <span class="check">አይወስዱም</span></p></section>
+  <section><p><b>የተፈለገው አገልግሎት</b></p><ol class="mh-services">${MEGENAGNA_SERVICES.map((c) => `<li><span>${c}</span><b></b></li>`).join('')}</ol></section></div>
+  <p class="am" style="margin-top:5mm">ከላይ በተጠቀሰው መሰረት የሰጠሁት ቃል ትክክል መሆኑን በፊርማዬ አረጋግጣለሁ።</p>
+  <div class="grid two am">${line('ስም')}${line('ፊርማ')}</div>`
 }
 
 export function renderClinicPrintableHtml(
@@ -152,7 +185,9 @@ export function renderClinicPrintableHtml(
     key === 'berhanu-orthodontic-guidance' || key === 'berhanu-pre-treatment-notice'
       ? berhanuPatientGuide(clinic, key)
       : key === 'megenagna-treatment-consent' || key === 'megenagna-medical-history'
-        ? megenagnaReferenceForm(clinic, key)
+        ? key === 'megenagna-treatment-consent'
+          ? megenagnaTreatmentConsent(clinic)
+          : megenagnaMedicalHistory(clinic)
         : key === 'consent'
           ? consent(clinic)
           : key === 'laboratory-order'
@@ -162,7 +197,7 @@ export function renderClinicPrintableHtml(
     key === 'cash-sales-attachment'
       ? '@page{size:A5 portrait;margin:5mm}'
       : key === 'megenagna-treatment-consent' || key === 'megenagna-medical-history'
-        ? 'body .paper{padding:8mm 10mm}body .reference-scan{height:225mm;overflow:hidden;margin-top:4mm;background:#fff}body .reference-scan img{display:block;width:100%;height:auto;transform:translateY(-44mm);filter:grayscale(1) contrast(1.18)}body.megenagna-medical-history .reference-scan img{transform:translateY(-42mm)}'
+        ? 'body .paper{padding:8mm 10mm}body .megenagna-text p{margin:3mm 0}body .megenagna-text .wide{min-height:8mm}body .mh-cols{display:grid;grid-template-columns:1.1fr 1fr;gap:8mm;margin-top:4mm}body .mh-table th,body .mh-table td{border:0;height:8.5mm;padding:1mm 2mm}body .mh-table td:first-child{text-align:left}body .mbox{display:block;width:12mm;height:6mm;border:1px solid #111;margin:0 auto}body .mh-services{list-style:none;margin:0;padding:0}body .mh-services li{display:flex;gap:2mm;align-items:end;min-height:10mm}body .mh-services li b{flex:1;border-bottom:1px solid #111;min-width:15mm}'
         : ''
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${e(CLINIC_PRINTABLES[key])}</title><style>${baseCss}${pageCss}</style></head><body class="${e(key)}"><div class="toolbar"><button onclick="window.print()">Print form</button></div><main class="paper">${content}</main></body></html>`
 }

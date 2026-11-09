@@ -1,8 +1,8 @@
 {
   "clinic": {
     "name": {
-      "en": "Megenagna Speciality Dental Clinic P.L.C.",
-      "am": "መገናኛ ስፔሻሊቲ የጥርስ ሕክምና ክሊኒክ ኃ/የተ/የግ/ማ"
+      "en": "Megenagna Speciality Dental Clinic",
+      "am": "መገናኛ ስፔሻሊቲ የጥርስ ሕክምና ክሊኒክ"
     },
     "tagline": {
       "en": "Speciality dental care in Megenagna.",
@@ -20,7 +20,7 @@
     "mapEmbedUrl": "https://www.google.com/maps?q=MEGENAGNA%20DENTAL%20CLINIC%2C%20Addis%20Ababa&output=embed"
   },
   "contact": {
-    "phones": ["+251911423397", "+251965177676"],
+    "phones": ["+251912109045", "+251911423397", "+251965177676", "+251118684968"],
     "email": "dr.wondowesen@megenagna.test"
   },
   "hours": [
@@ -56,8 +56,8 @@
   "doctors": [],
   "about": {
     "story": {
-      "en": "Megenagna Speciality Dental Clinic P.L.C.",
-      "am": "መገናኛ ስፔሻሊቲ የጥርስ ሕክምና ክሊኒክ ኃ/የተ/የግ/ማ"
+      "en": "Megenagna Speciality Dental Clinic",
+      "am": "መገናኛ ስፔሻሊቲ የጥርስ ሕክምና ክሊኒክ"
     },
     "metrics": []
   }
