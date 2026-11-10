@@ -117,65 +117,99 @@
         f.get('time') ? 'Preferred time: ' + f.get('time') : '',
         f.get('message') ? 'Message: ' + f.get('message') : '',
       ].filter(Boolean)
-      var email = form.dataset.email
-      var user = form.dataset.telegram
-      if (email && !user) {
-        // A static site cannot send email itself, so open the visitor's email app with the
-        // request already written and addressed to the clinic.
-        var subject = 'Appointment request - ' + name
-        window.location.href =
-          'mailto:' +
-          email +
-          '?subject=' +
-          encodeURIComponent(subject) +
-          '&body=' +
-          encodeURIComponent(lines.join('\n'))
-        msg.className = 'form-msg ok'
-        msg.textContent =
-          'Your email app is opening with the request filled in. Press send and we will confirm your time. If nothing opens, please write to ' +
-          email +
-          '.'
-      } else if (user) {
-        var text = lines.join('\n')
-        // Copy first as a safety net, without waiting, so the Telegram link below is opened
-        // straight from the click (browsers block links opened after a delay).
-        try {
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(text).catch(function () {})
+      var fallback = function () {
+        var email = form.dataset.email
+        var user = form.dataset.telegram
+        if (email && !user) {
+          // A static site cannot send email itself, so open the visitor's email app with the
+          // request already written and addressed to the clinic.
+          var subject = 'Appointment request - ' + name
+          window.location.href =
+            'mailto:' +
+            email +
+            '?subject=' +
+            encodeURIComponent(subject) +
+            '&body=' +
+            encodeURIComponent(lines.join('\n'))
+          msg.className = 'form-msg ok'
+          msg.textContent =
+            'Your email app is opening with the request filled in. Press send and we will confirm your time. If nothing opens, please write to ' +
+            email +
+            '.'
+        } else if (user) {
+          var text = lines.join('\n')
+          // Copy first as a safety net, without waiting, so the Telegram link below is opened
+          // straight from the click (browsers block links opened after a delay).
+          try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text).catch(function () {})
+            }
+          } catch (err) {
+            /* ignore */
           }
-        } catch (err) {
-          /* ignore */
-        }
-        var q = encodeURIComponent(text)
-        var plain = 'https://t.me/' + user
-        if (user.charAt(0) === '+') {
-          // Phone-number chats: the Telegram app link carries the message text; if the app does
-          // not open, fall back to the web link (the request is already copied).
-          window.location.href = 'tg://resolve?phone=' + user.slice(1) + '&text=' + q
-          setTimeout(function () {
-            if (!document.hidden) window.location.href = plain
-          }, 1800)
+          var q = encodeURIComponent(text)
+          var plain = 'https://t.me/' + user
+          if (user.charAt(0) === '+') {
+            // Phone-number chats: the Telegram app link carries the message text; if the app does
+            // not open, fall back to the web link (the request is already copied).
+            window.location.href = 'tg://resolve?phone=' + user.slice(1) + '&text=' + q
+            setTimeout(function () {
+              if (!document.hidden) window.location.href = plain
+            }, 1800)
+          } else {
+            window.location.href = plain + '?text=' + q
+          }
+          msg.className = 'form-msg ok'
+          // Telegram does not accept pre-filled text for phone-number chats, so the visitor
+          // pastes it. Show the request here too, in case the copy was blocked.
+          msg.textContent =
+            'Telegram is opening. Your request is copied: in the chat, paste it into the message box and press send. If it is not copied, copy the text below.'
+          var box = document.createElement('textarea')
+          box.readOnly = true
+          box.value = text
+          box.rows = Math.min(lines.length + 1, 9)
+          box.style.cssText = 'display:block;width:100%;margin-top:10px;font:inherit;padding:10px'
+          box.addEventListener('focus', function () {
+            box.select()
+          })
+          msg.appendChild(box)
         } else {
-          window.location.href = plain + '?text=' + q
+          msg.className = 'form-msg error'
+          msg.textContent = 'Online requests are not available yet. Please call the clinic to book.'
         }
-        msg.className = 'form-msg ok'
-        // Telegram does not accept pre-filled text for phone-number chats, so the visitor
-        // pastes it. Show the request here too, in case the copy was blocked.
-        msg.textContent =
-          'Telegram is opening. Your request is copied: in the chat, paste it into the message box and press send. If it is not copied, copy the text below.'
-        var box = document.createElement('textarea')
-        box.readOnly = true
-        box.value = text
-        box.rows = Math.min(lines.length + 1, 9)
-        box.style.cssText = 'display:block;width:100%;margin-top:10px;font:inherit;padding:10px'
-        box.addEventListener('focus', function () {
-          box.select()
-        })
-        msg.appendChild(box)
-      } else {
-        msg.className = 'form-msg error'
-        msg.textContent = 'Online requests are not available yet. Please call the clinic to book.'
       }
+      var book = form.dataset.book
+      if (!book) return fallback()
+      // Send the request to the clinic's Telegram chat through its bot. If that is not
+      // possible, fall back to opening Telegram (or email) with the request ready to paste.
+      var btn = form.querySelector('button[type="submit"], button:not([type])')
+      if (btn) btn.disabled = true
+      msg.className = 'form-msg'
+      msg.textContent = 'Sending your request...'
+      var payload = {}
+      f.forEach(function (v, k) {
+        payload[k] = String(v)
+      })
+      fetch(book, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+        .then(function (r) {
+          return r.ok ? r.json() : Promise.reject(new Error('failed'))
+        })
+        .then(function (j) {
+          if (!j || !j.ok) throw new Error('failed')
+          msg.className = 'form-msg ok'
+          msg.textContent =
+            'Thank you, your request has been sent to the clinic. We will contact you soon to confirm your time.'
+          form.reset()
+          if (btn) btn.disabled = false
+        })
+        .catch(function () {
+          if (btn) btn.disabled = false
+          fallback()
+        })
     })
   }
 
