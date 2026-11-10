@@ -138,11 +138,17 @@
       } else if (user) {
         var text = lines.join('\n')
         var done = function (copied) {
-          window.open('https://t.me/' + user, '_blank', 'noopener')
+          // The request text travels in the link, so the Telegram chat opens with it already
+          // typed in the message box; the visitor only has to press send.
+          window.open(
+            'https://t.me/' + user + '?text=' + encodeURIComponent(text),
+            '_blank',
+            'noopener'
+          )
           msg.className = 'form-msg ok'
           msg.textContent = copied
-            ? 'Your request is copied. Paste it into the Telegram chat and press send; we will confirm your time.'
-            : 'Telegram is opening. Please type your request there and we will confirm your time.'
+            ? 'Telegram is opening with your request already written. Press send. If the box is empty, paste it (your request is copied) and press send.'
+            : 'Telegram is opening with your request already written. Press send and we will confirm your time.'
         }
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(text).then(
