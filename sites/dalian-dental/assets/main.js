@@ -159,8 +159,19 @@
           window.location.href = plain + '?text=' + q
         }
         msg.className = 'form-msg ok'
+        // Telegram does not accept pre-filled text for phone-number chats, so the visitor
+        // pastes it. Show the request here too, in case the copy was blocked.
         msg.textContent =
-          'Opening Telegram with your request. Press send there. If the message box is empty, paste it (your request is copied) and press send.'
+          'Telegram is opening. Your request is copied: in the chat, paste it into the message box and press send. If it is not copied, copy the text below.'
+        var box = document.createElement('textarea')
+        box.readOnly = true
+        box.value = text
+        box.rows = Math.min(lines.length + 1, 9)
+        box.style.cssText = 'display:block;width:100%;margin-top:10px;font:inherit;padding:10px'
+        box.addEventListener('focus', function () {
+          box.select()
+        })
+        msg.appendChild(box)
       } else {
         msg.className = 'form-msg error'
         msg.textContent = 'Online requests are not available yet. Please call the clinic to book.'
