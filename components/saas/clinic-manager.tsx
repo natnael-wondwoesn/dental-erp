@@ -2,15 +2,21 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { moduleIds, validateModules, type ModuleId, type SaaSAccess } from '@/lib/saas/catalog'
-import dependencies from '@/config/saas-modules.json'
+import { type SaaSAccess } from '@/lib/saas/catalog'
+import {
+  DEFAULT_PRODUCT,
+  PRODUCTS,
+  catalogFor,
+  moduleIdsFor,
+  presetsFor,
+  productLabel,
+  starterFor,
+  validateModulesFor,
+} from '@/lib/saas/product-catalogs'
 import { ClinicProfile } from '@/components/saas/clinic-profile'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-
-const starter: ModuleId[] = ['core', 'patients', 'appointments', 'clinical']
-const practice: ModuleId[] = [...starter, 'billing']
 
 export function ClinicManager({ initial }: { initial: SaaSAccess[] }) {
   const [clinics, setClinics] = useState(initial)
@@ -88,7 +94,7 @@ export function ClinicManager({ initial }: { initial: SaaSAccess[] }) {
                 >
                   <strong className="block">{clinic.name}</strong>
                   <span className="text-xs">
-                    {clinic.state} · {clinic.mode}
+                    {clinic.state} · {clinic.mode} · {productLabel(clinic.product)}
                   </span>
                 </button>
               ))}
@@ -101,14 +107,16 @@ export function ClinicManager({ initial }: { initial: SaaSAccess[] }) {
               onSubmit={async (event) => {
                 event.preventDefault()
                 const data = new FormData(event.currentTarget)
+                const productKey = String(data.get('productKey') || DEFAULT_PRODUCT)
                 const created = await request('tenants', 'POST', {
                   id: data.get('id'),
                   name: data.get('name'),
                   slug: data.get('slug'),
                   hostname: data.get('hostname') || null,
                   customerId: data.get('customerId'),
+                  productKey,
                   accessUntil: new Date(String(data.get('accessUntil'))).toISOString(),
-                  modules: starter,
+                  modules: starterFor(productKey),
                   mode: data.get('mode'),
                   planName: 'Starter',
                   branding: {},
@@ -121,6 +129,20 @@ export function ClinicManager({ initial }: { initial: SaaSAccess[] }) {
                 Use the clinic ID from its provisioned installation. Registration does not copy
                 patient data.
               </p>
+              <label className="block text-sm">
+                Product
+                <select
+                  name="productKey"
+                  defaultValue={DEFAULT_PRODUCT}
+                  className="block w-full rounded border p-2"
+                >
+                  {PRODUCTS.map((product) => (
+                    <option key={product.key} value={product.key}>
+                      {product.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
               {['id', 'name', 'slug', 'hostname', 'customerId'].map((name) => (
                 <label key={name} className="block text-sm">
                   {name}
@@ -384,13 +406,16 @@ function ModulesEditor({
 }: {
   clinic: SaaSAccess
   busy: boolean
-  save: (modules: ModuleId[], effectiveAt: string | null) => Promise<unknown>
+  save: (modules: string[], effectiveAt: string | null) => Promise<unknown>
 }) {
-  const [modules, setModules] = useState(clinic.modules)
+  const [modules, setModules] = useState<string[]>(clinic.modules as string[])
   const [when, setWhen] = useState('period-end')
+  const catalog = catalogFor(clinic.product)
+  const ids = moduleIdsFor(clinic.product)
+  const presets = presetsFor(clinic.product)
   let validation = ''
   try {
-    validateModules(modules)
+    validateModulesFor(clinic.product, modules)
   } catch (error) {
     validation = String(error)
   }
@@ -401,23 +426,14 @@ function ModulesEditor({
       </CardHeader>
       <CardContent>
         <div className="mb-4 flex flex-wrap gap-2">
-          {[
-            ['Starter', starter],
-            ['Practice', practice],
-            ['All modules', moduleIds],
-          ].map(([name, ids]) => (
-            <Button
-              type="button"
-              variant="outline"
-              key={String(name)}
-              onClick={() => setModules(ids as ModuleId[])}
-            >
-              {String(name)}
+          {presets.map(([name, preset]) => (
+            <Button type="button" variant="outline" key={name} onClick={() => setModules(preset)}>
+              {name}
             </Button>
           ))}
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {moduleIds.map((id) => (
+          {ids.map((id) => (
             <label key={id} className="rounded-lg border p-3 text-sm">
               <input
                 type="checkbox"
@@ -431,7 +447,7 @@ function ModulesEditor({
               />{' '}
               <strong>{id}</strong>
               <span className="mt-1 block text-xs text-slate-500">
-                Requires: {dependencies[id].join(', ') || 'Included'}
+                Requires: {catalog[id].join(', ') || 'Included'}
               </span>
             </label>
           ))}

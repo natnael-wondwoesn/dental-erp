@@ -164,6 +164,9 @@ export function modulesForPath(rawPath: string): ModuleId[] | null {
 export interface SaaSAccess {
   clientOptions?: Partial<Record<'recoveryRead' | 'backupExport' | 'licenseImport', boolean>>
   tenantId: string
+  // Which product this clinic runs (dental-erp | clinic-cms). Optional for
+  // backward compatibility with policies serialized before multi-product.
+  product?: string
   name: string
   slug: string
   hostname: string | null

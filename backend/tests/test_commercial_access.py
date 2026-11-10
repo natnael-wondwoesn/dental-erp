@@ -8,6 +8,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from app.commercial_access import (
     MODULE_DEPENDENCIES,
+    PHYSIO_MODULE_DEPENDENCIES,
     AccessAction,
     AccessState,
     HostedStatus,
@@ -260,3 +261,63 @@ def test_offline_expiry_reuses_existing_five_day_grace_contract():
 def test_typescript_catalog_matches_canonical_policy():
     catalog = json.loads((Path(__file__).parents[2] / "config/saas-modules.json").read_text())
     assert catalog == {str(key): sorted(value) for key, value in MODULE_DEPENDENCIES.items()}
+
+
+# --- Multi-product catalog (physiotherapy / clinic-cms) ----------------------
+
+PHYSIO = "clinic-cms"
+
+
+def test_physio_catalog_matches_canonical_policy():
+    catalog = json.loads(
+        (Path(__file__).parents[2] / "config/saas-modules.physio.json").read_text()
+    )
+    assert catalog == {str(key): sorted(value) for key, value in PHYSIO_MODULE_DEPENDENCIES.items()}
+
+
+def test_physio_grants_validate_against_their_own_catalog():
+    # Physio modules are accepted only under the physio product.
+    granted = validate_modules(
+        {"core", "patients", "assessments", "treatment_plans"}, product_key=PHYSIO
+    )
+    assert granted == {"core", "patients", "assessments", "treatment_plans"}
+    # Dependency enforcement still holds per product.
+    with pytest.raises(ValueError, match="treatment_plans requires explicit grants: assessments"):
+        validate_modules({"core", "patients", "treatment_plans"}, product_key=PHYSIO)
+
+
+def test_products_do_not_leak_each_others_modules():
+    # A dental-only module is unknown to physio, and vice versa.
+    with pytest.raises(ValueError, match="Unknown modules: braces"):
+        validate_modules({"core", "patients", "clinical", "braces"}, product_key=PHYSIO)
+    with pytest.raises(ValueError, match="Unknown modules: assessments"):
+        validate_modules({"core", "patients", "assessments"})  # default dental
+
+
+def test_physio_complete_catalog_has_no_cycles_and_is_grantable():
+    assert validate_modules(PHYSIO_MODULE_DEPENDENCIES.keys(), product_key=PHYSIO) == frozenset(
+        PHYSIO_MODULE_DEPENDENCIES
+    )
+
+    def visit(module, ancestors):
+        assert module not in ancestors, f"Dependency cycle at {module}"
+        for dependency in PHYSIO_MODULE_DEPENDENCIES[module]:
+            visit(dependency, ancestors | {module})
+
+    for module in PHYSIO_MODULE_DEPENDENCIES:
+        visit(module, set())
+
+
+def test_physio_hosted_policy_gates_physio_modules():
+    policy = hosted_policy(
+        status=HostedStatus.ACTIVE,
+        modules={"core", "patients", "assessments", "treatment_plans"},
+        access_until=DEADLINE,
+        grace_until=GRACE_END,
+        now=DEADLINE - timedelta(seconds=1),
+        product_key=PHYSIO,
+    )
+    assert policy.decide(module="treatment_plans", action=AccessAction.WRITE).allowed
+    assert (
+        policy.decide(module="billing", action=AccessAction.WRITE).code == "MODULE_NOT_ENABLED"
+    )

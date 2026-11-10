@@ -7,11 +7,25 @@ from typing import Annotated, Literal
 from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, Header, HTTPException
-from pydantic import AwareDatetime, Field, StrictBool, field_validator, model_validator
+from pydantic import (
+    AwareDatetime,
+    Field,
+    StrictBool,
+    ValidationInfo,
+    field_validator,
+    model_validator,
+)
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.commercial_access import MODULE_DEPENDENCIES, HostedStatus, hosted_policy, validate_modules
+from app.commercial_access import (
+    DEFAULT_PRODUCT_KEY,
+    PRODUCT_CATALOGS,
+    HostedStatus,
+    catalog_for,
+    hosted_policy,
+    validate_modules,
+)
 from app.config import get_settings
 from app.database import get_session
 from app.saas.models import (
@@ -75,6 +89,8 @@ class TenantCreate(ApiSchema):
     slug: str = Field(min_length=1, max_length=63, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
     hostname: str | None = Field(default=None, max_length=253)
     customer_id: str = Field(min_length=1, max_length=128, pattern=r"^[A-Za-z0-9._:-]+$")
+    # Declared before `modules` so the grant validator can read it from info.data.
+    product_key: str = Field(default=DEFAULT_PRODUCT_KEY, max_length=32)
     mode: Literal["hosted", "offline"] = "hosted"
     plan_name: str = Field(default="Custom", max_length=100)
     modules: list[str] = Field(default_factory=lambda: ["core"])
@@ -90,10 +106,18 @@ class TenantCreate(ApiSchema):
             raise ValueError("Access deadline is required for a new subscription")
         return self
 
+    @field_validator("product_key")
+    @classmethod
+    def known_product(cls, value: str) -> str:
+        if value not in PRODUCT_CATALOGS:
+            raise ValueError(f"Unknown product: {value}")
+        return value
+
     @field_validator("modules")
     @classmethod
-    def valid_grants(cls, value: list[str]) -> list[str]:
-        return sorted(validate_modules(value))
+    def valid_grants(cls, value: list[str], info: ValidationInfo) -> list[str]:
+        product_key = info.data.get("product_key", DEFAULT_PRODUCT_KEY)
+        return sorted(validate_modules(value, product_key=product_key))
 
     @field_validator("hostname")
     @classmethod
@@ -113,10 +137,10 @@ class Revision(ApiSchema):
 
 
 class ModuleChange(Revision):
-    modules: list[str]
+    # The grant list is validated against the tenant's own product catalog in the
+    # handler (the product is not in this payload). Here we only guard the shape.
+    modules: list[str] = Field(min_length=1)
     effective_at: AwareDatetime | None = None
-
-    _validate = field_validator("modules")(TenantCreate.valid_grants.__func__)
 
 
 class BrandChange(Revision):
@@ -178,9 +202,11 @@ def snapshot(tenant: SaaSTenant, now: datetime | None = None) -> dict:
         now=now,
         access_until=aware(tenant.access_until) if tenant.access_until else None,
         grace_until=aware(tenant.grace_until) if tenant.grace_until else None,
+        product_key=tenant.product_key,
     )
     return {
         "tenantId": tenant.id,
+        "product": tenant.product_key,
         "name": tenant.name,
         "slug": tenant.slug,
         "hostname": tenant.hostname,
@@ -232,12 +258,14 @@ def audit(session: AsyncSession, tenant: SaaSTenant, actor: str, action: str, **
 
 
 @router.get("/catalog")
-async def catalog(_reader: Reader):
+async def catalog(_reader: Reader, product: str = DEFAULT_PRODUCT_KEY):
+    if product not in PRODUCT_CATALOGS:
+        raise HTTPException(404, "Unknown product")
+    graph = catalog_for(product)
     return {
         "version": 1,
-        "modules": [
-            {"id": key, "requires": sorted(value)} for key, value in MODULE_DEPENDENCIES.items()
-        ],
+        "product": product,
+        "modules": [{"id": key, "requires": sorted(value)} for key, value in graph.items()],
     }
 
 
@@ -250,9 +278,13 @@ async def access(tenant_id: str, _reader: Reader, session: Session):
 
 
 @router.get("/eligible")
-async def eligible(_reader: Reader, session: Session, modules: str):
+async def eligible(
+    _reader: Reader, session: Session, modules: str, product: str = DEFAULT_PRODUCT_KEY
+):
+    if product not in PRODUCT_CATALOGS:
+        raise HTTPException(404, "Unknown product")
     required = set(modules.split(","))
-    if not required or not required.issubset(MODULE_DEPENDENCIES):
+    if not required or not required.issubset(catalog_for(product)):
         raise HTTPException(422, "Unknown module")
     rows = (await session.scalars(select(SaaSTenant))).all()
     policies = [snapshot(row) for row in rows]
@@ -260,7 +292,9 @@ async def eligible(_reader: Reader, session: Session, modules: str):
         "tenantIds": [
             row["tenantId"]
             for row in policies
-            if row["allowsWrite"] and required.issubset(row["modules"])
+            if row["product"] == product
+            and row["allowsWrite"]
+            and required.issubset(row["modules"])
         ]
     }
 
@@ -314,12 +348,16 @@ async def create_tenant(payload: TenantCreate, actor: Admin, session: Session):
 @router.put("/admin/tenants/{tenant_id}/modules")
 async def change_modules(tenant_id: str, payload: ModuleChange, actor: Admin, session: Session):
     tenant = await get_tenant(session, tenant_id, payload.revision)
+    try:
+        modules = sorted(validate_modules(payload.modules, product_key=tenant.product_key))
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
     before = effective_modules(tenant, datetime.now(UTC))
     if payload.effective_at and payload.effective_at > datetime.now(UTC):
-        tenant.scheduled_modules = payload.modules
+        tenant.scheduled_modules = modules
         tenant.scheduled_at = payload.effective_at
     else:
-        tenant.modules = payload.modules
+        tenant.modules = modules
         tenant.scheduled_modules = None
         tenant.scheduled_at = None
     tenant.revision += 1
@@ -329,7 +367,7 @@ async def change_modules(tenant_id: str, payload: ModuleChange, actor: Admin, se
         actor,
         "MODULES",
         before=before,
-        after=payload.modules,
+        after=modules,
         effectiveAt=payload.effective_at.isoformat() if payload.effective_at else None,
     )
     await session.flush()
@@ -578,7 +616,7 @@ async def bulk_modules(payload: BulkModules, actor: Admin, session: Session):
         before = list(effective_modules(tenant, datetime.now(UTC)))
         target = (set(before) | set(payload.add)) - set(payload.remove)
         try:
-            validated = sorted(validate_modules(target))
+            validated = sorted(validate_modules(target, product_key=tenant.product_key))
         except ValueError as exc:
             # One clinic's dependency problem must not half-apply the batch.
             raise HTTPException(422, f"{tenant.name}: {exc}") from exc

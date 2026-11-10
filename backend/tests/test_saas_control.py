@@ -362,3 +362,55 @@ async def test_profile_notes_and_deployment_records(client):
     assert deployments["deployments"][0]["client"] == "control"
     overview = (await client.get("/api/saas/admin/overview", headers=ADMIN)).json()
     assert overview["versions"][0]["version"] == "0.1.24"
+
+
+async def test_physio_product_registers_with_its_own_module_catalog(client):
+    created = await register(
+        client,
+        "physio-a",
+        name="Union Physio",
+        productKey="clinic-cms",
+        modules=["core", "patients", "assessments", "treatment_plans"],
+    )
+    assert created["product"] == "clinic-cms"
+    access = (await client.get("/api/saas/access/physio-a", headers=READER)).json()
+    assert access["product"] == "clinic-cms"
+    assert "treatment_plans" in access["modules"]
+
+    # The physio catalog is served for the physio product and hides dental modules.
+    physio_catalog = (
+        await client.get("/api/saas/catalog?product=clinic-cms", headers=READER)
+    ).json()
+    ids = {m["id"] for m in physio_catalog["modules"]}
+    assert "treatment_plans" in ids and "braces" not in ids
+
+    # A dental-only module cannot be granted to a physio clinic.
+    rejected = await client.post(
+        "/api/saas/admin/tenants",
+        headers=ADMIN,
+        json=clinic(
+            "physio-b", productKey="clinic-cms", modules=["core", "patients", "braces"]
+        ),
+    )
+    assert rejected.status_code == 422
+
+
+async def test_physio_modules_are_rejected_under_the_dental_product(client):
+    rejected = await client.post(
+        "/api/saas/admin/tenants",
+        headers=ADMIN,
+        json=clinic("dental-x", modules=["core", "patients", "assessments"]),
+    )
+    assert rejected.status_code == 422
+
+
+async def test_unknown_product_is_rejected(client):
+    rejected = await client.post(
+        "/api/saas/admin/tenants",
+        headers=ADMIN,
+        json=clinic("mystery", productKey="nope"),
+    )
+    assert rejected.status_code == 422
+    assert (
+        await client.get("/api/saas/catalog?product=nope", headers=READER)
+    ).status_code == 404

@@ -5,7 +5,7 @@ policy, check membership/permissions, and narrowly authorize recovery operations
 Hosted and offline adapters enforce this policy after authenticated tenant resolution.
 """
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
@@ -65,15 +65,66 @@ MODULE_DEPENDENCIES = MappingProxyType(
 )
 
 
-def validate_modules(grants: Iterable[str]) -> frozenset[ModuleId]:
-    """Validate explicit grants; never auto-enable a paid dependency."""
+DEFAULT_PRODUCT_KEY = "dental-erp"
+
+
+def _as_str_graph(graph: Mapping) -> dict[str, frozenset[str]]:
+    """Normalise an enum- or str-keyed dependency graph to plain strings."""
+    return {str(key): frozenset(str(dep) for dep in deps) for key, deps in graph.items()}
+
+
+# Physiotherapy product (clinic-cms). Mirrors config/saas-modules.physio.json;
+# parity is asserted in test_commercial_access.py. Keep the two in sync by hand.
+PHYSIO_MODULE_DEPENDENCIES: Mapping[str, frozenset[str]] = MappingProxyType(
+    {
+        "core": frozenset(),
+        "patients": frozenset({"core"}),
+        "appointments": frozenset({"patients"}),
+        "assessments": frozenset({"patients"}),
+        "treatment_plans": frozenset({"assessments"}),
+        "treatment_sessions": frozenset({"treatment_plans"}),
+        "progress": frozenset({"treatment_plans"}),
+        "billing": frozenset({"patients"}),
+        "staff": frozenset({"core"}),
+        "reports": frozenset({"core"}),
+        "inventory": frozenset({"core"}),
+        "notifications": frozenset({"patients"}),
+        "forms": frozenset({"patients"}),
+    }
+)
+
+
+# Per-product module catalogs. The provisioning plane (PlatformProduct) and the
+# commercial plane both key products by this string. Unknown products fall back
+# to the dental catalog so existing single-product callers are unaffected.
+PRODUCT_CATALOGS: Mapping[str, Mapping[str, frozenset[str]]] = MappingProxyType(
+    {
+        DEFAULT_PRODUCT_KEY: MappingProxyType(_as_str_graph(MODULE_DEPENDENCIES)),
+        "clinic-cms": PHYSIO_MODULE_DEPENDENCIES,
+    }
+)
+
+
+def catalog_for(product_key: str | None) -> Mapping[str, frozenset[str]]:
+    """Return the dependency graph for a product, defaulting to dental."""
+    return PRODUCT_CATALOGS.get(product_key or DEFAULT_PRODUCT_KEY, PRODUCT_CATALOGS[DEFAULT_PRODUCT_KEY])
+
+
+def validate_modules(
+    grants: Iterable[str], *, product_key: str | None = DEFAULT_PRODUCT_KEY
+) -> frozenset[str]:
+    """Validate explicit grants against a product catalog; never auto-enable a paid dependency."""
     if isinstance(grants, (str, bytes)):
         raise ValueError("Module grants must be a collection of identifiers")
-    modules = frozenset(ModuleId(grant) for grant in grants)
-    if ModuleId.CORE not in modules:
+    catalog = catalog_for(product_key)
+    modules = frozenset(str(grant) for grant in grants)
+    unknown = modules - set(catalog)
+    if unknown:
+        raise ValueError(f"Unknown modules: {', '.join(sorted(unknown))}")
+    if "core" not in modules:
         raise ValueError("Core module is required")
     for module in sorted(modules):
-        missing = MODULE_DEPENDENCIES[module] - modules
+        missing = catalog[module] - modules
         if missing:
             raise ValueError(f"{module} requires explicit grants: {', '.join(sorted(missing))}")
     return modules
@@ -113,7 +164,7 @@ class AccessDecision:
 @dataclass(frozen=True, slots=True)
 class AccessPolicy:
     state: AccessState
-    modules: frozenset[ModuleId]
+    modules: frozenset[str]
 
     def decide(self, *, module: str, action: AccessAction) -> AccessDecision:
         """Recovery is a dedicated audited flow, never a client-selectable bypass.
@@ -146,15 +197,17 @@ def hosted_policy(
     access_until: datetime | None,
     grace_until: datetime | None,
     now: datetime,
+    product_key: str | None = DEFAULT_PRODUCT_KEY,
 ) -> AccessPolicy:
     """Evaluate current server-owned subscription; deadlines are exclusive.
 
     Billing computes calendar periods separately. This module never derives a
     month or silently extends grace. Unknown status/grants raise ValueError;
     missing deadlines return recovery rather than granting unlimited access.
+    Grants are validated against the tenant's product catalog.
     """
     status = HostedStatus(status)
-    grants = validate_modules(modules)
+    grants = validate_modules(modules, product_key=product_key)
     _aware(now)
     if status == HostedStatus.MIGRATION:
         # Explicit vendor-owned grandfathering for existing installations only.
@@ -181,7 +234,12 @@ def hosted_policy(
     return AccessPolicy(state, grants)
 
 
-def offline_policy(decision: LicenseDecision, *, expected_customer_id: str) -> AccessPolicy:
+def offline_policy(
+    decision: LicenseDecision,
+    *,
+    expected_customer_id: str,
+    product_key: str | None = DEFAULT_PRODUCT_KEY,
+) -> AccessPolicy:
     """Consume evaluate_license output, never unverified JSON/runtime summaries.
 
     Signature/product/installation/time/replay validation belongs to the existing
@@ -199,9 +257,12 @@ def offline_policy(decision: LicenseDecision, *, expected_customer_id: str) -> A
         return AccessPolicy(AccessState.RECOVERY, frozenset())
     try:
         modules = validate_modules(
-            grant.removeprefix("module:")
-            for grant in payload.entitlements
-            if grant.startswith("module:")
+            (
+                grant.removeprefix("module:")
+                for grant in payload.entitlements
+                if grant.startswith("module:")
+            ),
+            product_key=product_key,
         )
     except ValueError:
         return AccessPolicy(AccessState.RECOVERY, frozenset())
