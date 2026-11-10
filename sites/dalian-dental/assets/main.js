@@ -137,31 +137,30 @@
           '.'
       } else if (user) {
         var text = lines.join('\n')
-        var done = function (copied) {
-          // The request text travels in the link, so the Telegram chat opens with it already
-          // typed in the message box; the visitor only has to press send.
-          window.open(
-            'https://t.me/' + user + '?text=' + encodeURIComponent(text),
-            '_blank',
-            'noopener'
-          )
-          msg.className = 'form-msg ok'
-          msg.textContent = copied
-            ? 'Telegram is opening with your request already written. Press send. If the box is empty, paste it (your request is copied) and press send.'
-            : 'Telegram is opening with your request already written. Press send and we will confirm your time.'
+        // Copy first as a safety net, without waiting, so the Telegram link below is opened
+        // straight from the click (browsers block links opened after a delay).
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).catch(function () {})
+          }
+        } catch (err) {
+          /* ignore */
         }
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).then(
-            function () {
-              done(true)
-            },
-            function () {
-              done(false)
-            }
-          )
+        var q = encodeURIComponent(text)
+        var plain = 'https://t.me/' + user
+        if (user.charAt(0) === '+') {
+          // Phone-number chats: the Telegram app link carries the message text; if the app does
+          // not open, fall back to the web link (the request is already copied).
+          window.location.href = 'tg://resolve?phone=' + user.slice(1) + '&text=' + q
+          setTimeout(function () {
+            if (!document.hidden) window.location.href = plain
+          }, 1800)
         } else {
-          done(false)
+          window.location.href = plain + '?text=' + q
         }
+        msg.className = 'form-msg ok'
+        msg.textContent =
+          'Opening Telegram with your request. Press send there. If the message box is empty, paste it (your request is copied) and press send.'
       } else {
         msg.className = 'form-msg error'
         msg.textContent = 'Online requests are not available yet. Please call the clinic to book.'
