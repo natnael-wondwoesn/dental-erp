@@ -1118,7 +1118,7 @@ page('contact/', {
   full: true,
   body: `${pageHero({ crumbs: ['Contact'], h1: 'Book a Dental Appointment in Bole, Addis Ababa', text: 'Tell us what you need and when suits you. We will confirm your time with you.', depth: 1 })}
 <section class="section" id="book"><div class="wrap split" style="align-items:start">
-  <form id="appointment" class="card form" novalidate data-email="${esc(clinic.email || '')}" data-telegram="${esc(tg)}" data-clinic="${esc(clinic.name)}"${rv('left')}>
+  <form id="appointment" class="card form" novalidate data-email="${esc(clinic.email || '')}" data-telegram="${esc(tg)}"${clinic.bookingEndpoint ? ` data-book="${esc(clinic.bookingEndpoint)}"` : ''} data-clinic="${esc(clinic.name)}"${rv('left')}>
     <h2>Appointment request</h2>
     <label>Full name<input name="name" required autocomplete="name"></label>
     <label>Phone number<input name="phone" required inputmode="tel" autocomplete="tel"></label>
