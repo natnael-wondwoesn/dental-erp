@@ -22,7 +22,7 @@ async def issue_license(session: AsyncSession, tenant_id: str, raw_request: str,
         activation = verify_activation_request(raw_request)
     except (ValueError, TypeError, KeyError) as exc:
         raise HTTPException(422, "Invalid activation request") from exc
-    if activation.product_id != "dental-erp":
+    if activation.product_id != tenant.product_key:
         raise HTTPException(422, "Activation request belongs to another product")
     fingerprint = hashlib.sha256(
         json.dumps(json.loads(raw_request), sort_keys=True, separators=(",", ":")).encode()

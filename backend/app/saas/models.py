@@ -26,6 +26,11 @@ class SaaSTenant(Base):
     slug: Mapped[str] = mapped_column(String(63), unique=True)
     hostname: Mapped[str | None] = mapped_column(String(253), unique=True)
     customer_id: Mapped[str] = mapped_column(String(128))
+    # Which product this installation runs. Aligns with PlatformProduct.key on the
+    # provisioning plane. Existing rows backfill to "dental-erp".
+    product_key: Mapped[str] = mapped_column(
+        String(32), default="dental-erp", server_default="dental-erp"
+    )
     mode: Mapped[str] = mapped_column(String(16), default="hosted")
     plan_name: Mapped[str] = mapped_column(String(100), default="Custom")
     branding: Mapped[dict] = mapped_column(JSON, default=dict)

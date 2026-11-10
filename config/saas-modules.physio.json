@@ -1,0 +1,15 @@
+{
+  "core": [],
+  "patients": ["core"],
+  "appointments": ["patients"],
+  "assessments": ["patients"],
+  "treatment_plans": ["assessments"],
+  "treatment_sessions": ["treatment_plans"],
+  "progress": ["treatment_plans"],
+  "billing": ["patients"],
+  "staff": ["core"],
+  "reports": ["core"],
+  "inventory": ["core"],
+  "notifications": ["patients"],
+  "forms": ["patients"]
+}
