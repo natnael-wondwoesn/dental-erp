@@ -46,6 +46,13 @@ services:
       LICENSE_ENFORCEMENT: ${LICENSE_ENFORCEMENT:-disabled}
       LICENSE_PRODUCT_ID: clinic-cms
       LICENSE_STATE_DIR: /app/.license-state
+      # Hosted control-plane module entitlements (alternative to the offline
+      # licensing above). Disabled unless the vendor wires SAAS_URL + a reader
+      # token; CLINIC_PRODUCT_KEY must match the control site's product key.
+      SAAS_ENFORCEMENT: ${SAAS_ENFORCEMENT:-disabled}
+      SAAS_URL: ${SAAS_URL:-}
+      SAAS_READER_TOKEN: ${SAAS_READER_TOKEN:-}
+      CLINIC_PRODUCT_KEY: clinic-cms
     volumes: ['license-state:/app/.license-state']
     depends_on:
       postgres: { condition: service_healthy }
