@@ -142,7 +142,7 @@ def register_migration(release):
     # Read branding inside the existing clinic process; do not copy auth secrets.
     js = """const {PrismaClient}=require('@prisma/client');const p=new PrismaClient();
 (async()=>{const h=await p.hospital.findUniqueOrThrow({where:{id:'cmsx5je3p0000101z5wdiznyh'}});
-console.log(JSON.stringify({id:h.id,name:h.name,slug:h.slug,customerId:'lemlem',hostname:'lemlem.dental.clinic-cms.cc',
+console.log(JSON.stringify({id:h.id,name:h.name,slug:h.slug,customerId:'lemlem',hostname:'abiy.dental.clinic-cms.cc',
 mode:'hosted',planName:'Migration access',migrationAccess:true,accessUntil:null,
 branding:{displayName:h.name,contactPhone:h.phone||'',contactEmail:h.email||'',address:h.address||'',primaryColor:'#0f766e'}}));await p.$disconnect()})().catch(()=>process.exit(1));"""
     tenant = json.loads(run(['docker', 'exec', 'dental-web', 'node', '-e', js]))
@@ -226,7 +226,7 @@ def main():
         ]:
             compose(base, env_file, 'config', '--quiet', overlay=overlay)
             compose(base, env_file, 'up', '-d', '--no-deps', '--no-build', '--wait', '--wait-timeout', '150', service, overlay=overlay)
-        ready('https://lemlem.dental.clinic-cms.cc/api/ready')
+        ready('https://abiy.dental.clinic-cms.cc/api/ready')
         ready('https://control.clinic-cms.cc/api/ready')
     except Exception:
         print('Promotion failed. Restoring prior web images/configuration.', flush=True)

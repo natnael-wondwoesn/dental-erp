@@ -58,7 +58,7 @@ async function main(){
  const token=unsigned+'.'+crypto.createHmac('sha256',process.env.NEXTAUTH_SECRET).update(unsigned).digest('base64url');
  async function check(path,status,method='GET',body){
   const r=await fetch('http://127.0.0.1:3000'+path,{method,headers:{Authorization:'Bearer '+token,
-   Host:'lemlem.dental.clinic-cms.cc','Content-Type':'application/json'},body:body?JSON.stringify(body):undefined,redirect:'manual'});
+   Host:'abiy.dental.clinic-cms.cc','Content-Type':'application/json'},body:body?JSON.stringify(body):undefined,redirect:'manual'});
   if(r.status!==status) throw new Error(phase+' '+path+' expected '+status+' got '+r.status+' '+(await r.text()).slice(0,160));
  }
  const patient={firstName:'Synthetic',lastName:'ReleaseCheck',phone:'+251911000001'};
