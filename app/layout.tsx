@@ -16,8 +16,8 @@ export const dynamic = 'force-dynamic'
 
 const baseMetadata: Metadata = {
   title: {
-    default: 'D/R Lemlem Special Dental Clinic — Ethiopian Dental Care',
-    template: '%s | D/R Lemlem Special Dental Clinic',
+    default: 'D/R Abiy Special Dental Clinic — Ethiopian Dental Care',
+    template: '%s | D/R Abiy Special Dental Clinic',
   },
   description:
     'Production dental clinic operations for Ethiopia: patient care, scheduling, treatment, ETB billing, laboratory workflows, finance and reporting.',
@@ -47,13 +47,13 @@ const baseMetadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_ET',
-    title: 'D/R Lemlem Special Dental Clinic — Ethiopian Dental Care',
+    title: 'D/R Abiy Special Dental Clinic — Ethiopian Dental Care',
     description: 'A modern English and Amharic dental clinic operating system for Ethiopia.',
     siteName: 'DentalERP',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'D/R Lemlem Special Dental Clinic - Ethiopian Dental Care',
+    title: 'D/R Abiy Special Dental Clinic - Ethiopian Dental Care',
     description:
       'Dental clinic operations for Ethiopia with patient workflows, ETB billing, and multilingual communication.',
   },
@@ -64,7 +64,7 @@ const baseMetadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'D/R Lemlem Special Dental Clinic',
+    title: 'D/R Abiy Special Dental Clinic',
   },
 }
 

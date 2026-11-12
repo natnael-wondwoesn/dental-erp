@@ -38,7 +38,7 @@ collected in section 9.
 | Site                  | Public URL                                    | Fleet name       | Where it lives on the VPS                                                   | Stack layout |
 | --------------------- | --------------------------------------------- | ---------------- | --------------------------------------------------------------------------- | ------------ |
 | Control site (vendor) | `https://control.clinic-cms.cc`               | `control`        | web `/opt/product-control`, backend `/opt/dental-saas`                      | legacy       |
-| D/R Abiy clinic       | `https://lemlem.dental.clinic-cms.cc`         | `lemlem`         | `/opt/dental-erp` (the folder/name still says "lemlem"; the clinic is Abiy) | legacy       |
+| D/R Abiy clinic       | `https://abiy.dental.clinic-cms.cc`           | `lemlem`         | `/opt/dental-erp` (the folder/name still says "lemlem"; the clinic is Abiy) | legacy       |
 | Dr Berhanu Belta      | `https://drberhanubelta.dental.clinic-cms.cc` | `berhanu-dental` | `/opt/clients/berhanu-dental`                                               | standard     |
 
 - The VPS is `185.190.142.27`. DNS is on Cloudflare and points straight at it
@@ -251,7 +251,7 @@ Do this only when the user asked you to deploy.
 
    ```bash
    curl -s -o /dev/null -w "%{http_code}\n" https://control.clinic-cms.cc/api/ready
-   curl -s -o /dev/null -w "%{http_code}\n" https://lemlem.dental.clinic-cms.cc/api/ready
+   curl -s -o /dev/null -w "%{http_code}\n" https://abiy.dental.clinic-cms.cc/api/ready
    curl -s -o /dev/null -w "%{http_code}\n" https://drberhanubelta.dental.clinic-cms.cc/api/ready
    ```
 
@@ -581,7 +581,7 @@ gh run list --workflow=release.yml --limit 1 && gh run watch <id> --exit-status
 # redeploy some sites
 gh workflow run deploy-fleet.yml -f version=X.Y.Z -f clients="control berhanu-dental"
 # health
-for h in control lemlem.dental drberhanubelta.dental; do curl -s -o /dev/null -w "$h %{http_code}\n" https://$h.clinic-cms.cc/api/ready; done
+for h in control abiy.dental drberhanubelta.dental; do curl -s -o /dev/null -w "$h %{http_code}\n" https://$h.clinic-cms.cc/api/ready; done
 ```
 
 ---

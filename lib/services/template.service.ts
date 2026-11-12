@@ -104,7 +104,7 @@ class TemplateService {
       key: 'clinicName',
       label: 'Clinic Name',
       description: 'Name of the clinic',
-      example: 'D/R Lemlem Special Dental Clinic',
+      example: 'D/R Abiy Special Dental Clinic',
     },
     {
       key: 'clinicPhone',
@@ -116,7 +116,7 @@ class TemplateService {
       key: 'clinicEmail',
       label: 'Clinic Email',
       description: 'Clinic email address',
-      example: 'hello@lemlemdental.et',
+      example: 'hello@yourclinic.com',
     },
     {
       key: 'clinicAddress',
