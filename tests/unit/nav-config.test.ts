@@ -224,3 +224,15 @@ describe('role page guard', () => {
     expect(isPathAllowedForRole('ADMIN', '/staff')).toBe(true)
   })
 })
+
+describe('braces sidebar entry', () => {
+  const titles = (role: string, modules?: any) =>
+    getNavigationForRole(role, false, false, modules).flatMap((s) => s.items.map((i) => i.title))
+
+  it('sits right after Assessment & Treatment and needs the braces module', () => {
+    const all = titles('ADMIN')
+    expect(all.indexOf('Braces')).toBe(all.indexOf('Assessment & Treatment') + 1)
+    expect(titles('ADMIN', ['patients', 'clinical', 'braces'])).toContain('Braces')
+    expect(titles('ADMIN', ['patients', 'clinical'])).not.toContain('Braces')
+  })
+})
