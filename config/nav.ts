@@ -35,6 +35,7 @@ import {
   BookOpen,
   WalletCards,
   Printer,
+  Smile,
   type LucideIcon,
 } from 'lucide-react'
 import type { ProductTier } from '@/lib/product-tier'
@@ -103,6 +104,13 @@ export const navigation: NavSection[] = [
         href: '/treatments',
         icon: Stethoscope,
         roles: ['ADMIN', 'DOCTOR'],
+      },
+      {
+        // Shown only to clinics that have the Braces module (see modulesForPath).
+        title: 'Braces',
+        href: '/braces',
+        icon: Smile,
+        roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'],
       },
       {
         title: 'Prescriptions',

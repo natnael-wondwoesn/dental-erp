@@ -440,6 +440,7 @@ const mockPrismaClient = {
 
   // Instrument
   bracesCase: {
+    findMany: vi.fn(),
     findUnique: vi.fn(),
     upsert: vi.fn(),
   },

@@ -115,3 +115,19 @@ describe('braces visits', () => {
     expect(prisma.bracesVisit.delete).not.toHaveBeenCalled()
   })
 })
+
+describe('braces list (sidebar page)', () => {
+  it('is gated by the braces module and scoped to the clinic', async () => {
+    const { GET: list } = await import('@/app/api/braces/route')
+    expect(modulesForPath('/api/braces')).toEqual(['braces', 'clinical'])
+    expect(modulesForPath('/braces')).toEqual(['braces', 'clinical'])
+    vi.mocked(prisma.bracesCase.findMany).mockResolvedValue([{ id: 'c1' }] as any)
+    const res = await list(
+      new NextRequest('http://localhost/api/braces?status=IN_PROGRESS&search=ab')
+    )
+    expect((await res.json()).cases).toHaveLength(1)
+    const args = vi.mocked(prisma.bracesCase.findMany).mock.calls[0][0] as any
+    expect(args.where.hospitalId).toBe('h1')
+    expect(args.where.planStatus).toBe('IN_PROGRESS')
+  })
+})

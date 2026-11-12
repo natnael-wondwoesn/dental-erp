@@ -259,6 +259,9 @@ export default function BracesPage({ params }: { params: Promise<{ id: string }>
       >
         <ArrowLeft className="h-4 w-4" /> Patient
       </Link>
+      <Link href="/braces" className="ml-4 text-sm font-semibold text-[#086be6]">
+        All braces patients
+      </Link>
       <h1 className="text-2xl font-semibold">Braces department</h1>
 
       <Card>
