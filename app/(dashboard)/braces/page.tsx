@@ -38,9 +38,17 @@ interface PatientHit {
   phone: string
 }
 
-const STATUSES = ['ALL', 'DRAFT', 'APPROVED', 'IN_PROGRESS', 'COMPLETED'] as const
+const STATUSES = [
+  'ALL',
+  'DRAFT',
+  'PENDING_APPROVAL',
+  'APPROVED',
+  'ACTIVE',
+  'ON_HOLD',
+  'COMPLETED',
+] as const
 const label = (value: string) =>
-  value === 'ALL' ? 'All' : value.charAt(0) + value.slice(1).toLowerCase().replace('_', ' ')
+  value === 'ALL' ? 'All' : value.charAt(0) + value.slice(1).toLowerCase().replace(/_/g, ' ')
 const day = (value?: string | null) => (value ? new Date(value).toLocaleDateString() : '-')
 
 export default function BracesPage() {
@@ -91,7 +99,9 @@ export default function BracesPage() {
     return () => clearTimeout(timer)
   }, [finder])
 
-  const count = (s: string) => rows.filter((r) => r.planStatus === s).length
+  const count = (s: string) =>
+    rows.filter((r) => r.planStatus === s || (s === 'ACTIVE' && r.planStatus === 'IN_PROGRESS'))
+      .length
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-4">
@@ -108,7 +118,7 @@ export default function BracesPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-4">
-        {(['DRAFT', 'APPROVED', 'IN_PROGRESS', 'COMPLETED'] as const).map((s) => (
+        {(['DRAFT', 'APPROVED', 'ACTIVE', 'COMPLETED'] as const).map((s) => (
           <Card key={s}>
             <CardContent className="p-4">
               <div className="text-sm text-muted-foreground">{label(s)}</div>

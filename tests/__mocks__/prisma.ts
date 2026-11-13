@@ -237,6 +237,7 @@ const mockPrismaClient = {
     findMany: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
+    updateMany: vi.fn(),
     delete: vi.fn(),
     count: vi.fn(),
   },
@@ -443,6 +444,19 @@ const mockPrismaClient = {
     findMany: vi.fn(),
     findUnique: vi.fn(),
     upsert: vi.fn(),
+  },
+  bracesAssessment: {
+    create: vi.fn(),
+  },
+  bracesMedia: {
+    create: vi.fn(),
+    findFirst: vi.fn(),
+    delete: vi.fn(),
+  },
+  bracesRetentionCheck: {
+    create: vi.fn(),
+    findFirst: vi.fn(),
+    delete: vi.fn(),
   },
   bracesVisit: {
     findFirst: vi.fn(),

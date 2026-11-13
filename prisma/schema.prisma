@@ -3179,12 +3179,28 @@ model BracesCase {
   retentionFollowUps   Json? // string[] of ISO dates
   retentionNotes       String?   @db.Text
 
+  // Structured treatment plan (additive; legacy plannedProcedures/stages stay readable)
+  treatmentStartDate      DateTime?
+  estimatedCompletionDate DateTime?
+  customBracesType        String?
+  procedureList           Json? // [{ name, description, plannedDate, status, notes }]
+
+  // Structured retention
+  upperRetainer        String?
+  lowerRetainer        String?
+  retainerDeliveryDate DateTime?
+  retainerWear         String?
+  retainerCondition    String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  hospital Hospital      @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
-  patient  Patient       @relation(fields: [patientId], references: [id])
-  visits   BracesVisit[]
+  hospital        Hospital               @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  patient         Patient                @relation(fields: [patientId], references: [id])
+  visits          BracesVisit[]
+  assessments     BracesAssessment[]
+  media           BracesMedia[]
+  retentionChecks BracesRetentionCheck[]
 
   @@unique([hospitalId, patientId])
   @@index([hospitalId])
@@ -3203,8 +3219,24 @@ model BracesVisit {
   patientConcerns  String?   @db.Text
   nextAppointment  DateTime?
   doctorId         String?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+
+  // Extended visit record (all optional)
+  status              String? // SCHEDULED | COMPLETED | MISSED | CANCELLED
+  currentStage        String?
+  clinicalFindings    String? @db.Text
+  progressSinceLast   String? @db.Text
+  objectivesAchieved  String? @db.Text
+  remainingObjectives String? @db.Text
+  complications       String? @db.Text
+  modifications       String? @db.Text
+  recommendations     String? @db.Text
+  proceduresPerformed Json? // string[]
+  wires               Json? // [{ arch, wireType, wireSize, action, notes }]
+  invoiceId           String? // optional link to the central billing module
+  createdById         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   hospital   Hospital   @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
   bracesCase BracesCase @relation(fields: [bracesCaseId], references: [id], onDelete: Cascade)
@@ -3212,4 +3244,88 @@ model BracesVisit {
 
   @@index([hospitalId])
   @@index([bracesCaseId, visitDate])
+}
+
+// Dated orthodontic assessment. A new assessment is a new record; older ones are never replaced.
+model BracesAssessment {
+  id           String   @id @default(cuid())
+  hospitalId   String
+  bracesCaseId String
+  assessedAt   DateTime
+  doctorId     String?
+  createdById  String?
+
+  chiefComplaint    String? @db.Text
+  clinicalDiagnosis String? @db.Text
+  severity          String? // MILD | MODERATE | SEVERE
+  dentalHistory     String? @db.Text
+  medicalHistory    String? @db.Text
+  facialProfile     String? // STRAIGHT | CONVEX | CONCAVE
+  skeletalClass     String? // CLASS_I | CLASS_II | CLASS_III | NOT_ASSESSED
+  molarRight        String?
+  molarLeft         String?
+  canineRight       String?
+  canineLeft        String?
+  crossbite         Json? // string[] of ANTERIOR | POSTERIOR | UNILATERAL | BILATERAL
+  oralHabits        Json? // string[]
+  findings          Json? // qualitative string[]
+
+  overjetMm       Decimal? @db.Decimal(6, 2)
+  overbiteMm      Decimal? @db.Decimal(6, 2)
+  overbitePercent Decimal? @db.Decimal(6, 2)
+  midlineUpperMm  Decimal? @db.Decimal(6, 2)
+  midlineLowerMm  Decimal? @db.Decimal(6, 2)
+  crowdingUpperMm Decimal? @db.Decimal(6, 2)
+  crowdingLowerMm Decimal? @db.Decimal(6, 2)
+  spacingUpperMm  Decimal? @db.Decimal(6, 2)
+  spacingLowerMm  Decimal? @db.Decimal(6, 2)
+
+  notes     String?  @db.Text
+  createdAt DateTime @default(now())
+
+  bracesCase BracesCase @relation(fields: [bracesCaseId], references: [id], onDelete: Cascade)
+
+  @@index([hospitalId])
+  @@index([bracesCaseId, assessedAt])
+}
+
+// Categorised clinical photograph or radiograph. The file itself is a Document; originals are never replaced.
+model BracesMedia {
+  id             String   @id @default(cuid())
+  hospitalId     String
+  bracesCaseId   String
+  documentId     String
+  kind           String // PHOTO | XRAY
+  category       String
+  stage          String?
+  capturedAt     DateTime
+  interpretation String?  @db.Text
+  notes          String?  @db.Text
+  uploadedById   String?
+  createdAt      DateTime @default(now())
+
+  bracesCase BracesCase @relation(fields: [bracesCaseId], references: [id], onDelete: Cascade)
+
+  @@index([hospitalId])
+  @@index([bracesCaseId, kind, capturedAt])
+}
+
+// One record per retention check (compliance, retainer condition, relapse observed).
+model BracesRetentionCheck {
+  id                String   @id @default(cuid())
+  hospitalId        String
+  bracesCaseId      String
+  checkDate         DateTime
+  retainerCondition String?
+  compliance        String?
+  relapse           String?
+  notes             String?  @db.Text
+  doctorId          String?
+  createdById       String?
+  createdAt         DateTime @default(now())
+
+  bracesCase BracesCase @relation(fields: [bracesCaseId], references: [id], onDelete: Cascade)
+
+  @@index([hospitalId])
+  @@index([bracesCaseId, checkDate])
 }
