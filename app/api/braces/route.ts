@@ -21,7 +21,10 @@ export async function GET(request: NextRequest) {
       where: {
         hospitalId,
         ...(PLAN_STATUSES.includes(status as (typeof PLAN_STATUSES)[number])
-          ? { planStatus: status }
+          ? {
+              // "In progress" was the original name of the Active status.
+              planStatus: status === 'ACTIVE' ? { in: ['ACTIVE', 'IN_PROGRESS'] } : status,
+            }
           : {}),
         ...(search
           ? {

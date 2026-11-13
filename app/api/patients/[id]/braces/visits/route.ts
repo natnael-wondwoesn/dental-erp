@@ -3,11 +3,12 @@ import { z } from 'zod'
 
 import { requireAuthAndRole } from '@/lib/api-helpers'
 import { bracesVisitSchema, visitData } from '@/lib/braces/schema'
+import { bracesAudit } from '@/lib/braces/audit'
 import { prisma } from '@/lib/prisma'
 
 // POST /api/patients/[id]/braces/visits - record a follow-up visit
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { error, hospitalId } = await requireAuthAndRole(['ADMIN', 'DOCTOR'])
+  const { error, hospitalId, user } = await requireAuthAndRole(['ADMIN', 'DOCTOR'])
   if (error || !hospitalId)
     return error || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -28,8 +29,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     const visit = await prisma.bracesVisit.create({
-      data: { ...data, hospitalId, bracesCaseId: bracesCase.id },
+      data: { ...data, hospitalId, bracesCaseId: bracesCase.id, createdById: user?.id ?? null },
     })
+    await bracesAudit(hospitalId, user?.id, 'BRACES_VISIT_CREATE', 'BracesVisit', visit.id)
     return NextResponse.json({ visit }, { status: 201 })
   } catch (cause) {
     if (cause instanceof z.ZodError)
