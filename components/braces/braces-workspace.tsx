@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 
+import { useTenantAccess } from '@/components/saas/tenant-access'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 import { AssessmentTab } from './assessment-tab'
@@ -28,6 +29,8 @@ const TABS = [
 ] as const
 
 export function BracesWorkspace({ patientId }: { patientId: string }) {
+  const access = useTenantAccess()
+  const hasImaging = !access || (access.modules as string[]).includes('imaging')
   const [tab, setTab] = useState('overview')
   const [data, setData] = useState<BracesData | null>(null)
   const [billing, setBilling] = useState<Billing | null>(null)
@@ -84,6 +87,14 @@ export function BracesWorkspace({ patientId }: { patientId: string }) {
         <Link href="/braces" className="text-sm font-semibold text-[#086be6]">
           All braces patients
         </Link>
+        {hasImaging && (
+          <Link
+            href={`/patients/${patientId}/imaging`}
+            className="text-sm font-semibold text-[#086be6]"
+          >
+            Imaging workspace
+          </Link>
+        )}
       </div>
       <h1 className="text-2xl font-semibold">
         Braces department{patient ? ` · ${patient.firstName} ${patient.lastName}` : ''}

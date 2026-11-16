@@ -451,6 +451,7 @@ const mockPrismaClient = {
   bracesMedia: {
     create: vi.fn(),
     findFirst: vi.fn(),
+    update: vi.fn(),
     delete: vi.fn(),
   },
   bracesRetentionCheck: {

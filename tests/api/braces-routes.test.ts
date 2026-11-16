@@ -285,3 +285,60 @@ describe('braces clinical structure', () => {
     expect(localToday(new Date(2026, 10, 12, 23, 59))).toBe('2026-11-12')
   })
 })
+
+describe('imaging (image information and history)', () => {
+  const mctx = { params: Promise.resolve({ id: 'p1', mediaId: 'm1' }) }
+  const patch = (body: unknown) =>
+    new NextRequest('http://localhost/api/patients/p1/braces/media/m1', {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    })
+
+  beforeEach(() => {
+    vi.mocked(prisma.bracesMedia.findFirst).mockResolvedValue({ id: 'm1', kind: 'PHOTO' } as any)
+    vi.mocked(prisma.auditLog.create).mockResolvedValue({} as any)
+  })
+
+  it('is gated by the imaging module, which needs braces and clinical', () => {
+    expect(modulesForPath('/patients/p1/imaging')).toEqual(['imaging', 'braces', 'clinical'])
+    expect(modulesForPath('/api/patients/p1/imaging')).toEqual(['imaging', 'braces', 'clinical'])
+  })
+
+  it('edits only the image information and logs the change', async () => {
+    const { PATCH } = await import('@/app/api/patients/[id]/braces/media/[mediaId]/route')
+    vi.mocked(prisma.bracesMedia.update).mockResolvedValue({ id: 'm1' } as any)
+    const res = await PATCH(
+      patch({ title: 'Before braces', stage: 'BEFORE_BRACES', notes: '' }),
+      mctx
+    )
+    expect(res.status).toBe(200)
+    const args = vi.mocked(prisma.bracesMedia.update).mock.calls[0][0] as any
+    expect(args.data).toEqual({ title: 'Before braces', stage: 'BEFORE_BRACES', notes: null })
+    expect(prisma.auditLog.create).toHaveBeenCalled()
+  })
+
+  it('refuses a radiograph category on a photograph and a visit of another patient', async () => {
+    const { PATCH } = await import('@/app/api/patients/[id]/braces/media/[mediaId]/route')
+    expect((await PATCH(patch({ category: 'OPG' }), mctx)).status).toBe(400)
+    vi.mocked(prisma.bracesVisit.findFirst).mockResolvedValue(null)
+    expect((await PATCH(patch({ relatedVisitId: 'other' }), mctx)).status).toBe(400)
+  })
+
+  it('returns the activity of one image from the audit trail', async () => {
+    const { GET: history } =
+      await import('@/app/api/patients/[id]/braces/media/[mediaId]/history/route')
+    vi.mocked(prisma.auditLog.findMany).mockResolvedValue([
+      {
+        id: 'l1',
+        action: 'BRACES_MEDIA_CREATE',
+        createdAt: new Date('2026-11-12'),
+        user: { name: 'Dr A' },
+      },
+    ] as any)
+    const res = await history(new NextRequest('http://localhost/x'), mctx)
+    const body = await res.json()
+    expect(body.history[0]).toMatchObject({ label: 'Image uploaded', by: 'Dr A' })
+    const where = (vi.mocked(prisma.auditLog.findMany).mock.calls[0][0] as any).where
+    expect(where).toMatchObject({ hospitalId: 'h1', entityType: 'BracesMedia', entityId: 'm1' })
+  })
+})

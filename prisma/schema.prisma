@@ -3298,6 +3298,8 @@ model BracesMedia {
   kind           String // PHOTO | XRAY
   category       String
   stage          String?
+  title          String?
+  relatedVisitId String?
   capturedAt     DateTime
   interpretation String?  @db.Text
   notes          String?  @db.Text

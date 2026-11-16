@@ -73,7 +73,7 @@ collected in section 9.
 | Printable forms (consent, lab order, notices, …)         | `lib/clinical-forms/clinic-printables.ts`, forms page `app/(dashboard)/forms/page.tsx`                                                                |
 | **Control site pages** (clinics, fleet, releases, audit) | `app/(dashboard)/owner/**`, `components/saas/**`, `components/platform/**`, `lib/saas/admin.ts`                                                       |
 | **Control site backend** (subscriptions, modules, audit) | `backend/app/saas/router.py`, `models.py`, migrations in `backend/alembic/versions/` (latest is `0009`)                                               |
-| Module list (what can be switched on per clinic)         | `config/saas-modules.json` (21 modules, includes `braces`)                                                                                            |
+| Module list (what can be switched on per clinic)         | `config/saas-modules.json` (22 modules, includes `braces` and `imaging`)                                                                              |
 | Deploy scripts, fleet list, per-stack settings           | `ops/deploy/` (`deploy.sh`, `deploy-backend.sh`, `record.sh`, `fleet.json`, `clients/*.conf`)                                                         |
 | Workflows                                                | `.github/workflows/` — `ci.yml`, `release.yml` (tag → build → auto rollout), `deploy-fleet.yml`, `deploy-client.yml`                                  |
 | Host worker that provisions clinics (runs on the VPS)    | `ops/platform-worker/` (`platform_worker.py`, `templates/dental-erp.compose.yml`, `owner_operations.py`)                                              |
@@ -323,7 +323,7 @@ Goal: a new clinic with everything Berhanu has, live at
 Replace `new-clinic` with the real slug throughout. Slug rules: lowercase letters,
 digits and single hyphens, max 63 characters.
 
-**What "everything Berhanu has" means:** the same app, the same 21 modules (tick
+**What "everything Berhanu has" means:** the same app, the same 22 modules (tick
 all; includes `braces`), its own landing-page config, its own database, uploads,
 secrets and hostname. **Not** copied automatically: Berhanu's clinic-specific
 extras: the two Amharic patient notices (`berhanu-*` printables, visible only when
@@ -433,7 +433,7 @@ name (not Abiy's).
 
 Then select the new clinic and:
 
-1. **Modules** → tick **all 21** (Berhanu parity), including dependencies, apply immediately.
+1. **Modules** → tick **all 22** (Berhanu parity), including dependencies, apply immediately.
 2. **Branding** → display name, Amharic name, colour, contacts, address, logo upload
    (raster image only).
 3. **Profile and internal notes** → plan, fee, private notes.
@@ -482,7 +482,7 @@ systemctl list-timers | grep <slug>
 - [ ] `https://<hostname>/api/ready` → 200, valid HTTPS certificate.
 - [ ] Landing page shows the new clinic's name, phones, hours.
 - [ ] Admin can sign in; dashboard works; all modules visible (incl. Braces, Forms, Lab).
-- [ ] `/owner/clinics`: registered, all 21 modules, branding set, term correct.
+- [ ] `/owner/clinics`: registered, all 22 modules, branding set, term correct.
 - [ ] `/owner/fleet` lists the clinic; `/owner/access` shows DB status and users.
 - [ ] A database backup exists after the first fleet deploy: `/opt/backups/<slug>/`.
 - [ ] Nothing about Abiy or Berhanu appears on this clinic's pages (names, logos,
