@@ -36,6 +36,7 @@ import {
   WalletCards,
   Printer,
   Smile,
+  ScanLine,
   type LucideIcon,
 } from 'lucide-react'
 import type { ProductTier } from '@/lib/product-tier'
@@ -110,6 +111,13 @@ export const navigation: NavSection[] = [
         title: 'Braces',
         href: '/braces',
         icon: Smile,
+        roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'],
+      },
+      {
+        // Shown only to clinics that have the Imaging module (see modulesForPath).
+        title: 'Imaging',
+        href: '/imaging',
+        icon: ScanLine,
         roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'],
       },
       {
