@@ -26,6 +26,7 @@ export function modulesForPath(rawPath: string): ModuleId[] | null {
   if (pathname.split('/').some((part) => part === '..' || part === '.')) return null
   const path = pathname.replace(/^\/api(?=\/)/, '')
   const is = (prefix: string) => path === prefix || path.startsWith(`${prefix}/`)
+  if (/^\/patients\/[^/]+\/imaging(?:\/|$)/.test(path)) return ['imaging', 'braces', 'clinical']
   if (/^\/patients\/[^/]+\/braces(?:\/|$)/.test(path) || is('/braces'))
     return ['braces', 'clinical']
   if (/^\/patients\/[^/]+\/(medical-history|documents)(?:\/|$)/.test(path)) return ['clinical']

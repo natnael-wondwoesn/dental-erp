@@ -216,8 +216,21 @@ export const bracesMediaSchema = z.object({
   documentId: z.string().min(1).max(40),
   kind: z.enum(MEDIA_KINDS),
   category: z.string().min(1).max(60),
+  title: z.string().max(190).nullish(),
+  relatedVisitId: z.string().max(40).nullish().or(z.literal('')),
   stage: choice(MEDIA_STAGES),
   capturedAt: date,
+  interpretation: text,
+  notes: text,
+})
+
+// Editing an image's information (the image file itself is never changed).
+export const bracesMediaUpdateSchema = z.object({
+  category: z.string().min(1).max(60).optional(),
+  title: z.string().max(190).nullish(),
+  relatedVisitId: z.string().max(40).nullish().or(z.literal('')),
+  stage: choice(MEDIA_STAGES).optional(),
+  capturedAt: date.optional(),
   interpretation: text,
   notes: text,
 })
@@ -235,6 +248,7 @@ export type BracesCaseInput = z.infer<typeof bracesCaseSchema>
 export type BracesVisitInput = z.infer<typeof bracesVisitSchema>
 export type BracesAssessmentInput = z.infer<typeof bracesAssessmentSchema>
 export type BracesMediaInput = z.infer<typeof bracesMediaSchema>
+export type BracesMediaUpdateInput = z.infer<typeof bracesMediaUpdateSchema>
 export type RetentionCheckInput = z.infer<typeof retentionCheckSchema>
 
 const blank = <T>(value: T | '' | null | undefined) =>
@@ -340,6 +354,8 @@ export function mediaData(input: BracesMediaInput) {
     documentId: input.documentId,
     kind: input.kind,
     category: input.category,
+    title: blank(input.title),
+    relatedVisitId: blank(input.relatedVisitId),
     stage: blank(input.stage),
     capturedAt: new Date(input.capturedAt),
     interpretation: blank(input.interpretation),

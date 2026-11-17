@@ -28,6 +28,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       where: { id: input.documentId, hospitalId, patientId: id },
     })
     if (!document) return NextResponse.json({ error: 'File not found' }, { status: 404 })
+    if (input.relatedVisitId) {
+      const visit = await prisma.bracesVisit.findFirst({
+        where: { id: input.relatedVisitId, hospitalId, bracesCase: { patientId: id } },
+      })
+      if (!visit) return NextResponse.json({ error: 'Visit not found' }, { status: 400 })
+    }
     const bracesCase = await prisma.bracesCase.upsert({
       where: { hospitalId_patientId: { hospitalId, patientId: id } },
       create: { hospitalId, patientId: id },
