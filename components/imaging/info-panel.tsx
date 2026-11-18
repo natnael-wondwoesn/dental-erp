@@ -9,7 +9,14 @@ import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import { labelOf, MEDIA_STAGES, PHOTO_CATEGORIES, XRAY_CATEGORIES } from '@/lib/braces/schema'
 
-import { imageTitle, type ImageItem } from './types'
+import {
+  angleDeg,
+  formatDistance,
+  imageTitle,
+  lengthPx,
+  type AnnotationSet,
+  type ImageItem,
+} from './types'
 
 export type HistoryEntry = { id: string; label: string; at: string; by: string | null }
 type Visit = { id: string; visitDate: string; visitType: string }
@@ -44,6 +51,7 @@ export function InfoPanel({
   item,
   visits,
   history,
+  annotations,
   canEdit,
   onSaved,
 }: {
@@ -51,10 +59,25 @@ export function InfoPanel({
   item: ImageItem | null
   visits: Visit[]
   history: HistoryEntry[]
+  annotations?: AnnotationSet
   canEdit: boolean
   onSaved: () => Promise<void> | void
 }) {
   const { toast } = useToast()
+  const measurements = (annotations?.items ?? []).flatMap((a) => {
+    if (a.type === 'distance' && a.points[1])
+      return [
+        {
+          label: 'Distance',
+          value: formatDistance(lengthPx(a.points[0], a.points[1]), annotations?.mmPerPx),
+        },
+      ]
+    if (a.type === 'angle' && a.points[2])
+      return [
+        { label: 'Angle', value: `${angleDeg(a.points[0], a.points[1], a.points[2]).toFixed(1)}°` },
+      ]
+    return []
+  })
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
@@ -218,10 +241,20 @@ export function InfoPanel({
 
       <div className="rounded-xl border bg-white p-3">
         <h2 className="mb-2 text-sm font-semibold">Measurements</h2>
-        <p className="text-sm text-muted-foreground">
-          Saved distance and angle measurements will appear here once the measurement tools are
-          added.
-        </p>
+        {measurements.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No measurements yet. Use the Distance or Angle tool on the image.
+          </p>
+        ) : (
+          <ul className="space-y-1 text-sm">
+            {measurements.map((m, i) => (
+              <li key={i} className="flex justify-between">
+                <span className="text-muted-foreground">{m.label}</span>
+                <span className="font-medium">{m.value}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="rounded-xl border bg-white p-3">

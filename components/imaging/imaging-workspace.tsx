@@ -14,7 +14,15 @@ import { BottomTabs } from './bottom-tabs'
 import { applyFilters, emptyFilters, ImageLibrary, type LibraryFilters } from './image-library'
 import { InfoPanel, useImageHistory } from './info-panel'
 import { ClinicalViewer } from './clinical-viewer'
-import { imageTitle, imageUrl, STAGE_FILTERS, TYPE_FILTERS, type ImageItem } from './types'
+import {
+  EMPTY_ANNOTATIONS,
+  imageTitle,
+  imageUrl,
+  STAGE_FILTERS,
+  TYPE_FILTERS,
+  type AnnotationSet,
+  type ImageItem,
+} from './types'
 import { UploadDialog } from './upload-dialog'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -44,6 +52,8 @@ export function ImagingWorkspace({ patientId }: { patientId: string }) {
   const [showLibrary, setShowLibrary] = useState(false)
   const [showInfo, setShowInfo] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
+  // Drawings not yet saved, per image. Saving writes them next to the image, never into it.
+  const [drafts, setDrafts] = useState<Record<string, AnnotationSet>>({})
 
   const reload = useCallback(async () => {
     const res = await fetch(`/api/patients/${patientId}/braces`)
@@ -73,6 +83,23 @@ export function ImagingWorkspace({ patientId }: { patientId: string }) {
   // Keep a valid selection: the first image of the filtered list when nothing (or something hidden) is selected.
   const selected = items.find((m) => m.id === selectedId) ?? items[0] ?? null
   const history = useImageHistory(patientId, selected?.id ?? null, version)
+  const currentAnnotations: AnnotationSet =
+    (selected && drafts[selected.id]) || selected?.annotations || EMPTY_ANNOTATIONS
+  const saveAnnotations = async () => {
+    if (!selected) return false
+    const res = await fetch(`/api/patients/${patientId}/braces/media/${selected.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ annotations: currentAnnotations }),
+    })
+    if (!res.ok) return false
+    await reload()
+    setDrafts((d) => {
+      const { [selected.id]: _saved, ...rest } = d
+      return rest
+    })
+    return true
+  }
   const index = selected ? items.findIndex((m) => m.id === selected.id) : -1
 
   if (loading) return <Loader2 className="m-8 h-6 w-6 animate-spin" />
@@ -231,6 +258,12 @@ export function ImagingWorkspace({ patientId }: { patientId: string }) {
             src={selected ? imageUrl(patientId, selected.documentId) : null}
             alt={selected ? imageTitle(selected, labelOf) : ''}
             resetKey={selected?.id ?? ''}
+            annotations={currentAnnotations}
+            onAnnotationsChange={(next) =>
+              selected && setDrafts((d) => ({ ...d, [selected.id]: next }))
+            }
+            onSave={saveAnnotations}
+            dirty={!!selected && selected.id in drafts}
           />
           {all.length === 0 && (
             <div className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
@@ -252,6 +285,7 @@ export function ImagingWorkspace({ patientId }: { patientId: string }) {
             item={selected}
             visits={visits}
             history={history}
+            annotations={currentAnnotations}
             canEdit
             onSaved={reload}
           />
