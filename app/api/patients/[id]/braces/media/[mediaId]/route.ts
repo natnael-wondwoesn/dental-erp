@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { z } from 'zod'
 
 import { requireAuthAndRole } from '@/lib/api-helpers'
@@ -45,10 +46,20 @@ export async function PATCH(request: NextRequest, { params }: Ctx) {
     if (input.interpretation !== undefined) data.interpretation = blank(input.interpretation)
     if (input.notes !== undefined) data.notes = blank(input.notes)
 
+    if (input.annotations !== undefined)
+      data.annotations = input.annotations === null ? Prisma.DbNull : input.annotations
+
     const updated = await prisma.bracesMedia.update({ where: { id: mediaId }, data })
-    await bracesAudit(hospitalId, user?.id, 'BRACES_MEDIA_UPDATE', 'BracesMedia', mediaId, {
-      changed: Object.keys(data),
-    })
+    // Saving drawings is logged on its own so the history can say "Annotation saved".
+    const infoChanged = Object.keys(data).filter((k) => k !== 'annotations')
+    if (infoChanged.length)
+      await bracesAudit(hospitalId, user?.id, 'BRACES_MEDIA_UPDATE', 'BracesMedia', mediaId, {
+        changed: infoChanged,
+      })
+    if (input.annotations !== undefined)
+      await bracesAudit(hospitalId, user?.id, 'BRACES_ANNOTATION_SAVE', 'BracesMedia', mediaId, {
+        count: input.annotations?.items.length ?? 0,
+      })
     return NextResponse.json({ media: updated })
   } catch (cause) {
     if (cause instanceof z.ZodError)

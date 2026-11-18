@@ -224,6 +224,22 @@ export const bracesMediaSchema = z.object({
   notes: text,
 })
 
+const annotationPoint = z.object({ x: z.number().finite(), y: z.number().finite() })
+export const annotationSetSchema = z.object({
+  mmPerPx: z.number().positive().finite().nullable().optional(),
+  items: z
+    .array(
+      z.object({
+        id: z.string().min(1).max(40),
+        type: z.enum(['line', 'distance', 'angle', 'point', 'arrow', 'marker', 'text']),
+        points: z.array(annotationPoint).min(1).max(3),
+        text: z.string().max(500).optional(),
+        n: z.number().int().optional(),
+      })
+    )
+    .max(300),
+})
+
 // Editing an image's information (the image file itself is never changed).
 export const bracesMediaUpdateSchema = z.object({
   category: z.string().min(1).max(60).optional(),
@@ -233,6 +249,7 @@ export const bracesMediaUpdateSchema = z.object({
   capturedAt: date.optional(),
   interpretation: text,
   notes: text,
+  annotations: annotationSetSchema.nullable().optional(),
 })
 
 export const retentionCheckSchema = z.object({

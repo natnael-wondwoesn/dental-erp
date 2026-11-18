@@ -11,6 +11,7 @@ export type ImageItem = {
   notes: string | null
   interpretation: string | null
   relatedVisitId: string | null
+  annotations?: AnnotationSet | null
   uploadedById: string | null
   document: { fileType: string; originalName: string; fileSize?: number } | null
 }
@@ -35,3 +36,28 @@ export const imageUrl = (patientId: string, documentId: string) =>
 
 export const imageTitle = (m: ImageItem, label: (v: string) => string) =>
   m.title?.trim() || label(m.category)
+
+export type Pt = { x: number; y: number }
+export type AnnotationType = 'line' | 'distance' | 'angle' | 'point' | 'arrow' | 'marker' | 'text'
+/** Points are in the image's own pixel coordinates, so drawings stay put when zooming or rotating. */
+export type Annotation = {
+  id: string
+  type: AnnotationType
+  points: Pt[]
+  text?: string
+  n?: number
+}
+export type AnnotationSet = { items: Annotation[]; mmPerPx?: number | null }
+export const EMPTY_ANNOTATIONS: AnnotationSet = { items: [], mmPerPx: null }
+
+export const lengthPx = (a: Pt, b: Pt) => Math.hypot(b.x - a.x, b.y - a.y)
+/** Angle at the middle point, in degrees. Needs no scale, so it is always exact. */
+export function angleDeg(a: Pt, v: Pt, b: Pt) {
+  const d =
+    Math.abs(Math.atan2(b.y - v.y, b.x - v.x) - Math.atan2(a.y - v.y, a.x - v.x)) * (180 / Math.PI)
+  return d > 180 ? 360 - d : d
+}
+/** Distances are shown in mm only when the image has a known scale; otherwise in pixels, clearly marked. */
+export function formatDistance(px: number, mmPerPx?: number | null) {
+  return mmPerPx ? `${(px * mmPerPx).toFixed(1)} mm` : `${Math.round(px)} px (not calibrated)`
+}
