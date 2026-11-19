@@ -156,7 +156,7 @@ Copy-Item -LiteralPath (Join-Path $kit 'my.ini') -Destination (Join-Path $Instal
 $startScript = (Get-Content -LiteralPath (Join-Path $kit 'start-dental-erp.cmd') -Raw) -replace 'set PORT=\d+', "set PORT=$Port"
 [System.IO.File]::WriteAllText((Join-Path $InstallRoot 'start-dental-erp.cmd'), $startScript, (New-Object System.Text.ASCIIEncoding))
 $targetUrl = if ($Port -eq 80) { 'http://localhost/' } else { "http://localhost:$Port/" }
-$startPage = (Get-Content -LiteralPath (Join-Path $kit 'starting.html') -Raw) -replace "var target = '[^']*';", "var target = '$targetUrl';"
+$startPage = (Get-Content -LiteralPath (Join-Path $kit 'starting.html') -Raw) -replace "var target = '[^']*';?", "var target = '$targetUrl';"
 [System.IO.File]::WriteAllText((Join-Path $InstallRoot 'starting.html'), $startPage, (New-Object System.Text.UTF8Encoding($false)))
 
 # ---- 3. Secrets --------------------------------------------------------------

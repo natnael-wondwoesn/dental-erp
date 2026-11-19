@@ -110,6 +110,9 @@ jobs:
           $page = Invoke-WebRequest http://localhost:8080/ -UseBasicParsing -MaximumRedirection 5
           "home: $($page.StatusCode) $($page.Content.Length) bytes"
           if ($page.StatusCode -ne 200) { exit 1 }
+          $startingPage = Get-Content C:\DentalERP\starting.html -Raw
+          if ($startingPage -notmatch 'http://localhost:8080/') { throw 'starting.html does not point at port 8080' }
+          "starting page points at port 8080"
       - name: Re-run the installer (must be safe)
         shell: powershell
         working-directory: kit
