@@ -41,6 +41,18 @@ exact clinic URL.
 
 For three or more PCs without a router, connect all PCs to an unmanaged switch. Use `192.168.50.10` for the server, then assign clients `192.168.50.11`, `.12`, `.13`, and so on, all with prefix length 24 and blank gateway/DNS fields.
 
+## Lifetime installs (no license) and start-up
+
+For a one-time-payment client with no licensing, add `-NoLicense`:
+
+```powershell
+.\Install-Offline.ps1 -LanMode LocalOnly -NoLicense
+```
+
+This sets `LICENSE_ENFORCEMENT=disabled` and `SAAS_ENFORCEMENT=disabled` (all modules, no expiry), and skips the license agent and activation request.
+
+Unless `-SkipAutoStart` is passed, setup also registers a scheduled task (`SunnySmile-DentalERP-Start`) that runs at every sign-in: it opens a "Starting the clinic system..." page, starts Docker Desktop if needed, runs `docker compose up -d`, and the page switches to the app when `/api/health` answers. Log: `startup.log` in the install folder.
+
 ## Safety behavior
 
 - Container archives are loaded from USB with `--pull never`; installation never downloads an image.
