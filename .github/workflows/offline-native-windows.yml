@@ -1,0 +1,127 @@
+name: Offline native Windows install test
+
+# Builds the no-Docker kit from the release image, then runs Install-Native.ps1
+# on a real Windows runner and checks that the app answers.
+on:
+  pull_request:
+    paths:
+      - 'deploy/offline/windows/native/**'
+      - '.github/workflows/offline-native-windows.yml'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version of the app image to test'
+        default: '0.1.57'
+
+permissions:
+  contents: read
+  packages: read
+
+env:
+  APP_VERSION: ${{ github.event.inputs.version || '0.1.57' }}
+  NODE_ZIP: node-v22.23.5-win-x64.zip
+  MYSQL_ZIP: mysql-8.4.13-winx64.zip
+
+jobs:
+  build-app-zip:
+    name: Build Windows app.zip from the release image
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Extract /app from the image
+        run: |
+          docker pull "ghcr.io/natnael-wondwoesn/dental-erp:${APP_VERSION}"
+          docker create --name appsrc "ghcr.io/natnael-wondwoesn/dental-erp:${APP_VERSION}"
+          docker cp appsrc:/app ./appwin
+      - name: Swap Linux binaries for Windows ones
+        run: |
+          cd appwin
+          ENGINE_HASH=$(node -p "require('./node_modules/@prisma/engines-version/package.json').prisma.enginesVersion")
+          SHARP_VERSION=$(node -p "require('./node_modules/sharp/package.json').version")
+          echo "engines $ENGINE_HASH sharp $SHARP_VERSION"
+          rm -rf node_modules/@img/sharp-libvips-linux-x64 node_modules/@img/sharp-libvips-linuxmusl-x64 node_modules/@img/sharp-linux-x64 node_modules/@img/sharp-linuxmusl-x64
+          find node_modules -name '*.so.node' -delete
+          rm -f node_modules/@prisma/engines/schema-engine-debian-openssl-3.0.x
+          curl -fsSL "https://binaries.prisma.sh/all_commits/${ENGINE_HASH}/windows/query_engine.dll.node.gz" | gunzip > query_engine-windows.dll.node
+          curl -fsSL "https://binaries.prisma.sh/all_commits/${ENGINE_HASH}/windows/schema-engine.exe.gz" | gunzip > schema-engine-windows.exe
+          cp query_engine-windows.dll.node node_modules/.prisma/client/
+          cp query_engine-windows.dll.node node_modules/@prisma/engines/
+          cp query_engine-windows.dll.node node_modules/prisma/
+          cp schema-engine-windows.exe node_modules/@prisma/engines/
+          rm query_engine-windows.dll.node schema-engine-windows.exe
+          npm pack "@img/sharp-win32-x64@${SHARP_VERSION}" --silent
+          mkdir -p node_modules/@img/sharp-win32-x64
+          tar -xzf img-sharp-win32-x64-*.tgz -C node_modules/@img/sharp-win32-x64 --strip-components=1
+          rm img-sharp-win32-x64-*.tgz
+          zip -qr ../app.zip .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-zip
+          path: app.zip
+          retention-days: 3
+
+  install-on-windows:
+    name: Run Install-Native.ps1 on Windows
+    needs: build-app-zip
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-zip
+          path: kit
+      - name: Assemble the kit
+        shell: pwsh
+        run: |
+          Copy-Item deploy/offline/windows/native/* kit/ -Exclude README.md
+          [System.IO.File]::WriteAllText("$PWD\kit\Clinic System.url", "[InternetShortcut]`r`nURL=file:///C:/DentalERP/starting.html`r`n")
+          Invoke-WebRequest "https://nodejs.org/dist/v22.23.5/$env:NODE_ZIP" -OutFile "kit/$env:NODE_ZIP"
+          Invoke-WebRequest "https://cdn.mysql.com/Downloads/MySQL-8.4/$env:MYSQL_ZIP" -OutFile "kit/$env:MYSQL_ZIP"
+          Invoke-WebRequest "https://aka.ms/vs/17/release/vc_redist.x64.exe" -OutFile "kit/vc_redist.x64.exe"
+          Get-ChildItem kit | Format-Table Name, Length
+      - name: Free port 3306 (runner image ships its own MySQL)
+        shell: pwsh
+        run: |
+          Get-Service | Where-Object { $_.Name -like 'MySQL*' } | ForEach-Object { Stop-Service $_ -Force -ErrorAction SilentlyContinue; Set-Service $_ -StartupType Disabled -ErrorAction SilentlyContinue }
+      - name: Syntax check with Windows PowerShell 5.1 (what clinic PCs have)
+        shell: powershell
+        run: |
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile("$PWD\kit\Install-Native.ps1", [ref]$null, [ref]$errors) | Out-Null
+          if ($errors) { $errors | ForEach-Object { Write-Error $_.Message }; exit 1 }
+          Write-Host "Install-Native.ps1 parses cleanly on $($PSVersionTable.PSVersion)"
+      - name: Install (Windows PowerShell 5.1, as a clinic PC would)
+        shell: powershell
+        working-directory: kit
+        run: |
+          Set-ExecutionPolicy -Scope Process Bypass
+          .\Install-Native.ps1 -Port 8080
+      - name: Check the running system
+        shell: powershell
+        run: |
+          Get-Service DentalMySQL | Format-Table Name, Status, StartType
+          (Get-ScheduledTask -TaskName DentalERP-App).State
+          $health = Invoke-WebRequest http://localhost:8080/api/health -UseBasicParsing
+          "health: $($health.StatusCode)"
+          $page = Invoke-WebRequest http://localhost:8080/ -UseBasicParsing -MaximumRedirection 5
+          "home: $($page.StatusCode) $($page.Content.Length) bytes"
+          if ($page.StatusCode -ne 200) { exit 1 }
+          $startingPage = Get-Content C:\DentalERP\starting.html -Raw
+          if ($startingPage -notmatch 'http://localhost:8080/') { throw 'starting.html does not point at port 8080' }
+          "starting page points at port 8080"
+      - name: Re-run the installer (must be safe)
+        shell: powershell
+        working-directory: kit
+        run: |
+          Set-ExecutionPolicy -Scope Process Bypass
+          .\Install-Native.ps1 -Port 8080
+      - name: Logs on failure
+        if: failure()
+        shell: powershell
+        run: |
+          foreach ($f in 'C:\DentalERP\migrate.log', 'C:\DentalERP\app.log') { if (Test-Path $f) { "---- $f"; Get-Content $f -Tail 60 } }
+          Get-ChildItem C:\DentalERP\mysql-data\*.err -ErrorAction SilentlyContinue | ForEach-Object { "---- $($_.Name)"; Get-Content $_.FullName -Tail 40 }

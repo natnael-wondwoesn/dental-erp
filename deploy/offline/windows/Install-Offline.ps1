@@ -43,26 +43,31 @@ $agent = Join-Path $InstallRoot 'dental-license-agent.exe'
 Copy-Item -LiteralPath $agentSource -Destination $agent -Force
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'compose.offline.yml') -Destination (Join-Path $InstallRoot 'compose.yml') -Force
 
-& $agent --product-id dental-erp --state-dir $licenseState init
-if ($LASTEXITCODE -ne 0) {
-    throw 'The installation identity could not be initialized.'
-}
-
-if (-not [string]::IsNullOrWhiteSpace($LicenseFile)) {
-    & $agent --product-id dental-erp --state-dir $licenseState install-license --input $LicenseFile
+if (-not $NoLicense) {
+    & $agent --product-id dental-erp --state-dir $licenseState init
     if ($LASTEXITCODE -ne 0) {
-        throw 'The supplied license was rejected.'
+        throw 'The installation identity could not be initialized.'
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($LicenseFile)) {
+        & $agent --product-id dental-erp --state-dir $licenseState install-license --input $LicenseFile
+        if ($LASTEXITCODE -ne 0) {
+            throw 'The supplied license was rejected.'
+        }
+    }
+    else {
+        if ([string]::IsNullOrWhiteSpace($RequestOutput)) {
+            $RequestOutput = Join-Path ([Environment]::GetFolderPath('Desktop')) 'dental-erp-activation.req'
+        }
+        & $agent --product-id dental-erp --state-dir $licenseState request --app-version $manifest.app_version --delivery offline --output $RequestOutput
+        if ($LASTEXITCODE -ne 0) {
+            throw 'The activation request could not be created.'
+        }
+        Write-Warning "No license was supplied. Give this request file to Sunny Smile: $RequestOutput"
     }
 }
 else {
-    if ([string]::IsNullOrWhiteSpace($RequestOutput)) {
-        $RequestOutput = Join-Path ([Environment]::GetFolderPath('Desktop')) 'dental-erp-activation.req'
-    }
-    & $agent --product-id dental-erp --state-dir $licenseState request --app-version $manifest.app_version --delivery offline --output $RequestOutput
-    if ($LASTEXITCODE -ne 0) {
-        throw 'The activation request could not be created.'
-    }
-    Write-Warning "No license was supplied. Give this request file to Sunny Smile: $RequestOutput"
+    Write-Host 'Lifetime install: licensing is switched off for this computer.'
 }
 
 $bindAddress = if ($LanMode -eq 'LocalOnly') { '127.0.0.1' } else { '0.0.0.0' }
@@ -86,7 +91,8 @@ Write-SunnySmileEnvironment `
     -BindAddress $bindAddress `
     -ClinicId $ClinicId `
     -CustomerId $CustomerId `
-    -Port $AppPort
+    -Port $AppPort `
+    -NoLicense:$NoLicense
 
 foreach ($image in $manifest.container_archives) {
     $archive = Resolve-SunnySmileBundleFile -BundleRoot $PSScriptRoot -RelativePath $image
@@ -106,6 +112,11 @@ try {
 }
 finally {
     Pop-Location
+}
+
+if (-not $SkipAutoStart) {
+    Register-SunnySmileAutoStart -InstallRoot $InstallRoot -Port $AppPort
+    Write-Host 'Start-up task registered: Docker and the clinic system now start when a user signs in.'
 }
 
 $localUrl = "http://localhost:$AppPort"

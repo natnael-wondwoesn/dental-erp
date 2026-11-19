@@ -61,4 +61,28 @@ Describe 'Offline installer safety contracts' {
         $first | Should -Match 'APP_BIND=0.0.0.0'
         $first | Should -Not -Match '=(password|changeme|dental123)(\r?\n|$)'
     }
+
+    It 'switches licensing and SaaS enforcement off for lifetime installs' {
+        $manifest = [pscustomobject]@{ app_image = 'x/y:1'; database_image = 'mysql:8.4' }
+        $path = Join-Path $TestDrive '.env-nolicense'
+        Write-SunnySmileEnvironment -Path $path -Manifest $manifest -LicenseStateDirectory 'C:\\state' -BindAddress '127.0.0.1' -Port 80 -NoLicense
+        $text = Get-Content $path -Raw
+        $text | Should -Match 'LICENSE_ENFORCEMENT=disabled'
+        $text | Should -Match 'SAAS_ENFORCEMENT=disabled'
+    }
+
+    It 'generates a start-up page that waits for the health endpoint' {
+        $page = Get-SunnySmileStartingPage -Port 80
+        $page | Should -Match "http://localhost/"
+        $page | Should -Match 'api/health'
+        (Get-SunnySmileStartingPage -Port 8080) | Should -Match 'http://localhost:8080/'
+    }
+
+    It 'generates a start-up script that starts Docker and then the stack' {
+        $script = Get-SunnySmileStartupScript
+        $script | Should -Match 'Docker Desktop.exe'
+        $script | Should -Match 'docker compose --env-file .env -f compose.yml up -d --pull never'
+        $script | Should -Match 'starting.html'
+        { [scriptblock]::Create($script) } | Should -Not -Throw
+    }
 }

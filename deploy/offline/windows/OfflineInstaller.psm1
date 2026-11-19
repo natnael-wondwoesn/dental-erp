@@ -196,12 +196,15 @@ function Write-SunnySmileEnvironment {
         [Parameter(Mandatory)][string]$BindAddress,
         [string]$ClinicId = '',
         [string]$CustomerId = '',
-        [ValidateRange(1, 65535)][int]$Port = 80
+        [ValidateRange(1, 65535)][int]$Port = 80,
+        [switch]$NoLicense
     )
 
     if (Test-Path -LiteralPath $Path) {
         return
     }
+    $licenseMode = if ($NoLicense) { 'disabled' } else { 'required' }
+    $saasMode = if ($NoLicense) { 'disabled' } else { 'offline' }
     $lines = @(
         "DENTAL_ERP_IMAGE=$($Manifest.app_image)",
         "MYSQL_IMAGE=$($Manifest.database_image)",
@@ -210,8 +213,8 @@ function Write-SunnySmileEnvironment {
         "MYSQL_PASSWORD=$(New-SunnySmileSecret)",
         "MYSQL_ROOT_PASSWORD=$(New-SunnySmileSecret)",
         "NEXTAUTH_SECRET=$(New-SunnySmileSecret)",
-        'LICENSE_ENFORCEMENT=required',
-        'SAAS_ENFORCEMENT=offline',
+        "LICENSE_ENFORCEMENT=$licenseMode",
+        "SAAS_ENFORCEMENT=$saasMode",
         "SAAS_TENANT_ID=$ClinicId",
         "SAAS_CUSTOMER_ID=$CustomerId",
         'LICENSE_PRODUCT_ID=dental-erp',
@@ -221,6 +224,77 @@ function Write-SunnySmileEnvironment {
     )
     $encoding = New-Object System.Text.UTF8Encoding($false)
     [System.IO.File]::WriteAllLines($Path, $lines, $encoding)
+}
+
+function Get-SunnySmileStartingPage {
+    param([ValidateRange(1, 65535)][int]$Port = 80)
+
+    $url = if ($Port -eq 80) { 'http://localhost/' } else { "http://localhost:$Port/" }
+    @"
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Starting the clinic system...</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>body{font-family:Segoe UI,Arial,sans-serif;background:#f5f8fb;color:#12324a;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center}
+.box{max-width:460px;padding:32px}h1{font-size:24px;margin:0 0 12px}p{margin:0;color:#4a6478}</style></head>
+<body><div class="box"><h1>Starting the clinic system...</h1>
+<p>Please wait a moment. This page opens the system automatically when it is ready.</p></div>
+<script>
+var target = '$url';
+function check() {
+  fetch(target + 'api/health', { mode: 'no-cors', cache: 'no-store' })
+    .then(function () { location.replace(target); })
+    .catch(function () { setTimeout(check, 4000); });
+}
+check();
+</script></body></html>
+"@
+}
+
+function Get-SunnySmileStartupScript {
+    @'
+$ErrorActionPreference = 'Continue'
+$root = $PSScriptRoot
+$log = Join-Path $root 'startup.log'
+function Write-Log($message) { Add-Content -LiteralPath $log -Value ('{0} {1}' -f (Get-Date -Format s), $message) }
+Write-Log 'Sign-in start'
+try { Start-Process -FilePath (Join-Path $root 'starting.html') } catch { Write-Log "Could not open the starting page: $_" }
+$desktop = Join-Path $env:ProgramFiles 'Docker\Docker\Docker Desktop.exe'
+if (-not (Get-Process -Name 'Docker Desktop' -ErrorAction SilentlyContinue) -and (Test-Path -LiteralPath $desktop)) {
+    Start-Process -FilePath $desktop
+    Write-Log 'Started Docker Desktop'
+}
+$ready = $false
+for ($i = 0; $i -lt 120; $i++) {
+    docker info *> $null
+    if ($LASTEXITCODE -eq 0) { $ready = $true; break }
+    Start-Sleep -Seconds 5
+}
+if (-not $ready) { Write-Log 'Docker did not become ready within 10 minutes'; exit 1 }
+Set-Location -LiteralPath $root
+docker compose --env-file .env -f compose.yml up -d --pull never *>> $log
+Write-Log "Compose finished with exit code $LASTEXITCODE"
+'@
+}
+
+function Register-SunnySmileAutoStart {
+    param(
+        [Parameter(Mandatory)][string]$InstallRoot,
+        [ValidateRange(1, 65535)][int]$Port = 80
+    )
+
+    $scriptPath = Join-Path $InstallRoot 'Start-DentalERP.ps1'
+    $pagePath = Join-Path $InstallRoot 'starting.html'
+    $encoding = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($scriptPath, (Get-SunnySmileStartupScript), $encoding)
+    [System.IO.File]::WriteAllText($pagePath, (Get-SunnySmileStartingPage -Port $Port), $encoding)
+
+    $action = New-ScheduledTaskAction -Execute 'powershell.exe' `
+        -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$scriptPath`""
+    $trigger = New-ScheduledTaskTrigger -AtLogOn
+    $principal = New-ScheduledTaskPrincipal -GroupId 'BUILTIN\Users' -RunLevel Limited
+    $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Hours 1)
+    Register-ScheduledTask -TaskName 'SunnySmile-DentalERP-Start' -Action $action -Trigger $trigger `
+        -Principal $principal -Settings $settings -Force | Out-Null
 }
 
 Export-ModuleMember -Function @(
@@ -234,5 +308,8 @@ Export-ModuleMember -Function @(
     'Set-SunnySmileExistingNetworkPrivate',
     'Set-SunnySmileDirectCableAddress',
     'Enable-SunnySmileLanFirewall',
-    'Write-SunnySmileEnvironment'
+    'Write-SunnySmileEnvironment',
+    'Get-SunnySmileStartingPage',
+    'Get-SunnySmileStartupScript',
+    'Register-SunnySmileAutoStart'
 )
