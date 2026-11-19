@@ -35,10 +35,10 @@ jobs:
         run: |
           docker pull "ghcr.io/natnael-wondwoesn/dental-erp:${APP_VERSION}"
           docker create --name appsrc "ghcr.io/natnael-wondwoesn/dental-erp:${APP_VERSION}"
-          docker cp appsrc:/app ./app
+          docker cp appsrc:/app ./appwin
       - name: Swap Linux binaries for Windows ones
         run: |
-          cd app
+          cd appwin
           ENGINE_HASH=$(node -p "require('./node_modules/@prisma/engines-version/package.json').prisma.enginesVersion")
           SHARP_VERSION=$(node -p "require('./node_modules/sharp/package.json').version")
           echo "engines $ENGINE_HASH sharp $SHARP_VERSION"
