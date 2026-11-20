@@ -85,4 +85,18 @@ Describe 'Offline installer safety contracts' {
         $script | Should -Match 'starting.html'
         { [scriptblock]::Create($script) } | Should -Not -Throw
     }
+
+    It 'declares every switch the installer body uses' {
+        $path = Join-Path $PSScriptRoot '..\Install-Offline.ps1'
+        $ast = [System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$null, [ref]$null)
+        $declared = $ast.ParamBlock.Parameters | ForEach-Object { $_.Name.VariablePath.UserPath }
+        foreach ($name in 'NoLicense', 'SkipAutoStart', 'LanMode', 'LicenseFile') {
+            $declared | Should -Contain $name
+        }
+        $used = $ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.VariableExpressionAst] }, $true) |
+            ForEach-Object { $_.VariablePath.UserPath }
+        foreach ($name in 'NoLicense', 'SkipAutoStart') {
+            $used | Should -Contain $name
+        }
+    }
 }
