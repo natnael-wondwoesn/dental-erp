@@ -290,6 +290,10 @@ jobs:
           cp deploy/offline/windows/Configure-Direct-Cable-Client.ps1 /tmp/dental-erp-offline/
           cp deploy/offline/windows/OfflineInstaller.psm1 /tmp/dental-erp-offline/
           cp deploy/offline/windows/compose.offline.yml /tmp/dental-erp-offline/
+          cp deploy/offline/windows/Create-Clinic.ps1 /tmp/dental-erp-offline/
+          mkdir -p /tmp/dental-erp-offline/tools/node_modules/bcryptjs
+          cp deploy/offline/windows/tools/create-clinic.js /tmp/dental-erp-offline/tools/
+          (cd /tmp && npm pack bcryptjs@3.0.3 --silent && tar -xzf bcryptjs-3.0.3.tgz -C /tmp/dental-erp-offline/tools/node_modules/bcryptjs --strip-components=1)
           cp /tmp/license-agent/dental-license-agent.exe /tmp/dental-erp-offline/bin/
           python scripts/build_offline_bundle_manifest.py \
             --root /tmp/dental-erp-offline \
