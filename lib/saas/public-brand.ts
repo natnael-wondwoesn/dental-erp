@@ -13,6 +13,28 @@ export async function resolvePublicBrand(hostname: string): Promise<PublicBrand 
   const mode = saasEnforcement()
   if (mode === 'disabled') return null
   try {
+    if (mode === 'local') {
+      // One clinic per computer: its own record supplies the name and contact details.
+      const { prisma } = await import('@/lib/prisma')
+      const clinic = await prisma.hospital.findFirst({
+        where: { isActive: true },
+        orderBy: { createdAt: 'asc' },
+      })
+      return clinic
+        ? {
+            tenantId: clinic.id,
+            name: clinic.name,
+            slug: clinic.slug,
+            branding: {
+              displayName: clinic.name,
+              logo: clinic.logo || undefined,
+              contactEmail: clinic.email || '',
+              contactPhone: clinic.phone || '',
+              address: clinic.address || '',
+            },
+          }
+        : null
+    }
     if (mode === 'offline') {
       // Local identity comes from vendor-provisioned installation configuration,
       // never from a request tenant ID. Branding works without a network.

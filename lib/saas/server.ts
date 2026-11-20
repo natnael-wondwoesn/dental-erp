@@ -1,11 +1,31 @@
 import { headers } from 'next/headers'
 import { getLicenseRuntime } from '@/lib/licensing/license-runtime'
-import { moduleIds, validateModules, type SaaSAccess } from './catalog'
+import { moduleIds, validateModules, type ModuleId, type SaaSAccess } from './catalog'
 
+/**
+ * disabled: everything on, no gating.
+ * hosted / offline: policy from the control site / from a signed license.
+ * local: gating is enforced exactly like the others, but the module list comes
+ * from SAAS_MODULES on this computer (no license, no control site). Used for
+ * lifetime installs where the vendor switches modules on and off on site.
+ */
 export function saasEnforcement() {
   const value = process.env.SAAS_ENFORCEMENT || 'disabled'
-  if (!['disabled', 'hosted', 'offline'].includes(value)) throw new Error('Invalid SaaS mode')
-  return value as 'disabled' | 'hosted' | 'offline'
+  if (!['disabled', 'hosted', 'offline', 'local'].includes(value))
+    throw new Error('Invalid SaaS mode')
+  return value as 'disabled' | 'hosted' | 'offline' | 'local'
+}
+
+/** SAAS_MODULES: empty, unset or "all" = every module; otherwise a comma list that must be valid. */
+export function localModules(): ModuleId[] {
+  const raw = (process.env.SAAS_MODULES || '').trim()
+  if (!raw || raw.toLowerCase() === 'all') return moduleIds
+  return validateModules(
+    raw
+      .split(',')
+      .map((key) => key.trim())
+      .filter(Boolean)
+  )
 }
 
 export async function saasFetch(path: string, admin = false, init: RequestInit = {}) {
@@ -45,6 +65,7 @@ export async function loadSaaSAccess(tenantId: string): Promise<SaaSAccess> {
     branding: {},
   }
   if (mode === 'disabled') return fallback
+  if (mode === 'local') return { ...fallback, planName: 'Self-Hosted', modules: localModules() }
   if (mode === 'offline') {
     const decision = await getLicenseRuntime().decide()
     const payload = decision.payload
@@ -98,6 +119,10 @@ export async function requestSaaSAccess(tenantId: string): Promise<SaaSAccess> {
 
 export async function eligibleTenantIds(modules: string[]): Promise<string[] | undefined> {
   if (saasEnforcement() === 'disabled') return undefined
+  if (saasEnforcement() === 'local') {
+    const enabled = localModules()
+    return modules.every((key) => enabled.includes(key as ModuleId)) ? undefined : []
+  }
   if (saasEnforcement() === 'offline') {
     const tenant = process.env.SAAS_TENANT_ID
     if (!tenant) return []

@@ -8,7 +8,8 @@ set HOSTNAME=127.0.0.1
 set SITE_ID=default
 set PRODUCT_TIER=full
 set LICENSE_ENFORCEMENT=disabled
-set SAAS_ENFORCEMENT=disabled
+set SAAS_ENFORCEMENT=local
+set SAAS_MODULES=all
 set NEXT_TELEMETRY_DISABLED=1
 set NEXTAUTH_SECRET=%AUTH_SECRET%
 set DATABASE_URL=mysql://dental:%DB_PASSWORD%@127.0.0.1:3306/dental_erp?connection_limit=5^&pool_timeout=20

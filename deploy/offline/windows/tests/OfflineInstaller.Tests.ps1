@@ -68,7 +68,8 @@ Describe 'Offline installer safety contracts' {
         Write-SunnySmileEnvironment -Path $path -Manifest $manifest -LicenseStateDirectory 'C:\\state' -BindAddress '127.0.0.1' -Port 80 -NoLicense
         $text = Get-Content $path -Raw
         $text | Should -Match 'LICENSE_ENFORCEMENT=disabled'
-        $text | Should -Match 'SAAS_ENFORCEMENT=disabled'
+        $text | Should -Match 'SAAS_ENFORCEMENT=local'
+        $text | Should -Match 'SAAS_MODULES=all'
     }
 
     It 'generates a start-up page that waits for the health endpoint' {
@@ -97,6 +98,26 @@ Describe 'Offline installer safety contracts' {
             ForEach-Object { $_.VariablePath.UserPath }
         foreach ($name in 'NoLicense', 'SkipAutoStart') {
             $used | Should -Contain $name
+        }
+    }
+
+    It 'Set-Modules.ps1 carries the same module list as config/saas-modules.json' {
+        $script = Get-Content (Join-Path $PSScriptRoot '..\Set-Modules.ps1') -Raw
+        $match = [regex]::Match($script, "(?s)\`$catalogJson = @'\r?\n(.*?)\r?\n'@")
+        $match.Success | Should -BeTrue
+        $embedded = $match.Groups[1].Value | ConvertFrom-Json
+        $repo = Get-Content (Join-Path $PSScriptRoot '..\..\..\..\config\saas-modules.json') -Raw | ConvertFrom-Json
+        ($embedded.PSObject.Properties.Name -join ',') | Should -BeExactly ($repo.PSObject.Properties.Name -join ',')
+        foreach ($name in $repo.PSObject.Properties.Name) {
+            (@($embedded.$name) -join ',') | Should -BeExactly (@($repo.$name) -join ',')
+        }
+    }
+
+    It 'the operator scripts parse without errors' {
+        foreach ($file in 'Set-Modules.ps1', 'Set-SiteConfig.ps1', 'Create-Clinic.ps1', 'Install-Offline.ps1') {
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot "..\$file"), [ref]$null, [ref]$errors) | Out-Null
+            @($errors).Count | Should -Be 0
         }
     }
 }

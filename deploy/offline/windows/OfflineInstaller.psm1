@@ -204,7 +204,7 @@ function Write-SunnySmileEnvironment {
         return
     }
     $licenseMode = if ($NoLicense) { 'disabled' } else { 'required' }
-    $saasMode = if ($NoLicense) { 'disabled' } else { 'offline' }
+    $saasMode = if ($NoLicense) { 'local' } else { 'offline' }
     $lines = @(
         "DENTAL_ERP_IMAGE=$($Manifest.app_image)",
         "MYSQL_IMAGE=$($Manifest.database_image)",
@@ -215,6 +215,7 @@ function Write-SunnySmileEnvironment {
         "NEXTAUTH_SECRET=$(New-SunnySmileSecret)",
         "LICENSE_ENFORCEMENT=$licenseMode",
         "SAAS_ENFORCEMENT=$saasMode",
+        'SAAS_MODULES=all',
         "SAAS_TENANT_ID=$ClinicId",
         "SAAS_CUSTOMER_ID=$CustomerId",
         'LICENSE_PRODUCT_ID=dental-erp',
