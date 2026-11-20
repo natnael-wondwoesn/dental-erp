@@ -242,7 +242,7 @@ function Get-SunnySmileStartingPage {
 var target = '$url';
 function check() {
   fetch(target + 'api/health', { mode: 'no-cors', cache: 'no-store' })
-    .then(function () { location.replace(target); })
+    .then(function () { location.replace(target + 'login'); })
     .catch(function () { setTimeout(check, 4000); });
 }
 check();

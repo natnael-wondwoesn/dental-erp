@@ -43,7 +43,7 @@
       function check() {
         fetch(target + 'api/health', { mode: 'no-cors', cache: 'no-store' })
           .then(function () {
-            location.replace(target)
+            location.replace(target + 'login')
           })
           .catch(function () {
             setTimeout(check, 4000)

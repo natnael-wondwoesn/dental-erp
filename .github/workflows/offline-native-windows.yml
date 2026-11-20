@@ -78,6 +78,11 @@ jobs:
         shell: pwsh
         run: |
           Copy-Item deploy/offline/windows/native/* kit/ -Exclude README.md
+          Copy-Item deploy/offline/windows/Create-Clinic.ps1 kit/
+          New-Item -ItemType Directory -Force kit/tools/node_modules/bcryptjs | Out-Null
+          Copy-Item deploy/offline/windows/tools/create-clinic.js kit/tools/
+          npm pack bcryptjs@3.0.3 --silent
+          tar -xzf bcryptjs-3.0.3.tgz -C kit/tools/node_modules/bcryptjs --strip-components=1
           [System.IO.File]::WriteAllText("$PWD\kit\Clinic System.url", "[InternetShortcut]`r`nURL=file:///C:/DentalERP/starting.html`r`n")
           Invoke-WebRequest "https://nodejs.org/dist/v22.23.5/$env:NODE_ZIP" -OutFile "kit/$env:NODE_ZIP"
           Invoke-WebRequest "https://cdn.mysql.com/Downloads/MySQL-8.4/$env:MYSQL_ZIP" -OutFile "kit/$env:MYSQL_ZIP"
@@ -113,6 +118,25 @@ jobs:
           $startingPage = Get-Content C:\DentalERP\starting.html -Raw
           if ($startingPage -notmatch 'http://localhost:8080/') { throw 'starting.html does not point at port 8080' }
           "starting page points at port 8080"
+      - name: Create the clinic and first administrator, then sign in
+        shell: powershell
+        working-directory: kit
+        run: |
+          Set-ExecutionPolicy -Scope Process Bypass
+          $pw = 'Ci-' + [guid]::NewGuid().ToString('N')
+          .\Create-Clinic.ps1 -HospitalName 'CI Test Dental Clinic' -AdminName 'CI Admin' -Phone '0911000000' -PasswordText $pw
+          if ($LASTEXITCODE -ne 0) { throw 'Creating the clinic failed' }
+          $body = @{ identifier = '0911000000'; password = $pw } | ConvertTo-Json
+          $login = Invoke-RestMethod -Uri http://localhost:8080/api/auth/login -Method Post -Body $body -ContentType 'application/json'
+          if (-not $login.accessToken) { throw 'Sign-in did not return a token' }
+          "signed in as $($login.user.name), role $($login.user.role)"
+          $loginPage = Invoke-WebRequest http://localhost:8080/login -UseBasicParsing
+          "login page: $($loginPage.StatusCode)"
+          # A second clinic must be refused (single-clinic install).
+          .\Create-Clinic.ps1 -HospitalName 'Second Clinic' -AdminName 'Second Admin' -Phone '0911000001' -PasswordText $pw
+          if ($LASTEXITCODE -eq 0) { throw 'A second clinic should have been refused' }
+          "second create refused as expected"
+          exit 0
       - name: Re-run the installer (must be safe)
         shell: powershell
         working-directory: kit
