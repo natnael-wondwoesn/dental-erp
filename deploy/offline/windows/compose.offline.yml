@@ -51,6 +51,7 @@ services:
       LICENSE_PRODUCT_ID: ${LICENSE_PRODUCT_ID:-dental-erp}
       LICENSE_STATE_DIR: /app/.license-state
       SAAS_ENFORCEMENT: ${SAAS_ENFORCEMENT:-offline}
+      SAAS_MODULES: ${SAAS_MODULES:-}
       SAAS_TENANT_ID: ${SAAS_TENANT_ID:-}
       SAAS_CUSTOMER_ID: ${SAAS_CUSTOMER_ID:-}
     volumes:

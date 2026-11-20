@@ -61,7 +61,7 @@ $tagline = Get-Json "Speciality dental care in $City"
 $story = Get-Json "$ClinicName provides speciality dental care in $City."
 $json = @"
 {
-  "clinic": { "name": { "en": $name, "am": "" }, "tagline": { "en": $tagline, "am": "" } },
+  "clinic": { "name": { "en": $name, "am": "" }, "tagline": { "en": $tagline, "am": "" }, "heroImage": "/assets/dentix-hero-ethiopia.png" },
   "location": { "region": $(Get-Json $City), "city": $(Get-Json $City), "subCity": $(Get-Json $SubCity), "mapEmbedUrl": $(Get-Json $mapUrl) },
   "contact": { "phones": [$(Get-Json $compact)], "email": $(Get-Json $Email) },
   "hours": [ { "day": { "en": $(Get-Json $Days), "am": "" }, "open": "$Open", "close": "$Close" } ],
@@ -81,11 +81,45 @@ function Wait-Healthy($url) {
     return $false
 }
 
+# The public pages take the clinic's name, phone and email from its database record, so put the real
+# contact details there too (the administrator's own login details are not touched).
+$emailSql = $Email.Replace("'", "''")
+$sqlText = "UPDATE Hospital SET phone = '$compact', email = '$emailSql';`n"
+function Update-HospitalContact($route, $root) {
+    $sqlFile = Join-Path $env:TEMP ('hospital-contact-' + [guid]::NewGuid().ToString('N') + '.sql')
+    [System.IO.File]::WriteAllText($sqlFile, $sqlText, $noBom)
+    try {
+        if ($route -eq 'native') {
+            $secrets = @{}
+            foreach ($line in Get-Content -LiteralPath (Join-Path $root 'secrets.cmd')) {
+                if ($line -match '^set\s+([A-Z_]+)=(.*)$') { $secrets[$Matches[1]] = $Matches[2].Trim() }
+            }
+            $env:MYSQL_PWD = $secrets['ROOT_PASSWORD']
+            $mysql = Join-Path $root 'mysql\bin\mysql.exe'
+            $p = Start-Process -FilePath $mysql -ArgumentList '--user=root --protocol=TCP dental_erp' -RedirectStandardInput $sqlFile -NoNewWindow -Wait -PassThru
+        }
+        else {
+            Push-Location $root
+            try {
+                $p = Start-Process -FilePath 'docker' -ArgumentList 'compose --env-file .env -f compose.yml exec -T mysql sh -c "mysql -uroot -p$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE"' -RedirectStandardInput $sqlFile -NoNewWindow -Wait -PassThru
+            }
+            finally { Pop-Location }
+        }
+        if ($p.ExitCode -ne 0) { Write-Warning 'Could not update the clinic record in the database (the public pages may show the administrator phone instead).' }
+        else { Write-Host 'Clinic record updated with the real phone and email.' }
+    }
+    finally {
+        $env:MYSQL_PWD = $null
+        Remove-Item -LiteralPath $sqlFile -Force -ErrorAction SilentlyContinue
+    }
+}
+
 $nodeExe = Join-Path $NativeRoot 'node\node.exe'
 if (Test-Path -LiteralPath $nodeExe) {
     Write-Host 'Using the no-Docker install.'
     $sitePath = Join-Path $NativeRoot 'site.json'
     [System.IO.File]::WriteAllText($sitePath, $json, $noBom)
+    Update-HospitalContact 'native' $NativeRoot
     $cmdPath = Join-Path $NativeRoot 'start-dental-erp.cmd'
     $cmd = Get-Content -LiteralPath $cmdPath -Raw
     if ($cmd -notmatch 'SITE_CONFIG_PATH') {
@@ -116,6 +150,7 @@ elseif (Test-Path -LiteralPath (Join-Path $DockerRoot 'compose.yml')) {
     Write-Host 'Using the Docker install.'
     $sitePath = Join-Path $DockerRoot 'site.json'
     [System.IO.File]::WriteAllText($sitePath, $json, $noBom)
+    Update-HospitalContact 'docker' $DockerRoot
     $composePath = Join-Path $DockerRoot 'compose.yml'
     $compose = Get-Content -LiteralPath $composePath -Raw
     if ($compose -notmatch 'SITE_CONFIG_PATH') {

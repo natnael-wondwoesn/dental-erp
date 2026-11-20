@@ -26,15 +26,24 @@ jobs:
   build-app-zip:
     name: Build Windows app.zip from the release image
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - name: Log in to GHCR
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Build the app image from this commit
+        run: docker build -t dental-erp-ci:local .
+      - name: Save the image for the Docker route
+        run: |
+          docker tag dental-erp-ci:local ghcr.io/natnael-wondwoesn/dental-erp:0.1.57-local-modules
+          docker save --output dental-erp-local-modules.tar ghcr.io/natnael-wondwoesn/dental-erp:0.1.57-local-modules
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-image-local-modules
+          path: dental-erp-local-modules.tar
+          retention-days: 3
+          compression-level: 0
       - name: Extract /app from the image
         run: |
-          docker pull "ghcr.io/natnael-wondwoesn/dental-erp:${APP_VERSION}"
-          docker create --name appsrc "ghcr.io/natnael-wondwoesn/dental-erp:${APP_VERSION}"
+          docker create --name appsrc dental-erp-ci:local
           docker cp appsrc:/app ./appwin
       - name: Swap Linux binaries for Windows ones
         run: |
@@ -80,6 +89,7 @@ jobs:
           Copy-Item deploy/offline/windows/native/* kit/ -Exclude README.md
           Copy-Item deploy/offline/windows/Create-Clinic.ps1 kit/
           Copy-Item deploy/offline/windows/Set-SiteConfig.ps1 kit/
+          Copy-Item deploy/offline/windows/Set-Modules.ps1 kit/
           New-Item -ItemType Directory -Force kit/tools/node_modules/bcryptjs | Out-Null
           Copy-Item deploy/offline/windows/tools/create-clinic.js kit/tools/
           npm pack bcryptjs@3.0.3 --silent
@@ -137,6 +147,27 @@ jobs:
           .\Create-Clinic.ps1 -HospitalName 'Second Clinic' -AdminName 'Second Admin' -Phone '0911000001' -PasswordText $pw
           if ($LASTEXITCODE -eq 0) { throw 'A second clinic should have been refused' }
           "second create refused as expected"
+          # Module control: switch lab off, the app must block it and keep patients working.
+          function Get-Status($path) {
+            try { (Invoke-WebRequest "http://localhost:8080$path" -Headers @{ Authorization = "Bearer $($login.accessToken)" } -UseBasicParsing).StatusCode }
+            catch { [int]$_.Exception.Response.StatusCode }
+          }
+          "before: lab-orders=$(Get-Status '/api/lab-orders') patients=$(Get-Status '/api/patients')"
+          .\Set-Modules.ps1 -Disable lab
+          if ($LASTEXITCODE -ne 0) { throw 'Set-Modules -Disable lab failed' }
+          $lab = Get-Status '/api/lab-orders'
+          $patients = Get-Status '/api/patients'
+          "after disabling lab: lab-orders=$lab patients=$patients"
+          if ($lab -ne 403) { throw "lab-orders should be blocked (403), got $lab" }
+          if ($patients -ne 200) { throw "patients should still work (200), got $patients" }
+          .\Set-Modules.ps1 -Disable clinical
+          if ($LASTEXITCODE -ne 0) { throw 'Set-Modules -Disable clinical failed' }
+          "after disabling clinical: braces=$(Get-Status '/api/braces') lab-orders=$(Get-Status '/api/lab-orders')"
+          .\Set-Modules.ps1 -All
+          if ($LASTEXITCODE -ne 0) { throw 'Set-Modules -All failed' }
+          $lab = Get-Status '/api/lab-orders'
+          "after all on: lab-orders=$lab"
+          if ($lab -eq 403) { throw 'lab-orders is still blocked after switching everything on' }
           exit 0
       - name: Put the clinic's own details on the public pages
         shell: powershell

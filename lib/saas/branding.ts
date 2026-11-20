@@ -1,7 +1,7 @@
 import { requestSaaSAccess, saasEnforcement } from './server'
 
 export async function brandClinic<T extends { name: string }>(tenantId: string, clinic: T) {
-  if (saasEnforcement() === 'disabled') return clinic
+  if (saasEnforcement() === 'disabled' || saasEnforcement() === 'local') return clinic
   const policy = await requestSaaSAccess(tenantId)
   const brand = policy.branding
   return {
