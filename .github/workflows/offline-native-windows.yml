@@ -148,6 +148,8 @@ jobs:
           $page = Invoke-WebRequest http://localhost:8080/ -UseBasicParsing
           if ($page.Content -notmatch 'CI Test Dental Clinic') { throw 'Home page does not show the clinic name' }
           if ($page.Content -notmatch '911222333') { throw 'Home page does not show the clinic phone' }
+          if ($page.Content -notmatch '<title>[^<]*CI Test Dental Clinic') { throw 'The page title still shows the default clinic' }
+          if ($page.Content -match '<title>[^<]*Abiy') { throw 'The page title still says Abiy' }
           "home page shows the new clinic name and phone"
           exit 0
       - name: Re-run the installer (must be safe)

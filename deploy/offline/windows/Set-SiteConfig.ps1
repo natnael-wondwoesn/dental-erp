@@ -33,6 +33,10 @@ function Read-Required($label, $current) {
 }
 
 $ClinicName = Read-Required 'Clinic name' $ClinicName
+if ($ClinicName -notmatch '^[A-Za-z0-9 .,&()-]{2,80}$') {
+    throw 'Use only letters, numbers, spaces and . , & ( ) - in the clinic name (no quotes or apostrophes).'
+}
+$oldBrand = 'D/R Abiy Special Dental Clinic'
 $Phone = Read-Required 'Clinic phone (for example 0911234567)' $Phone
 $Email = Read-Required 'Clinic email' $Email
 $Open = Read-Required 'Opening time (for example 08:30)' $Open
@@ -88,6 +92,19 @@ if (Test-Path -LiteralPath $nodeExe) {
         $cmd = $cmd -replace '(set SITE_ID=[^\r\n]*)', ('$1' + "`r`n" + "set SITE_CONFIG_PATH=$sitePath")
         [System.IO.File]::WriteAllText($cmdPath, $cmd, (New-Object System.Text.ASCIIEncoding))
     }
+    # The page title and link-preview text are built into the app; replace the default clinic's name.
+    $patched = 0
+    $serverDir = Join-Path $NativeRoot 'app\.next\server'
+    if (Test-Path -LiteralPath $serverDir) {
+        Get-ChildItem -LiteralPath $serverDir -Recurse -File -Include '*.js', '*.html', '*.rsc', '*.json', '*.body', '*.meta' | ForEach-Object {
+            $text = [System.IO.File]::ReadAllText($_.FullName)
+            if ($text.Contains($oldBrand)) {
+                [System.IO.File]::WriteAllText($_.FullName, $text.Replace($oldBrand, $ClinicName), $noBom)
+                $patched++
+            }
+        }
+    }
+    Write-Host "Updated the page title in $patched file(s)."
     Stop-ScheduledTask -TaskName 'DentalERP-App' -ErrorAction SilentlyContinue
     Get-Process -Name 'node' -ErrorAction SilentlyContinue | Stop-Process -Force
     Start-ScheduledTask -TaskName 'DentalERP-App'
@@ -115,6 +132,21 @@ elseif (Test-Path -LiteralPath (Join-Path $DockerRoot 'compose.yml')) {
     try {
         $up = Start-Process -FilePath 'docker' -ArgumentList 'compose --env-file .env -f compose.yml up -d' -NoNewWindow -Wait -PassThru
         if ($up.ExitCode -ne 0) { throw 'docker compose could not restart the app. Is Docker running?' }
+    }
+    finally { Pop-Location }
+    # The page title and link-preview text are built into the app image; replace the default clinic's name
+    # inside the running container (kept until the container is recreated; run this script again after an update).
+    $patchScript = Join-Path $DockerRoot 'brand-patch.sh'
+    $shell = "#!/bin/sh`n" + 'set -e' + "`n" + 'esc=$(printf ''%s'' "$CLINIC_NAME" | sed -e ''s/[\\&|]/\\&/g'')' + "`n" + 'grep -rl ''D/R Abiy Special Dental Clinic'' /app/.next/server | xargs -r sed -i "s|D/R Abiy Special Dental Clinic|$esc|g"' + "`n" + 'echo patched' + "`n"
+    [System.IO.File]::WriteAllText($patchScript, $shell, $noBom)
+    Push-Location $DockerRoot
+    try {
+        $copy = Start-Process -FilePath 'docker' -ArgumentList 'compose --env-file .env -f compose.yml cp brand-patch.sh app:/tmp/brand-patch.sh' -NoNewWindow -Wait -PassThru
+        if ($copy.ExitCode -ne 0) { throw 'Could not copy the title patch into the app container.' }
+        $run = Start-Process -FilePath 'docker' -ArgumentList ('compose --env-file .env -f compose.yml exec -T -u root -e "CLINIC_NAME={0}" app sh /tmp/brand-patch.sh' -f $ClinicName) -NoNewWindow -Wait -PassThru
+        if ($run.ExitCode -ne 0) { throw 'The page-title patch failed inside the app container.' }
+        $restart = Start-Process -FilePath 'docker' -ArgumentList 'compose --env-file .env -f compose.yml restart app' -NoNewWindow -Wait -PassThru
+        if ($restart.ExitCode -ne 0) { throw 'Could not restart the app after the title patch.' }
     }
     finally { Pop-Location }
     $portLine = Select-String -Path (Join-Path $DockerRoot '.env') -Pattern '^APP_PORT=(\d+)' | Select-Object -First 1
