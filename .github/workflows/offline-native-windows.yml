@@ -79,6 +79,7 @@ jobs:
         run: |
           Copy-Item deploy/offline/windows/native/* kit/ -Exclude README.md
           Copy-Item deploy/offline/windows/Create-Clinic.ps1 kit/
+          Copy-Item deploy/offline/windows/Set-SiteConfig.ps1 kit/
           New-Item -ItemType Directory -Force kit/tools/node_modules/bcryptjs | Out-Null
           Copy-Item deploy/offline/windows/tools/create-clinic.js kit/tools/
           npm pack bcryptjs@3.0.3 --silent
@@ -136,6 +137,18 @@ jobs:
           .\Create-Clinic.ps1 -HospitalName 'Second Clinic' -AdminName 'Second Admin' -Phone '0911000001' -PasswordText $pw
           if ($LASTEXITCODE -eq 0) { throw 'A second clinic should have been refused' }
           "second create refused as expected"
+          exit 0
+      - name: Put the clinic's own details on the public pages
+        shell: powershell
+        working-directory: kit
+        run: |
+          Set-ExecutionPolicy -Scope Process Bypass
+          .\Set-SiteConfig.ps1 -ClinicName 'CI Test Dental Clinic' -Phone '0911222333' -Email 'ci@example.com' -Open '08:30' -Close '18:00'
+          if ($LASTEXITCODE -ne 0) { throw 'Set-SiteConfig failed' }
+          $page = Invoke-WebRequest http://localhost:8080/ -UseBasicParsing
+          if ($page.Content -notmatch 'CI Test Dental Clinic') { throw 'Home page does not show the clinic name' }
+          if ($page.Content -notmatch '911222333') { throw 'Home page does not show the clinic phone' }
+          "home page shows the new clinic name and phone"
           exit 0
       - name: Re-run the installer (must be safe)
         shell: powershell
