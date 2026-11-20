@@ -9,7 +9,9 @@ param(
     [string]$LicenseFile,
     [string]$RequestOutput,
     [ValidatePattern('^[A-Za-z0-9_-]*$')][string]$ClinicId = '',
-    [ValidatePattern('^[A-Za-z0-9._:-]*$')][string]$CustomerId = ''
+    [ValidatePattern('^[A-Za-z0-9._:-]*$')][string]$CustomerId = '',
+    [switch]$NoLicense,
+    [switch]$SkipAutoStart
 )
 
 Set-StrictMode -Version Latest
