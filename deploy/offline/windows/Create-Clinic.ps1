@@ -113,3 +113,5 @@ if ($result.ExitCode -ne 0) {
 Write-Host $result.Output
 Write-Host ''
 Write-Host 'Clinic and administrator created. Open http://localhost and sign in with the mobile number and the password you chose.' -ForegroundColor Green
+
+exit 0
