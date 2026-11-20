@@ -136,6 +136,7 @@ jobs:
           .\Create-Clinic.ps1 -HospitalName 'Second Clinic' -AdminName 'Second Admin' -Phone '0911000001' -PasswordText $pw
           if ($LASTEXITCODE -eq 0) { throw 'A second clinic should have been refused' }
           "second create refused as expected"
+          exit 0
       - name: Re-run the installer (must be safe)
         shell: powershell
         working-directory: kit
