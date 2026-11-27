@@ -125,6 +125,12 @@ describe('loadSiteConfig', () => {
     expect(config.location.landmark).toContain('Maraton Business Center')
   })
 
+  it('ships a validated btFana profile', () => {
+    process.env.SITE_ID = 'btfana'
+    const config = loadSiteConfig()
+    expect(config.clinic.name.en).toBe('btFana Speciality Dental Clinic')
+  })
+
   it('throws and names the path when the file is missing', () => {
     process.env.SITE_CONFIG_PATH = '/nonexistent/site.json'
     expect(() => loadSiteConfig()).toThrow(/\/nonexistent\/site\.json/)

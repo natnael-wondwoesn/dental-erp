@@ -1,0 +1,82 @@
+{
+  "clinic": {
+    "name": {
+      "en": "btFana Speciality Dental Clinic",
+      "am": "ቢቲ ፋና ስፔሻሊቲ የጥርስ ሕክምና ክሊኒክ"
+    },
+    "tagline": {
+      "en": "Speciality dental care you can trust.",
+      "am": "እምነት የሚጣልበት የስፔሻሊቲ የጥርስ ሕክምና።"
+    },
+    "heroImage": "/assets/dentix-hero-ethiopia.png",
+    "teamImage": "/assets/dentix-team-ethiopia.png"
+  },
+  "location": {
+    "region": "Addis Ababa",
+    "city": "Addis Ababa",
+    "subCity": "Addis Ababa",
+    "mapEmbedUrl": "https://www.google.com/maps?q=Addis%20Ababa&output=embed"
+  },
+  "contact": {
+    "phones": ["+251900000000"],
+    "email": "info@btfana.test"
+  },
+  "hours": [
+    {
+      "day": {
+        "en": "Monday – Friday",
+        "am": "ሰኞ – ዓርብ"
+      },
+      "open": "08:30",
+      "close": "18:00"
+    },
+    {
+      "day": {
+        "en": "Saturday",
+        "am": "ቅዳሜ"
+      },
+      "open": "09:00",
+      "close": "16:00"
+    }
+  ],
+  "services": [
+    {
+      "title": {
+        "en": "Teeth Cleaning & Whitening",
+        "am": "ጥርስ ማጽዳትና ማንጣት"
+      },
+      "copy": {
+        "en": "Professional cleaning, polishing, and whitening for a brighter, healthier smile.",
+        "am": "ለብሩህና ጤናማ ፈገግታ ሙያዊ የጥርስ ጽዳት፣ ፖሊሺንግ እና ማንጣት።"
+      }
+    },
+    {
+      "title": {
+        "en": "Restorative Dentistry",
+        "am": "የጥርስ ጥገና"
+      },
+      "copy": {
+        "en": "Cavity filling, root canal treatment, crowns, and durable tooth restoration.",
+        "am": "የጥርስ መሙላት፣ የሥር ሕክምና፣ ክራውን እና ዘላቂ የጥርስ ጥገና።"
+      }
+    },
+    {
+      "title": {
+        "en": "Braces & Dental Implants",
+        "am": "ብሬስ እና የጥርስ ተከላ"
+      },
+      "copy": {
+        "en": "Modern alignment, prosthodontic care, and implant options tailored to your smile.",
+        "am": "ለፈገግታዎ የተስማሙ ዘመናዊ ብሬስ፣ ሰው ሠራሽ ጥርስ እና የጥርስ ተከላ።"
+      }
+    }
+  ],
+  "doctors": [],
+  "about": {
+    "story": {
+      "en": "btFana Speciality Dental Clinic",
+      "am": "ቢቲ ፋና ስፔሻሊቲ የጥርስ ሕክምና ክሊኒክ"
+    },
+    "metrics": []
+  }
+}
