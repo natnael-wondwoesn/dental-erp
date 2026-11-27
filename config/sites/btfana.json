@@ -14,7 +14,8 @@
   "location": {
     "region": "Addis Ababa",
     "city": "Addis Ababa",
-    "subCity": "Addis Ababa"
+    "subCity": "Addis Ababa",
+    "mapEmbedUrl": "https://www.google.com/maps?q=Addis%20Ababa&output=embed"
   },
   "contact": {
     "phones": ["+251900000000"],
