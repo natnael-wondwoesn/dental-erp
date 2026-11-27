@@ -4,6 +4,7 @@
     { "client": "control", "backend": true },
     { "client": "lemlem" },
     { "client": "berhanu-dental" },
-    { "client": "megenagna" }
+    { "client": "megenagna" },
+    { "client": "btfana" }
   ]
 }
