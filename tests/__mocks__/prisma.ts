@@ -447,6 +447,12 @@ const mockPrismaClient = {
   },
   bracesAssessment: {
     create: vi.fn(),
+    findFirst: vi.fn(),
+    update: vi.fn(),
+  },
+  medicalHistory: {
+    findUnique: vi.fn(),
+    upsert: vi.fn(),
   },
   bracesMedia: {
     create: vi.fn(),

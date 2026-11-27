@@ -73,7 +73,14 @@ beforeEach(() => {
       if (url.includes('/api/staff/doctors'))
         return json([{ id: 'd', firstName: 'Abiy', lastName: 'T' }])
       return json({
-        patient: { id: 'p1', firstName: 'Sara', lastName: 'K', patientId: 'P-1', age: 14 },
+        patient: {
+          id: 'p1',
+          firstName: 'Sara',
+          lastName: 'K',
+          patientId: 'P-1',
+          age: 14,
+          gender: 'FEMALE',
+        },
       })
     })
   )
@@ -92,7 +99,6 @@ it('shows the case overview with billing and next appointment, and every section
     ['Dental records', /Clinical photographs/],
     ['Treatment plan', /Planned procedures/],
     ['Progress & visits', /Record a visit/],
-    ['Progress tracking', /Case timeline/],
     ['Retention', /Braces removal and retainers/],
     ['Documents & forms', /Documents and forms/],
   ]
@@ -107,4 +113,66 @@ it('keeps old plain-text procedures visible in the structured plan', async () =>
   await screen.findByText('Outstanding balance')
   fireEvent.mouseDown(screen.getByRole('tab', { name: 'Treatment plan' }), { button: 0 })
   expect(await screen.findByDisplayValue('Wire adjustment')).toBeInTheDocument()
+})
+
+it('is the Orthodontic Department, without the progress-tracking tab', async () => {
+  render(<BracesWorkspace patientId="p1" />)
+  expect(await screen.findByText(/Orthodontic Department/)).toBeInTheDocument()
+  expect(screen.queryByText(/Braces department/)).toBeNull()
+  expect(screen.queryByRole('tab', { name: 'Progress tracking' })).toBeNull()
+  expect(screen.getByRole('link', { name: 'All orthodontic patients' })).toBeInTheDocument()
+})
+
+it('assessment form: sex from the record, medical checklist, Palmer chart, no mm labels', async () => {
+  render(<BracesWorkspace patientId="p1" />)
+  await screen.findByText('Outstanding balance')
+  fireEvent.mouseDown(screen.getByRole('tab', { name: 'Assessment' }), { button: 0 })
+  await screen.findByText(/New orthodontic assessment/)
+
+  expect(screen.getByDisplayValue('Female')).toBeInTheDocument()
+  for (const name of ['Overjet', 'Overbite', 'Upper arch crowding', 'Lower arch spacing'])
+    expect(screen.getAllByText(name).length).toBeGreaterThan(0)
+  expect(screen.queryByText(/\(mm\)/)).toBeNull()
+
+  expect(screen.getByText('Medical History & Existing Conditions')).toBeInTheDocument()
+  expect(screen.queryByText('Conditions, allergies, medications')).toBeNull()
+  const box = (name: string) => screen.getByRole('checkbox', { name })
+  fireEvent.click(box('Diabetes Type 2'))
+  fireEvent.click(box('Hypertension (High Blood Pressure)'))
+  expect(box('Diabetes Type 2')).toBeChecked()
+  expect(box('Hypertension (High Blood Pressure)')).toBeChecked()
+
+  fireEvent.click(box('None'))
+  expect(box('None')).toBeChecked()
+  expect(box('Diabetes Type 2')).not.toBeChecked()
+  fireEvent.click(box('Pregnancy'))
+  expect(box('None')).not.toBeChecked()
+
+  expect(screen.queryByLabelText('Other medical condition')).toBeNull()
+  fireEvent.click(box('Other'))
+  expect(screen.getByLabelText('Other medical condition')).toBeInTheDocument()
+
+  expect(screen.getByText('Palmer dental chart')).toBeInTheDocument()
+  expect(screen.getByText('Upper Right (UR)')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: /Print \/ Export PDF/ })).toBeInTheDocument()
+})
+
+it('sends the chosen conditions, sex and chart with the assessment', async () => {
+  render(<BracesWorkspace patientId="p1" />)
+  await screen.findByText('Outstanding balance')
+  fireEvent.mouseDown(screen.getByRole('tab', { name: 'Assessment' }), { button: 0 })
+  await screen.findByText(/New orthodontic assessment/)
+  fireEvent.click(screen.getByRole('checkbox', { name: 'Asthma / Respiratory Problems' }))
+  fireEvent.click(screen.getByRole('button', { name: /Save assessment/ }))
+  await waitFor(() => {
+    const calls = (fetch as unknown as { mock: { calls: [string, RequestInit][] } }).mock.calls
+    const save = calls.find(
+      ([url, init]) => url.endsWith('/assessments') && init?.method === 'POST'
+    )
+    expect(save).toBeTruthy()
+    const body = JSON.parse(String(save![1].body))
+    expect(body.sex).toBe('FEMALE')
+    expect(body.medicalConditions).toEqual(['ASTHMA'])
+    expect(body).not.toHaveProperty('medicalHistory')
+  })
 })

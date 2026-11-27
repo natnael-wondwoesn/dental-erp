@@ -1,8 +1,10 @@
+import type { Prisma } from '@prisma/client'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
 import { requireAuthAndRole } from '@/lib/api-helpers'
 import { bracesAudit } from '@/lib/braces/audit'
+import { medicalHistoryFromConditions } from '@/lib/braces/medical'
 import { assessmentData, bracesAssessmentSchema } from '@/lib/braces/schema'
 import { prisma } from '@/lib/prisma'
 
@@ -30,6 +32,24 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const assessment = await prisma.bracesAssessment.create({
       data: { ...data, hospitalId, bracesCaseId: bracesCase.id, createdById: user?.id ?? null },
     })
+    // Conditions ticked here also go on the patient's own medical history (switch on / append only).
+    if (input.medicalConditions.length && !input.medicalConditions.includes('NONE')) {
+      const existing = await prisma.medicalHistory.findUnique({ where: { patientId: id } })
+      const update = medicalHistoryFromConditions(
+        input.medicalConditions,
+        input.medicalOther,
+        existing
+      )
+      if (Object.keys(update).length)
+        await prisma.medicalHistory.upsert({
+          where: { patientId: id },
+          create: {
+            patientId: id,
+            ...(update as object),
+          } as Prisma.MedicalHistoryUncheckedCreateInput,
+          update,
+        })
+    }
     await bracesAudit(
       hospitalId,
       user?.id,

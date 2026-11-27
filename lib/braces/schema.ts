@@ -6,6 +6,32 @@ export const SEVERITIES = ['MILD', 'MODERATE', 'SEVERE'] as const
 export const FACIAL_PROFILES = ['STRAIGHT', 'CONVEX', 'CONCAVE'] as const
 export const SKELETAL_CLASSES = ['CLASS_I', 'CLASS_II', 'CLASS_III', 'NOT_ASSESSED'] as const
 export const OCCLUSION_CLASSES = ['CLASS_I', 'CLASS_II', 'CLASS_III'] as const
+export const SEXES = ['MALE', 'FEMALE', 'OTHER'] as const
+// Stored as codes; NONE means "none of the listed conditions" and excludes the rest.
+export const MEDICAL_CONDITIONS = [
+  { value: 'DIABETES_1', label: 'Diabetes Type 1' },
+  { value: 'DIABETES_2', label: 'Diabetes Type 2' },
+  { value: 'HYPERTENSION', label: 'Hypertension (High Blood Pressure)' },
+  { value: 'HEART', label: 'Heart Problems' },
+  { value: 'ASTHMA', label: 'Asthma / Respiratory Problems' },
+  { value: 'PREGNANCY', label: 'Pregnancy' },
+  { value: 'HIV', label: 'HIV' },
+  { value: 'LIVER', label: 'Liver Problems (Hepatitis)' },
+  { value: 'KIDNEY', label: 'Kidney Problems' },
+] as const
+export const MEDICAL_CONDITION_CODES = [
+  'DIABETES_1',
+  'DIABETES_2',
+  'HYPERTENSION',
+  'HEART',
+  'ASTHMA',
+  'PREGNANCY',
+  'HIV',
+  'LIVER',
+  'KIDNEY',
+  'NONE',
+  'OTHER',
+] as const
 export const CROSSBITE_TYPES = ['ANTERIOR', 'POSTERIOR', 'UNILATERAL', 'BILATERAL'] as const
 export const ORAL_HABITS = [
   'THUMB_SUCKING',
@@ -96,7 +122,10 @@ const date = z
   .max(40)
   .refine((value) => !Number.isNaN(Date.parse(value)), 'Invalid date')
 const optionalDate = date.nullish().or(z.literal(''))
-const mm = z.coerce.number().min(-100).max(100).nullish().or(z.literal(''))
+// A blank box means "not measured", never 0: Number('') is 0, so empty strings become null first.
+const optionalNumber = <T extends z.ZodType>(schema: T) =>
+  z.preprocess((value) => (value === '' ? null : value), schema.nullish())
+const mm = optionalNumber(z.coerce.number().min(-100).max(100))
 const choice = <T extends readonly [string, ...string[]]>(values: T) =>
   z.enum(values).nullish().or(z.literal(''))
 
@@ -136,8 +165,8 @@ export const bracesCaseSchema = z.object({
   stages: z.array(stageSchema).max(100).default([]),
   treatmentStartDate: optionalDate,
   estimatedCompletionDate: optionalDate,
-  estimatedMonths: z.coerce.number().int().min(0).max(240).nullish().or(z.literal('')),
-  estimatedCost: z.coerce.number().min(0).max(1e10).nullish().or(z.literal('')),
+  estimatedMonths: optionalNumber(z.coerce.number().int().min(0).max(240)),
+  estimatedCost: optionalNumber(z.coerce.number().min(0).max(1e10)),
   planNotes: text,
   planStatus: z.enum(PLAN_STATUSES).default('DRAFT'),
   removalDate: optionalDate,
@@ -183,34 +212,80 @@ export const bracesVisitSchema = z.object({
   doctorId: z.string().max(40).nullish().or(z.literal('')),
 })
 
-export const bracesAssessmentSchema = z.object({
-  assessedAt: date,
-  doctorId: z.string().max(40).nullish().or(z.literal('')),
-  chiefComplaint: text,
-  clinicalDiagnosis: text,
-  severity: choice(SEVERITIES),
-  dentalHistory: text,
-  medicalHistory: text,
-  facialProfile: choice(FACIAL_PROFILES),
-  skeletalClass: choice(SKELETAL_CLASSES),
-  molarRight: choice(OCCLUSION_CLASSES),
-  molarLeft: choice(OCCLUSION_CLASSES),
-  canineRight: choice(OCCLUSION_CLASSES),
-  canineLeft: choice(OCCLUSION_CLASSES),
-  crossbite: z.array(z.enum(CROSSBITE_TYPES)).max(CROSSBITE_TYPES.length).default([]),
-  oralHabits: z.array(z.enum(ORAL_HABITS)).max(ORAL_HABITS.length).default([]),
-  findings: z.array(z.enum(FINDINGS)).max(FINDINGS.length).default([]),
-  overjetMm: mm,
-  overbiteMm: mm,
-  overbitePercent: mm,
-  midlineUpperMm: mm,
-  midlineLowerMm: mm,
-  crowdingUpperMm: mm,
-  crowdingLowerMm: mm,
-  spacingUpperMm: mm,
-  spacingLowerMm: mm,
-  notes: text,
+// Free-hand Palmer quadrant chart. Coordinates live on a fixed 1000 x 625 board so a saved
+// chart reopens identically at any screen size. Text and strokes stay individually editable.
+export const PALMER_BOARD = { width: 1000, height: 625 } as const
+const boardX = z.number().finite().min(0).max(PALMER_BOARD.width)
+const boardY = z.number().finite().min(0).max(PALMER_BOARD.height)
+export const palmerChartSchema = z.object({
+  version: z.literal(1).default(1),
+  texts: z
+    .array(
+      z.object({
+        id: z.string().min(1).max(40),
+        x: boardX,
+        y: boardY,
+        text: z.string().max(2_000),
+      })
+    )
+    .max(300)
+    .default([]),
+  strokes: z
+    .array(
+      z.object({
+        id: z.string().min(1).max(40),
+        color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+        width: z.number().finite().min(1).max(24),
+        points: z
+          .array(z.tuple([boardX, boardY]))
+          .min(1)
+          .max(3_000),
+      })
+    )
+    .max(500)
+    .default([]),
 })
+export type PalmerChart = z.infer<typeof palmerChartSchema>
+
+export const palmerChartUpdateSchema = z.object({ palmerChart: palmerChartSchema.nullable() })
+
+export const bracesAssessmentSchema = z
+  .object({
+    assessedAt: date,
+    doctorId: z.string().max(40).nullish().or(z.literal('')),
+    chiefComplaint: text,
+    clinicalDiagnosis: text,
+    severity: choice(SEVERITIES),
+    dentalHistory: text,
+    medicalHistory: text,
+    sex: choice(SEXES),
+    medicalConditions: z.array(z.enum(MEDICAL_CONDITION_CODES)).max(12).default([]),
+    medicalOther: text,
+    palmerChart: palmerChartSchema.nullish(),
+    facialProfile: choice(FACIAL_PROFILES),
+    skeletalClass: choice(SKELETAL_CLASSES),
+    molarRight: choice(OCCLUSION_CLASSES),
+    molarLeft: choice(OCCLUSION_CLASSES),
+    canineRight: choice(OCCLUSION_CLASSES),
+    canineLeft: choice(OCCLUSION_CLASSES),
+    crossbite: z.array(z.enum(CROSSBITE_TYPES)).max(CROSSBITE_TYPES.length).default([]),
+    oralHabits: z.array(z.enum(ORAL_HABITS)).max(ORAL_HABITS.length).default([]),
+    findings: z.array(z.enum(FINDINGS)).max(FINDINGS.length).default([]),
+    overjetMm: mm,
+    overbiteMm: mm,
+    overbitePercent: mm,
+    midlineUpperMm: mm,
+    midlineLowerMm: mm,
+    crowdingUpperMm: mm,
+    crowdingLowerMm: mm,
+    spacingUpperMm: mm,
+    spacingLowerMm: mm,
+    notes: text,
+  })
+  .refine((a) => !a.medicalConditions.includes('NONE') || a.medicalConditions.length === 1, {
+    message: '"None" cannot be combined with other medical conditions',
+    path: ['medicalConditions'],
+  })
 
 export const bracesMediaSchema = z.object({
   documentId: z.string().min(1).max(40),
@@ -335,6 +410,10 @@ export function visitData(input: BracesVisitInput) {
   }
 }
 
+export function hasChartContent(chart: PalmerChart | null | undefined): chart is PalmerChart {
+  return !!chart && (chart.texts.some((t) => t.text.trim()) || chart.strokes.length > 0)
+}
+
 export function assessmentData(input: BracesAssessmentInput) {
   return {
     assessedAt: new Date(input.assessedAt),
@@ -344,6 +423,11 @@ export function assessmentData(input: BracesAssessmentInput) {
     severity: blank(input.severity),
     dentalHistory: blank(input.dentalHistory),
     medicalHistory: blank(input.medicalHistory),
+    sex: blank(input.sex),
+    medicalConditions: input.medicalConditions,
+    medicalOther: input.medicalConditions.includes('OTHER') ? blank(input.medicalOther) : null,
+    // undefined = column left empty (an empty board is not stored)
+    palmerChart: hasChartContent(input.palmerChart) ? input.palmerChart : undefined,
     facialProfile: blank(input.facialProfile),
     skeletalClass: blank(input.skeletalClass),
     molarRight: blank(input.molarRight),

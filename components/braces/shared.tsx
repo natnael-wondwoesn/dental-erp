@@ -32,6 +32,7 @@ export type PatientInfo = {
   phone?: string
   dateOfBirth?: string | null
   age?: number | null
+  gender?: string | null
 }
 
 export type WorkspaceCtx = {
