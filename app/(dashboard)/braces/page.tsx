@@ -110,9 +110,10 @@ export default function BracesPage() {
           <Smile className="h-5 w-5" />
         </div>
         <div>
-          <h1 className="text-2xl font-semibold">Braces</h1>
+          <h1 className="text-2xl font-semibold">Orthodontic Department</h1>
           <p className="text-sm text-muted-foreground">
-            Orthodontic assessment, treatment plan, visits and retention for every braces patient.
+            Orthodontic assessment, treatment plan, visits and retention for every orthodontic
+            patient.
           </p>
         </div>
       </div>
@@ -131,7 +132,7 @@ export default function BracesPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <Plus className="h-4 w-4" /> Start braces for a patient
+            <Plus className="h-4 w-4" /> Start orthodontic care for a patient
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
@@ -159,7 +160,7 @@ export default function BracesPage() {
 
       <Card>
         <CardHeader className="space-y-3">
-          <CardTitle className="text-base">Braces patients</CardTitle>
+          <CardTitle className="text-base">Orthodontic patients</CardTitle>
           <div className="flex flex-col gap-3 sm:flex-row">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -189,11 +190,11 @@ export default function BracesPage() {
             <Skeleton className="h-32 w-full" />
           ) : failed ? (
             <p className="py-8 text-center text-sm text-destructive">
-              Could not load braces patients. Please refresh.
+              Could not load orthodontic patients. Please refresh.
             </p>
           ) : rows.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              No braces patients yet. Use “Start braces for a patient” above.
+              No braces patients yet. Use “Start orthodontic care for a patient” above.
             </p>
           ) : (
             <Table>

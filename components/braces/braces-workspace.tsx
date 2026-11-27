@@ -14,7 +14,6 @@ import { PlanTab } from './plan-tab'
 import { RecordsTab } from './records-tab'
 import { RetentionTab } from './retention-tab'
 import type { Billing, BracesData, Doctor, PatientInfo, WorkspaceCtx } from './shared'
-import { TrackingTab } from './tracking-tab'
 import { VisitsTab } from './visits-tab'
 
 const TABS = [
@@ -23,7 +22,6 @@ const TABS = [
   ['records', 'Dental records'],
   ['plan', 'Treatment plan'],
   ['visits', 'Progress & visits'],
-  ['tracking', 'Progress tracking'],
   ['retention', 'Retention'],
   ['documents', 'Documents & forms'],
 ] as const
@@ -85,7 +83,7 @@ export function BracesWorkspace({ patientId }: { patientId: string }) {
           <ArrowLeft className="h-4 w-4" /> Patient
         </Link>
         <Link href="/braces" className="text-sm font-semibold text-[#086be6]">
-          All braces patients
+          All orthodontic patients
         </Link>
         {hasImaging && (
           <Link
@@ -97,7 +95,7 @@ export function BracesWorkspace({ patientId }: { patientId: string }) {
         )}
       </div>
       <h1 className="text-2xl font-semibold">
-        Braces department{patient ? ` · ${patient.firstName} ${patient.lastName}` : ''}
+        Orthodontic Department{patient ? ` · ${patient.firstName} ${patient.lastName}` : ''}
       </h1>
 
       <Tabs value={tab} onValueChange={setTab}>
@@ -122,9 +120,6 @@ export function BracesWorkspace({ patientId }: { patientId: string }) {
         </TabsContent>
         <TabsContent value="visits" key={`v${version}`}>
           <VisitsTab ctx={ctx} />
-        </TabsContent>
-        <TabsContent value="tracking" key={`t${version}`}>
-          <TrackingTab ctx={ctx} />
         </TabsContent>
         <TabsContent value="retention" key={`e${version}`}>
           <RetentionTab ctx={ctx} />

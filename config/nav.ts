@@ -108,7 +108,7 @@ export const navigation: NavSection[] = [
       },
       {
         // Shown only to clinics that have the Braces module (see modulesForPath).
-        title: 'Braces',
+        title: 'Orthodontics',
         href: '/braces',
         icon: Smile,
         roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'],

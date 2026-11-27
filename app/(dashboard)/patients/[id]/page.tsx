@@ -204,7 +204,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                 href={`/patients/${patient.id}/braces`}
                 className="inline-flex items-center gap-2 rounded-xl border bg-white px-4 py-2 text-sm font-semibold shadow-sm"
               >
-                <Stethoscope className="h-4 w-4" /> {t('Braces')}
+                <Stethoscope className="h-4 w-4" /> {t('Orthodontics')}
               </Link>
             )}
             <Link

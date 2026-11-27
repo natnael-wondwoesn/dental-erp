@@ -3259,7 +3259,11 @@ model BracesAssessment {
   clinicalDiagnosis String? @db.Text
   severity          String? // MILD | MODERATE | SEVERE
   dentalHistory     String? @db.Text
-  medicalHistory    String? @db.Text
+  medicalHistory    String? @db.Text // legacy free text; new assessments use medicalConditions
+  sex               String? // MALE | FEMALE | OTHER, copied from the patient record and editable
+  medicalConditions Json? // string[] of condition codes, or ["NONE"]
+  medicalOther      String? @db.Text
+  palmerChart       Json? // { texts: [...], strokes: [...] } free-hand quadrant chart
   facialProfile     String? // STRAIGHT | CONVEX | CONCAVE
   skeletalClass     String? // CLASS_I | CLASS_II | CLASS_III | NOT_ASSESSED
   molarRight        String?
