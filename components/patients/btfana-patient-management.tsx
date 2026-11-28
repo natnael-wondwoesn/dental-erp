@@ -1066,17 +1066,16 @@ function AllPatientsTab() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Patient ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Phone</TableHead>
+                  <TableHead>Patient Name</TableHead>
+                  <TableHead>Contact</TableHead>
                   <TableHead>Gender</TableHead>
                   <TableHead>Age</TableHead>
-                  <TableHead>Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {patients.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                    <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
                       No patients found.
                     </TableCell>
                   </TableRow>
@@ -1090,11 +1089,6 @@ function AllPatientsTab() {
                       <TableCell>{p.phone}</TableCell>
                       <TableCell>{p.gender ?? '-'}</TableCell>
                       <TableCell>{p.age ?? '-'}</TableCell>
-                      <TableCell>
-                        <Button asChild size="sm" variant="outline">
-                          <Link href={`/patients/${p.id}`}>Open Patient Profile</Link>
-                        </Button>
-                      </TableCell>
                     </ClickablePatientRow>
                   ))
                 )}
