@@ -34,18 +34,18 @@ const signedIn = (staffId: string | null = 's1') =>
 
 describe('parseAssessmentInput', () => {
   it('trims and keeps empty boxes as null', () => {
-    expect(parseAssessmentInput({ vitalSign: '  BP 120/80 ', assessment: '' })).toEqual({
+    expect(parseAssessmentInput({ vitalSigns: '  BP 120/80 ', others: '' })).toEqual({
       ok: true,
-      value: { vitalSign: 'BP 120/80', assessment: null },
+      value: { vitalSigns: 'BP 120/80', others: null },
     })
   })
   it('rejects when both boxes are empty', () => {
-    expect(parseAssessmentInput({ vitalSign: ' ', assessment: '' }).ok).toBe(false)
+    expect(parseAssessmentInput({ vitalSigns: ' ', others: '' }).ok).toBe(false)
     expect(parseAssessmentInput(null).ok).toBe(false)
   })
   it('rejects overly long text', () => {
     const long = 'x'.repeat(ASSESSMENT_MAX_LENGTH + 1)
-    expect(parseAssessmentInput({ assessment: long }).ok).toBe(false)
+    expect(parseAssessmentInput({ others: long }).ok).toBe(false)
   })
 })
 
@@ -62,31 +62,31 @@ describe('assessments API', () => {
 
   it('creates a NEW record for the existing patient with the signed-in doctor', async () => {
     signedIn()
-    const res = await post({ vitalSign: 'BP 120/80', assessment: 'Caries on 36' })
+    const res = await post({ vitalSigns: 'BP 120/80', others: 'Caries on 36' })
     expect(res.status).toBe(201)
     expect(mocks.prisma.patientAssessment.create.mock.calls[0][0].data).toEqual({
       hospitalId: 'h1',
       patientId: 'p1',
       doctorId: 's1',
-      vitalSign: 'BP 120/80',
-      assessment: 'Caries on 36',
+      vitalSigns: 'BP 120/80',
+      others: 'Caries on 36',
     })
-    await post({ assessment: 'Follow-up' })
+    await post({ others: 'Follow-up' })
     expect(mocks.prisma.patientAssessment.create).toHaveBeenCalledTimes(2)
   })
 
   it('rejects an empty submission and an account without a staff record', async () => {
     signedIn()
-    expect((await post({ vitalSign: '', assessment: '' })).status).toBe(400)
+    expect((await post({ vitalSigns: '', others: '' })).status).toBe(400)
     signedIn(null)
-    expect((await post({ assessment: 'x' })).status).toBe(403)
+    expect((await post({ others: 'x' })).status).toBe(403)
     expect(mocks.prisma.patientAssessment.create).not.toHaveBeenCalled()
   })
 
   it('returns 404 for a patient from another clinic', async () => {
     signedIn()
     mocks.prisma.patient.findFirst.mockResolvedValue(null)
-    expect((await post({ assessment: 'x' })).status).toBe(404)
+    expect((await post({ others: 'x' })).status).toBe(404)
   })
 
   it('lists history newest first for the clinic', async () => {

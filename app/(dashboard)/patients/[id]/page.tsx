@@ -24,7 +24,7 @@ import { useLanguage } from '@/lib/i18n'
 import { getCurrentUser } from '@/lib/api-client'
 import { useTenantAccess } from '@/components/saas/tenant-access'
 import { useBtfanaClinic } from '@/hooks/use-btfana-clinic'
-import { BtfanaAssessmentCard } from '@/components/patients/btfana-assessment-card'
+import { BtfanaTreatmentsCard } from '@/components/patients/btfana-treatments-card'
 import { BtfanaScheduleAppointmentCard } from '@/components/patients/btfana-schedule-appointment-card'
 
 type Patient = {
@@ -303,13 +303,6 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
               </div>
             </section>
 
-            {isBtfana === true && (
-              <BtfanaAssessmentCard
-                patientId={patient.id}
-                patientName={`${patient.firstName} ${patient.lastName}`}
-              />
-            )}
-
             {isBtfana === false && (
               <section className="rounded-[22px] border border-slate-100 bg-white p-5 shadow-[0_8px_30px_rgba(28,55,90,.06)] sm:p-7">
                 <div className="grid grid-cols-3 rounded-xl bg-[#f3f6fa] p-1">
@@ -539,6 +532,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                 </section>
               )
             )}
+            {isBtfana === true && <BtfanaTreatmentsCard patientId={patient.id} />}
 
             <section className="overflow-hidden rounded-[22px] border border-slate-100 bg-white shadow-[0_8px_30px_rgba(28,55,90,.06)]">
               <div className="flex items-center justify-between px-6 py-5">

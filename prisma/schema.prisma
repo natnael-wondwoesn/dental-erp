@@ -871,16 +871,16 @@ enum TreatmentPlanItemStatus {
   CANCELLED
 }
 
-/// One simple assessment per visit: free-text vital signs and clinical assessment.
-/// Each save is a new row (1 patient -> many assessments); rows are never overwritten.
+/// One saved treatment note per visit: free-text vital signs and other notes.
+/// Each save is a new row (1 patient -> many); rows are read-only and never overwritten.
 model PatientAssessment {
   id         String @id @default(cuid())
   hospitalId String
   patientId  String
   doctorId   String
 
-  vitalSign  String? @db.Text
-  assessment String? @db.Text
+  vitalSigns String? @db.Text
+  others     String? @db.Text
 
   createdAt DateTime @default(now())
 

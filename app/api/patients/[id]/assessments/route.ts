@@ -7,7 +7,7 @@ const include = {
   doctor: { select: { id: true, firstName: true, lastName: true } },
 }
 
-// GET /api/patients/[id]/assessments - assessment history, newest first
+// GET /api/patients/[id]/assessments - treatment history, newest first
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { error, hospitalId } = await requireAuthAndRole()
   if (error || !hospitalId) {
@@ -27,11 +27,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ assessments })
   } catch (cause) {
     console.error('Error loading assessments:', cause)
-    return NextResponse.json({ error: 'Failed to load assessments' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to load treatments' }, { status: 500 })
   }
 }
 
-// POST /api/patients/[id]/assessments - add a new assessment (never overwrites an earlier one).
+// POST /api/patients/[id]/assessments - add a new treatment note (never overwrites an earlier one; there is no edit or delete).
 // The doctor is the signed-in user's staff record; the timestamp is set by the database.
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { error, hospitalId, session } = await requireAuthAndRole(['ADMIN', 'DOCTOR'])
@@ -59,19 +59,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (!patient) return NextResponse.json({ error: 'Patient not found' }, { status: 404 })
     if (!doctor) return NextResponse.json({ error: 'Staff record not found' }, { status: 403 })
 
-    const assessment = await prisma.patientAssessment.create({
+    const treatment = await prisma.patientAssessment.create({
       data: {
         hospitalId,
         patientId: id,
         doctorId: doctor.id,
-        vitalSign: parsed.value.vitalSign,
-        assessment: parsed.value.assessment,
+        vitalSigns: parsed.value.vitalSigns,
+        others: parsed.value.others,
       },
       include,
     })
-    return NextResponse.json({ assessment }, { status: 201 })
+    return NextResponse.json({ assessment: treatment }, { status: 201 })
   } catch (cause) {
     console.error('Error saving assessment:', cause)
-    return NextResponse.json({ error: 'Failed to save assessment' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to save treatment' }, { status: 500 })
   }
 }

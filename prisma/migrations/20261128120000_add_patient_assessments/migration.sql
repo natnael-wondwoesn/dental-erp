@@ -1,4 +1,4 @@
--- Additive only: one new table for per-visit assessments. Nothing existing is changed or dropped.
+-- Additive only: one new table for per-visit treatment notes. Nothing existing is changed or dropped.
 
 -- CreateTable
 CREATE TABLE `PatientAssessment` (
@@ -6,8 +6,8 @@ CREATE TABLE `PatientAssessment` (
     `hospitalId` VARCHAR(191) NOT NULL,
     `patientId` VARCHAR(191) NOT NULL,
     `doctorId` VARCHAR(191) NOT NULL,
-    `vitalSign` TEXT NULL,
-    `assessment` TEXT NULL,
+    `vitalSigns` TEXT NULL,
+    `others` TEXT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     INDEX `PatientAssessment_hospitalId_idx`(`hospitalId`),
