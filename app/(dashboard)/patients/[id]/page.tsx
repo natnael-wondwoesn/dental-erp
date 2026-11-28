@@ -23,6 +23,7 @@ import {
 import { useLanguage } from '@/lib/i18n'
 import { getCurrentUser } from '@/lib/api-client'
 import { useTenantAccess } from '@/components/saas/tenant-access'
+import { useBtfanaClinic } from '@/hooks/use-btfana-clinic'
 
 type Patient = {
   id: string
@@ -84,6 +85,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
   const router = useRouter()
   const { t } = useLanguage()
   const access = useTenantAccess()
+  const isBtfana = useBtfanaClinic()
   const [patient, setPatient] = useState<Patient | null>(null)
   const [loadError, setLoadError] = useState(false)
   const [tab, setTab] = useState<'upcoming' | 'past' | 'records'>('upcoming')
@@ -217,12 +219,14 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
               <Search className="h-4 w-4" />
               <input className="w-36 bg-transparent outline-none" placeholder="Search records" />
             </label>
-            <Link
-              href={`/patients/${patient.id}/edit`}
-              className="inline-flex items-center gap-2 rounded-xl border bg-white px-4 py-2 text-sm font-semibold shadow-sm"
-            >
-              <Edit3 className="h-4 w-4" /> {t('Edit patient')}
-            </Link>
+            {isBtfana === false && (
+              <Link
+                href={`/patients/${patient.id}/edit`}
+                className="inline-flex items-center gap-2 rounded-xl border bg-white px-4 py-2 text-sm font-semibold shadow-sm"
+              >
+                <Edit3 className="h-4 w-4" /> {t('Edit patient')}
+              </Link>
+            )}
           </div>
         </div>
 

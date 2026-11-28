@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuthAndRole } from '@/lib/api-helpers'
+import { isBtfanaClinicName } from '@/lib/clinic-flags'
+import { diffPatientCorrection } from '@/lib/patient-correction'
 import prisma from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
 import { requestSaaSAccess, saasEnforcement } from '@/lib/saas/server'
@@ -134,7 +136,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
 // PUT /api/patients/[id] - Update a patient
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { error, hospitalId } = await requireAuthAndRole()
+  const { error, hospitalId, user } = await requireAuthAndRole()
 
   if (error || !hospitalId) {
     return error || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -143,6 +145,20 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   try {
     const { id } = await params
     const body = await req.json()
+
+    // btFana: registration data is read-only for ordinary users; only an
+    // administrator may correct it, and every correction is audited.
+    const hospital = await prisma.hospital.findUnique({
+      where: { id: hospitalId },
+      select: { name: true },
+    })
+    const auditedClinic = isBtfanaClinicName(hospital?.name)
+    if (auditedClinic && user?.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Patient registration data can only be corrected by an administrator.' },
+        { status: 403 }
+      )
+    }
 
     // Check if patient exists and belongs to this hospital
     const existingPatient = await prisma.patient.findFirst({
@@ -172,6 +188,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       emergencyContactRelation,
     } = body
 
+    const correction = auditedClinic ? diffPatientCorrection(existingPatient, body) : null
+
     const patient = await prisma.patient.update({
       where: { id },
       data: {
@@ -196,6 +214,22 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         aiSummaryAt: null,
       },
     })
+
+    if (correction && Object.keys(correction.newValues).length > 0) {
+      await prisma.auditLog.create({
+        data: {
+          hospitalId,
+          userId: user?.id ?? null,
+          action: 'PATIENT_CORRECTION',
+          entityType: 'Patient',
+          entityId: id,
+          oldValues: JSON.stringify(correction.oldValues),
+          newValues: JSON.stringify(correction.newValues),
+          ipAddress: req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null,
+          userAgent: req.headers.get('user-agent'),
+        },
+      })
+    }
 
     return NextResponse.json({
       success: true,
