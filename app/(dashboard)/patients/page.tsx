@@ -46,6 +46,8 @@ import {
 import { ErpModuleOverview } from '@/components/dashboard/erp-overview'
 import { ExportMenu } from '@/components/ui/export-menu'
 import { useLanguage } from '@/lib/i18n'
+import { useBtfanaClinic } from '@/hooks/use-btfana-clinic'
+import { BtfanaPatientManagement } from '@/components/patients/btfana-patient-management'
 
 interface Patient {
   id: string
@@ -68,6 +70,13 @@ interface PaginationInfo {
 }
 
 export default function PatientsPage() {
+  const isBtfana = useBtfanaClinic()
+  // btFana gets the tabbed Patient Management page; every other clinic (and while loading) keeps the standard page
+  if (isBtfana === true) return <BtfanaPatientManagement />
+  return <StandardPatientsPage />
+}
+
+function StandardPatientsPage() {
   const { t } = useLanguage()
   const router = useRouter()
   const [patients, setPatients] = useState<Patient[]>([])

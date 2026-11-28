@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuthAndRole } from '@/lib/api-helpers'
 import { prisma } from '@/lib/prisma'
+import { getDayRange } from '@/lib/inventory-usage'
 import { Prisma, StockAlertType, StockTransactionType } from '@prisma/client'
 
 const TRANSACTION_TYPES = Object.values(StockTransactionType) as string[]
@@ -55,7 +56,12 @@ export async function GET(request: NextRequest) {
     if (itemId) where.itemId = itemId
     if (transactionType) where.type = transactionType
 
-    if (startDate || endDate) {
+    if (searchParams.get('date') === 'today') {
+      // Additive: the caller's timezone offset (minutes, as Date.getTimezoneOffset) defines "today".
+      const tz = parseInt(searchParams.get('tzOffset') || '0')
+      const { start, end } = getDayRange(new Date(), Number.isFinite(tz) ? tz : 0)
+      where.transactionDate = { gte: start, lt: end }
+    } else if (startDate || endDate) {
       where.transactionDate = {
         ...(startDate ? { gte: new Date(startDate) } : {}),
         ...(endDate ? { lte: new Date(endDate) } : {}),
