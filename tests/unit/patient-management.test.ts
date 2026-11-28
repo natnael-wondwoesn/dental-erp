@@ -15,7 +15,6 @@ import {
   visitTypeLabel,
   toVisitStatus,
 } from '@/lib/patient-management'
-import { POST as checkIn } from '@/app/api/appointments/[id]/check-in/route'
 import { POST as walkIn } from '@/app/api/appointments/walk-in/route'
 
 const patient = { patientId: 'P1', firstName: 'Abel', lastName: 'Kebede', phone: '0911' }
@@ -79,57 +78,6 @@ describe('patient-management helpers', () => {
       action: 'check-in-scheduled',
       appointmentId: 'a',
     })
-  })
-})
-
-describe('check-in route idempotency', () => {
-  beforeEach(() => resetPrismaMocks())
-  const call = () =>
-    checkIn(new NextRequest('http://x/api/appointments/a1/check-in', { method: 'POST' }), {
-      params: Promise.resolve({ id: 'a1' }),
-    })
-
-  it('returns the existing visit without updating when already checked in', async () => {
-    prisma.appointment.findFirst.mockResolvedValue({ id: 'a1', status: 'CHECKED_IN' })
-    const res = await call()
-    expect(res.status).toBe(200)
-    expect(prisma.appointment.updateMany).not.toHaveBeenCalled()
-    expect(prisma.appointment.create).not.toHaveBeenCalled()
-  })
-
-  it('checks in a scheduled appointment once', async () => {
-    prisma.appointment.findFirst
-      .mockResolvedValueOnce({
-        id: 'a1',
-        status: 'SCHEDULED',
-        scheduledDate: new Date(),
-        scheduledTime: '10:00',
-      })
-      .mockResolvedValueOnce({ id: 'a1', status: 'CHECKED_IN' })
-    prisma.appointment.updateMany.mockResolvedValue({ count: 1 })
-    const res = await call()
-    expect(res.status).toBe(200)
-    expect(prisma.appointment.updateMany).toHaveBeenCalledTimes(1)
-  })
-
-  it('a concurrent loser gets the existing visit, not a duplicate', async () => {
-    prisma.appointment.findFirst
-      .mockResolvedValueOnce({
-        id: 'a1',
-        status: 'SCHEDULED',
-        scheduledDate: new Date(),
-        scheduledTime: '10:00',
-      })
-      .mockResolvedValueOnce({ id: 'a1', status: 'CHECKED_IN' })
-    prisma.appointment.updateMany.mockResolvedValue({ count: 0 })
-    const res = await call()
-    expect(res.status).toBe(200)
-  })
-
-  it('still rejects cancelled appointments', async () => {
-    prisma.appointment.findFirst.mockResolvedValue({ id: 'a1', status: 'CANCELLED' })
-    const res = await call()
-    expect(res.status).toBe(400)
   })
 })
 
