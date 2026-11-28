@@ -268,9 +268,11 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                     <p className="text-xs text-slate-400">{t('Upcoming')}</p>
                   </div>
                 </div>
-                <button className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition hover:border-[#086be6] hover:text-[#086be6]">
-                  <MessageCircle className="h-4 w-4" /> {t('Send message')}
-                </button>
+                {isBtfana === false && (
+                  <button className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition hover:border-[#086be6] hover:text-[#086be6]">
+                    <MessageCircle className="h-4 w-4" /> {t('Send message')}
+                  </button>
+                )}
               </div>
 
               <div className="grid content-center gap-x-8 gap-y-7 p-7 sm:grid-cols-2 min-[1450px]:grid-cols-3 lg:p-9">
