@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { ClipboardList, Loader2, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import {
   Dialog,
@@ -18,6 +19,8 @@ interface TreatmentRecord {
   id: string
   vitalSigns: string | null
   others: string | null
+  procedure: string | null
+  cost: string | number | null
   createdAt: string
   doctor?: { firstName: string; lastName: string } | null
 }
@@ -27,8 +30,13 @@ function when(value: string) {
   return `${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
 }
 
+function etb(value: string | number | null | undefined) {
+  if (value === null || value === undefined || value === '') return '-'
+  return `ETB ${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
 function preview(r: TreatmentRecord) {
-  const text = (r.vitalSigns || r.others || '').replace(/\s+/g, ' ')
+  const text = (r.procedure || r.vitalSigns || r.others || '').replace(/\s+/g, ' ')
   return text.length > 70 ? `${text.slice(0, 70)}…` : text
 }
 
@@ -44,6 +52,8 @@ export function BtfanaTreatmentsCard({ patientId }: { patientId: string }) {
   const [creating, setCreating] = useState(false)
   const [vitalSigns, setVitalSigns] = useState('')
   const [others, setOthers] = useState('')
+  const [procedure, setProcedure] = useState('')
+  const [cost, setCost] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [viewing, setViewing] = useState<TreatmentRecord | null>(null)
@@ -76,11 +86,14 @@ export function BtfanaTreatmentsCard({ patientId }: { patientId: string }) {
     // Every new treatment starts with blank boxes.
     setVitalSigns('')
     setOthers('')
+    setProcedure('')
+    setCost('')
     setError('')
     setCreating(true)
   }
 
-  const canSave = !busy && (vitalSigns.trim() !== '' || others.trim() !== '')
+  const canSave =
+    !busy && (vitalSigns.trim() !== '' || others.trim() !== '' || procedure.trim() !== '')
 
   async function save() {
     if (!canSave) return
@@ -90,7 +103,7 @@ export function BtfanaTreatmentsCard({ patientId }: { patientId: string }) {
       const res = await fetch(`/api/patients/${patientId}/assessments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ vitalSigns, others }),
+        body: JSON.stringify({ vitalSigns, others, procedure, cost }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error || 'Could not save the treatment')
@@ -132,7 +145,12 @@ export function BtfanaTreatmentsCard({ patientId }: { patientId: string }) {
                   onClick={() => setViewing(r)}
                   className="w-full rounded-xl border border-slate-100 p-3 text-left transition hover:border-[#086be6] hover:bg-slate-50"
                 >
-                  <span className="block text-sm font-semibold">{when(r.createdAt)}</span>
+                  <span className="flex items-center justify-between gap-2 text-sm font-semibold">
+                    <span>{when(r.createdAt)}</span>
+                    {r.cost !== null && r.cost !== undefined && (
+                      <span className="text-xs text-slate-500">{etb(r.cost)}</span>
+                    )}
+                  </span>
                   <span className="mt-0.5 block text-xs text-slate-400">
                     {r.doctor ? `Dr. ${r.doctor.firstName} ${r.doctor.lastName}` : '-'}
                   </span>
@@ -155,6 +173,29 @@ export function BtfanaTreatmentsCard({ patientId }: { patientId: string }) {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-[1fr_9rem]">
+              <div>
+                <Label htmlFor="treatment-procedure">Procedure</Label>
+                <Input
+                  id="treatment-procedure"
+                  value={procedure}
+                  maxLength={191}
+                  onChange={(e) => setProcedure(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="treatment-cost">Treatment cost (ETB)</Label>
+                <Input
+                  id="treatment-cost"
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step="0.01"
+                  value={cost}
+                  onChange={(e) => setCost(e.target.value)}
+                />
+              </div>
+            </div>
             <div>
               <Label htmlFor="treatment-vital-signs">Vital signs</Label>
               <Textarea
@@ -203,6 +244,16 @@ export function BtfanaTreatmentsCard({ patientId }: { patientId: string }) {
           </DialogHeader>
           {viewing && (
             <dl className="space-y-4 text-sm">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <dt className="text-xs font-semibold uppercase text-slate-400">Procedure</dt>
+                  <dd className="mt-1 whitespace-pre-wrap">{viewing.procedure || '-'}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-semibold uppercase text-slate-400">Treatment cost</dt>
+                  <dd className="mt-1">{etb(viewing.cost)}</dd>
+                </div>
+              </div>
               <div>
                 <dt className="text-xs font-semibold uppercase text-slate-400">Vital signs</dt>
                 <dd className="mt-1 whitespace-pre-wrap">{viewing.vitalSigns || '-'}</dd>

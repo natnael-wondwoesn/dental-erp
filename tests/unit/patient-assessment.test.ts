@@ -36,12 +36,24 @@ describe('parseAssessmentInput', () => {
   it('trims and keeps empty boxes as null', () => {
     expect(parseAssessmentInput({ vitalSigns: '  BP 120/80 ', others: '' })).toEqual({
       ok: true,
-      value: { vitalSigns: 'BP 120/80', others: null },
+      value: { vitalSigns: 'BP 120/80', others: null, procedure: null, cost: null },
     })
   })
-  it('rejects when both boxes are empty', () => {
-    expect(parseAssessmentInput({ vitalSigns: ' ', others: '' }).ok).toBe(false)
+  it('rejects when every field is empty', () => {
+    expect(parseAssessmentInput({ vitalSigns: ' ', others: '', cost: '50' }).ok).toBe(false)
     expect(parseAssessmentInput(null).ok).toBe(false)
+  })
+  it('accepts a procedure with an ETB cost', () => {
+    expect(parseAssessmentInput({ procedure: ' Scaling ', cost: '1200.5' })).toEqual({
+      ok: true,
+      value: { vitalSigns: null, others: null, procedure: 'Scaling', cost: 1200.5 },
+    })
+    expect(parseAssessmentInput({ procedure: 'Scaling', cost: '' }).ok).toBe(true)
+  })
+  it('rejects negative, non-numeric or over-precise costs', () => {
+    for (const cost of ['-5', 'abc', '10.123', '1e3', '100000000']) {
+      expect(parseAssessmentInput({ procedure: 'x', cost }).ok).toBe(false)
+    }
   })
   it('rejects overly long text', () => {
     const long = 'x'.repeat(ASSESSMENT_MAX_LENGTH + 1)
@@ -62,7 +74,12 @@ describe('assessments API', () => {
 
   it('creates a NEW record for the existing patient with the signed-in doctor', async () => {
     signedIn()
-    const res = await post({ vitalSigns: 'BP 120/80', others: 'Caries on 36' })
+    const res = await post({
+      vitalSigns: 'BP 120/80',
+      others: 'Caries on 36',
+      procedure: 'Filling',
+      cost: '800',
+    })
     expect(res.status).toBe(201)
     expect(mocks.prisma.patientAssessment.create.mock.calls[0][0].data).toEqual({
       hospitalId: 'h1',
@@ -70,6 +87,8 @@ describe('assessments API', () => {
       doctorId: 's1',
       vitalSigns: 'BP 120/80',
       others: 'Caries on 36',
+      procedure: 'Filling',
+      cost: 800,
     })
     await post({ others: 'Follow-up' })
     expect(mocks.prisma.patientAssessment.create).toHaveBeenCalledTimes(2)

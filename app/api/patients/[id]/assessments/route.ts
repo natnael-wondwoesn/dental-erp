@@ -66,6 +66,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         doctorId: doctor.id,
         vitalSigns: parsed.value.vitalSigns,
         others: parsed.value.others,
+        procedure: parsed.value.procedure,
+        cost: parsed.value.cost,
       },
       include,
     })

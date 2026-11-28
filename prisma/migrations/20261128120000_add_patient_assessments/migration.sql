@@ -8,6 +8,8 @@ CREATE TABLE `PatientAssessment` (
     `doctorId` VARCHAR(191) NOT NULL,
     `vitalSigns` TEXT NULL,
     `others` TEXT NULL,
+    `procedure` VARCHAR(191) NULL,
+    `cost` DECIMAL(10, 2) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     INDEX `PatientAssessment_hospitalId_idx`(`hospitalId`),

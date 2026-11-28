@@ -881,6 +881,9 @@ model PatientAssessment {
 
   vitalSigns String? @db.Text
   others     String? @db.Text
+  procedure  String?
+  /// Treatment cost in ETB.
+  cost       Decimal? @db.Decimal(10, 2)
 
   createdAt DateTime @default(now())
 
