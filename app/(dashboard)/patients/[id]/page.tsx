@@ -24,6 +24,7 @@ import { useLanguage } from '@/lib/i18n'
 import { getCurrentUser } from '@/lib/api-client'
 import { useTenantAccess } from '@/components/saas/tenant-access'
 import { useBtfanaClinic } from '@/hooks/use-btfana-clinic'
+import { BtfanaAssessmentCard } from '@/components/patients/btfana-assessment-card'
 import { BtfanaScheduleAppointmentCard } from '@/components/patients/btfana-schedule-appointment-card'
 
 type Patient = {
@@ -301,6 +302,13 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                 ))}
               </div>
             </section>
+
+            {isBtfana === true && (
+              <BtfanaAssessmentCard
+                patientId={patient.id}
+                patientName={`${patient.firstName} ${patient.lastName}`}
+              />
+            )}
 
             {isBtfana === false && (
               <section className="rounded-[22px] border border-slate-100 bg-white p-5 shadow-[0_8px_30px_rgba(28,55,90,.06)] sm:p-7">
