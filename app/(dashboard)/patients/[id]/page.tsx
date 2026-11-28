@@ -205,30 +205,37 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
             <ArrowLeft className="h-4 w-4" /> {t('Patient list')}
           </button>
           <div className="flex items-center gap-2">
-            <Link
-              href={`/patients/${patient.id}/chart`}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#086be6] px-4 py-2 text-sm font-semibold text-white shadow-sm"
-            >
-              <Stethoscope className="h-4 w-4" /> {t('Dental chart')}
-            </Link>
-            {(!access || (access.modules as string[]).includes('braces')) && (
-              <Link
-                href={`/patients/${patient.id}/braces`}
-                className="inline-flex items-center gap-2 rounded-xl border bg-white px-4 py-2 text-sm font-semibold shadow-sm"
-              >
-                <Stethoscope className="h-4 w-4" /> {t('Orthodontics')}
-              </Link>
+            {isBtfana === false && (
+              <>
+                <Link
+                  href={`/patients/${patient.id}/chart`}
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#086be6] px-4 py-2 text-sm font-semibold text-white shadow-sm"
+                >
+                  <Stethoscope className="h-4 w-4" /> {t('Dental chart')}
+                </Link>
+                {(!access || (access.modules as string[]).includes('braces')) && (
+                  <Link
+                    href={`/patients/${patient.id}/braces`}
+                    className="inline-flex items-center gap-2 rounded-xl border bg-white px-4 py-2 text-sm font-semibold shadow-sm"
+                  >
+                    <Stethoscope className="h-4 w-4" /> {t('Orthodontics')}
+                  </Link>
+                )}
+                <Link
+                  href={`/patients/${patient.id}/medical-history`}
+                  className="inline-flex items-center gap-2 rounded-xl border bg-white px-4 py-2 text-sm font-semibold shadow-sm"
+                >
+                  <FileText className="h-4 w-4" /> {t('Medical history')}
+                </Link>
+                <label className="hidden items-center gap-2 rounded-full border bg-white px-4 py-2 text-sm text-slate-400 shadow-sm sm:flex">
+                  <Search className="h-4 w-4" />
+                  <input
+                    className="w-36 bg-transparent outline-none"
+                    placeholder="Search records"
+                  />
+                </label>
+              </>
             )}
-            <Link
-              href={`/patients/${patient.id}/medical-history`}
-              className="inline-flex items-center gap-2 rounded-xl border bg-white px-4 py-2 text-sm font-semibold shadow-sm"
-            >
-              <FileText className="h-4 w-4" /> {t('Medical history')}
-            </Link>
-            <label className="hidden items-center gap-2 rounded-full border bg-white px-4 py-2 text-sm text-slate-400 shadow-sm sm:flex">
-              <Search className="h-4 w-4" />
-              <input className="w-36 bg-transparent outline-none" placeholder="Search records" />
-            </label>
             {isBtfana === false && (
               <Link
                 href={`/patients/${patient.id}/edit`}
@@ -293,88 +300,92 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
               </div>
             </section>
 
-            <section className="rounded-[22px] border border-slate-100 bg-white p-5 shadow-[0_8px_30px_rgba(28,55,90,.06)] sm:p-7">
-              <div className="grid grid-cols-3 rounded-xl bg-[#f3f6fa] p-1">
-                {(
-                  [
-                    ['upcoming', 'Upcoming appointments'],
-                    ['past', 'Past appointments'],
-                    ['records', 'Medical records'],
-                  ] as const
-                ).map(([value, label]) => (
-                  <button
-                    key={value}
-                    onClick={() => setTab(value)}
-                    className={`rounded-lg px-3 py-3 text-xs font-semibold transition sm:text-sm ${tab === value ? 'bg-white text-[#086be6] shadow-sm' : 'text-slate-400'}`}
-                  >
-                    {t(label)}
-                  </button>
-                ))}
-              </div>
-
-              <div className="mt-5 rounded-2xl bg-[#f1f4f8] p-4 sm:p-6">
-                <div className="mb-5 flex items-center justify-between">
-                  <h2 className="font-semibold">
-                    {t(
-                      tab === 'upcoming'
-                        ? 'Upcoming appointments'
-                        : tab === 'past'
-                          ? 'Past appointments'
-                          : 'Medical records'
-                    )}
-                  </h2>
+            {isBtfana === false && (
+              <section className="rounded-[22px] border border-slate-100 bg-white p-5 shadow-[0_8px_30px_rgba(28,55,90,.06)] sm:p-7">
+                <div className="grid grid-cols-3 rounded-xl bg-[#f3f6fa] p-1">
+                  {(
+                    [
+                      ['upcoming', 'Upcoming appointments'],
+                      ['past', 'Past appointments'],
+                      ['records', 'Medical records'],
+                    ] as const
+                  ).map(([value, label]) => (
+                    <button
+                      key={value}
+                      onClick={() => setTab(value)}
+                      className={`rounded-lg px-3 py-3 text-xs font-semibold transition sm:text-sm ${tab === value ? 'bg-white text-[#086be6] shadow-sm' : 'text-slate-400'}`}
+                    >
+                      {t(label)}
+                    </button>
+                  ))}
                 </div>
-                {tab === 'upcoming' ? (
-                  <div className="relative space-y-4 border-l-2 border-[#086be6] pl-5">
-                    {appointments.map((appointment, index) => (
-                      <article
-                        key={appointment.id}
-                        className="relative grid gap-4 rounded-xl bg-white p-5 shadow-sm md:grid-cols-[140px_1fr_1fr_auto] md:items-center"
-                      >
-                        <span
-                          className={`absolute -left-[30px] top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border-4 bg-white ${index ? 'border-[#086be6]' : 'border-emerald-400'}`}
-                        />
-                        <div>
-                          <p className="text-xl font-medium">
-                            {format(new Date(appointment.scheduledDate), 'dd MMM yy')}
-                          </p>
-                          <p className="mt-1 text-xs text-slate-400">
-                            {appointment.scheduledTime || t('Time not set')} ·{' '}
-                            {appointment.duration || 30} min
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs uppercase tracking-wide text-slate-400">
-                            Treatment
-                          </p>
-                          <p className="mt-1 font-semibold">
-                            {appointment.appointmentType || t('Consultation')}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs uppercase tracking-wide text-slate-400">Dentist</p>
-                          <p className="mt-1 font-semibold">
-                            {appointment.doctor
-                              ? `Dr. ${appointment.doctor.firstName} ${appointment.doctor.lastName}`
-                              : t('Not assigned')}
-                          </p>
-                        </div>
-                        <button aria-label="Appointment options">
-                          <MoreHorizontal className="h-5 w-5 text-slate-400" />
-                        </button>
-                      </article>
-                    ))}
+
+                <div className="mt-5 rounded-2xl bg-[#f1f4f8] p-4 sm:p-6">
+                  <div className="mb-5 flex items-center justify-between">
+                    <h2 className="font-semibold">
+                      {t(
+                        tab === 'upcoming'
+                          ? 'Upcoming appointments'
+                          : tab === 'past'
+                            ? 'Past appointments'
+                            : 'Medical records'
+                      )}
+                    </h2>
                   </div>
-                ) : (
-                  <div className="flex min-h-48 flex-col items-center justify-center text-center text-slate-400">
-                    <CalendarDays className="mb-3 h-9 w-9" />
-                    <p className="font-medium">
-                      No {tab === 'past' ? 'past appointments' : 'medical records'} to show
-                    </p>
-                  </div>
-                )}
-              </div>
-            </section>
+                  {tab === 'upcoming' ? (
+                    <div className="relative space-y-4 border-l-2 border-[#086be6] pl-5">
+                      {appointments.map((appointment, index) => (
+                        <article
+                          key={appointment.id}
+                          className="relative grid gap-4 rounded-xl bg-white p-5 shadow-sm md:grid-cols-[140px_1fr_1fr_auto] md:items-center"
+                        >
+                          <span
+                            className={`absolute -left-[30px] top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border-4 bg-white ${index ? 'border-[#086be6]' : 'border-emerald-400'}`}
+                          />
+                          <div>
+                            <p className="text-xl font-medium">
+                              {format(new Date(appointment.scheduledDate), 'dd MMM yy')}
+                            </p>
+                            <p className="mt-1 text-xs text-slate-400">
+                              {appointment.scheduledTime || t('Time not set')} ·{' '}
+                              {appointment.duration || 30} min
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-slate-400">
+                              Treatment
+                            </p>
+                            <p className="mt-1 font-semibold">
+                              {appointment.appointmentType || t('Consultation')}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-slate-400">
+                              Dentist
+                            </p>
+                            <p className="mt-1 font-semibold">
+                              {appointment.doctor
+                                ? `Dr. ${appointment.doctor.firstName} ${appointment.doctor.lastName}`
+                                : t('Not assigned')}
+                            </p>
+                          </div>
+                          <button aria-label="Appointment options">
+                            <MoreHorizontal className="h-5 w-5 text-slate-400" />
+                          </button>
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex min-h-48 flex-col items-center justify-center text-center text-slate-400">
+                      <CalendarDays className="mb-3 h-9 w-9" />
+                      <p className="font-medium">
+                        No {tab === 'past' ? 'past appointments' : 'medical records'} to show
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
           </div>
 
           <aside className="space-y-5">
