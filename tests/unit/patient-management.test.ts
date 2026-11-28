@@ -14,6 +14,7 @@ import {
   appointmentStatusLabel,
   visitTypeLabel,
   toVisitStatus,
+  clinicClockTime,
 } from '@/lib/patient-management'
 import { POST as walkIn } from '@/app/api/appointments/walk-in/route'
 
@@ -132,5 +133,15 @@ describe('walk-in route', () => {
     expect(res.status).toBe(200)
     expect(prisma.appointment.create).not.toHaveBeenCalled()
     expect(prisma.appointment.updateMany).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('clinicClockTime', () => {
+  it('renders the clinic wall-clock time, not UTC', () => {
+    expect(clinicClockTime(new Date('2026-11-28T09:56:00Z'), 'Africa/Addis_Ababa')).toBe('12:56')
+    expect(clinicClockTime(new Date('2026-11-28T21:05:00Z'))).toBe('00:05')
+  })
+  it('falls back to Addis Ababa for an invalid timezone', () => {
+    expect(clinicClockTime(new Date('2026-11-28T09:56:00Z'), 'Not/AZone')).toBe('12:56')
   })
 })

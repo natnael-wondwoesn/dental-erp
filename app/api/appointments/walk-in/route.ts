@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAuthAndRole } from '@/lib/api-helpers'
-import { decideWalkIn } from '@/lib/patient-management'
+import { clinicClockTime, decideWalkIn } from '@/lib/patient-management'
 
 const include = {
   patient: {
@@ -91,7 +91,11 @@ export async function POST(request: NextRequest) {
     })
     const next = last ? parseInt(last.appointmentNo.slice(-4)) + 1 : 1
     const appointmentNo = `${prefix}${String(next).padStart(4, '0')}`
-    const scheduledTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+    const hospital = await prisma.hospital.findUnique({
+      where: { id: hospitalId },
+      select: { timezone: true },
+    })
+    const scheduledTime = clinicClockTime(now, hospital?.timezone)
 
     const appointment = await prisma.appointment.create({
       data: {
