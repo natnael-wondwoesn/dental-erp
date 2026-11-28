@@ -106,6 +106,39 @@ function doctorName(d?: Doctor | null) {
   return d ? `Dr. ${d.firstName} ${d.lastName}` : '-'
 }
 
+/** Table row that opens the patient profile on click, without hijacking its own buttons/links. */
+function ClickablePatientRow({
+  patientId,
+  children,
+}: {
+  patientId: string
+  children: React.ReactNode
+}) {
+  const router = useRouter()
+  const href = `/patients/${patientId}`
+  return (
+    <TableRow
+      role="link"
+      tabIndex={0}
+      aria-label="Open patient profile"
+      className="cursor-pointer hover:bg-muted/50"
+      onClick={(e) => {
+        if ((e.target as HTMLElement).closest('a,button,input,select,textarea,[role="menuitem"]'))
+          return
+        router.push(href)
+      }}
+      onKeyDown={(e) => {
+        if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault()
+          router.push(href)
+        }
+      }}
+    >
+      {children}
+    </TableRow>
+  )
+}
+
 function fmtTime(t?: string | null) {
   if (!t) return '-'
   return new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -417,7 +450,7 @@ function TodayVisitsTab({ doctors }: { doctors: Doctor[] }) {
                   visits.map((a) => {
                     const vs = toVisitStatus(a.status)!
                     return (
-                      <TableRow key={a.id}>
+                      <ClickablePatientRow key={a.id} patientId={a.patient.id}>
                         <TableCell className="font-mono text-xs">{a.patient.patientId}</TableCell>
                         <TableCell className="font-medium">
                           {a.patient.firstName} {a.patient.lastName}
@@ -465,7 +498,7 @@ function TodayVisitsTab({ doctors }: { doctors: Doctor[] }) {
                             )}
                           </div>
                         </TableCell>
-                      </TableRow>
+                      </ClickablePatientRow>
                     )
                   })
                 )}
@@ -710,7 +743,7 @@ function AppointmentsTab({ doctors }: { doctors: Doctor[] }) {
                       a.status
                     )
                     return (
-                      <TableRow key={a.id}>
+                      <ClickablePatientRow key={a.id} patientId={a.patient.id}>
                         <TableCell className="font-mono text-xs">{a.patient.patientId}</TableCell>
                         <TableCell className="font-medium">
                           {a.patient.firstName} {a.patient.lastName}
@@ -778,7 +811,7 @@ function AppointmentsTab({ doctors }: { doctors: Doctor[] }) {
                             )}
                           </div>
                         </TableCell>
-                      </TableRow>
+                      </ClickablePatientRow>
                     )
                   })
                 )}
@@ -1049,7 +1082,7 @@ function AllPatientsTab() {
                   </TableRow>
                 ) : (
                   patients.map((p) => (
-                    <TableRow key={p.id}>
+                    <ClickablePatientRow key={p.id} patientId={p.id}>
                       <TableCell className="font-mono text-xs">{p.patientId}</TableCell>
                       <TableCell className="font-medium">
                         {p.firstName} {p.lastName}
@@ -1062,7 +1095,7 @@ function AllPatientsTab() {
                           <Link href={`/patients/${p.id}`}>Open Patient Profile</Link>
                         </Button>
                       </TableCell>
-                    </TableRow>
+                    </ClickablePatientRow>
                   ))
                 )}
               </TableBody>
