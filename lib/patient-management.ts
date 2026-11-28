@@ -153,3 +153,20 @@ export function decideWalkIn(todays: { id: string; status: string }[]): WalkInDe
   if (pending) return { action: 'check-in-scheduled', appointmentId: pending.id }
   return { action: 'create' }
 }
+
+/** "HH:mm" wall-clock time in the clinic's timezone (the server clock runs in UTC). */
+export function clinicClockTime(date: Date, timeZone: string = 'Africa/Addis_Ababa'): string {
+  let parts: Intl.DateTimeFormatPart[]
+  try {
+    parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone,
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    }).formatToParts(date)
+  } catch {
+    return clinicClockTime(date)
+  }
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '00'
+  return `${get('hour')}:${get('minute')}`
+}
