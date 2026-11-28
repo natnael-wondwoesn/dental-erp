@@ -58,6 +58,9 @@ const prismaMock = vi.hoisted(() => {
       update: vi.fn(),
       count: vi.fn(),
     },
+    hospital: {
+      findUnique: vi.fn().mockResolvedValue({ name: 'Test Clinic' }),
+    },
     $transaction: vi.fn((fn: any) => {
       if (typeof fn === 'function') return fn(mock)
       return Promise.resolve(fn)
