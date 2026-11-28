@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { ArrowLeft, Loader2, Save } from 'lucide-react'
+import { useBtfanaClinic } from '@/hooks/use-btfana-clinic'
 
 const BLOOD_GROUPS = [
   { value: 'A_POSITIVE', label: 'A+' },
@@ -36,6 +37,15 @@ export default function EditPatientPage() {
   const { toast } = useToast()
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const isBtfana = useBtfanaClinic()
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    fetch('/api/auth/me', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((me) => setIsAdmin(Array.isArray(me?.roles) && me.roles.includes('ADMIN')))
+      .catch(() => setIsAdmin(false))
+  }, [])
 
   const [form, setForm] = useState({
     firstName: '',
@@ -169,7 +179,22 @@ export default function EditPatientPage() {
     }
   }
 
-  if (loading) {
+  if (isBtfana === true && isAdmin === false) {
+    return (
+      <div className="mx-auto max-w-xl space-y-4 p-6 text-center">
+        <h1 className="text-xl font-semibold">Patient information is read-only</h1>
+        <p className="text-muted-foreground">
+          Registered patient information cannot be edited directly. Ask an administrator to make
+          corrections.
+        </p>
+        <Button asChild variant="outline">
+          <Link href={`/patients/${patientId}`}>Back to patient details</Link>
+        </Button>
+      </div>
+    )
+  }
+
+  if (loading || isBtfana === null || (isBtfana && isAdmin === null)) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
