@@ -55,6 +55,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ExportMenu } from '@/components/ui/export-menu'
+import { useBtfanaClinic } from '@/hooks/use-btfana-clinic'
+import { BtfanaInventory } from '@/components/inventory/btfana-inventory'
 
 interface InventoryItem {
   id: string
@@ -87,7 +89,13 @@ interface PaginationInfo {
   pages: number
 }
 
+/** btFana gets a simplified Today/All inventory view; every other clinic keeps the standard page. */
 export default function InventoryPage() {
+  const isBtfana = useBtfanaClinic()
+  return isBtfana === true ? <BtfanaInventory /> : <StandardInventoryPage />
+}
+
+function StandardInventoryPage() {
   const router = useRouter()
   const [items, setItems] = useState<InventoryItem[]>([])
   const [categories, setCategories] = useState<Category[]>([])

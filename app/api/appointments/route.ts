@@ -47,6 +47,9 @@ export async function GET(request: NextRequest) {
     const patientId = searchParams.get('patientId') || ''
     const type = searchParams.get('type') || ''
     const view = searchParams.get('view') || 'list' // list, day, week, month
+    // Optional inclusive date range (YYYY-MM-DD), used when `date` is not given
+    const dateFrom = searchParams.get('dateFrom') || ''
+    const dateTo = searchParams.get('dateTo') || ''
 
     const skip = (page - 1) * limit
 
@@ -56,6 +59,7 @@ export async function GET(request: NextRequest) {
     if (search) {
       where.OR = [
         { appointmentNo: { contains: search } },
+        { patient: { patientId: { contains: search } } },
         { patient: { firstName: { contains: search } } },
         { patient: { lastName: { contains: search } } },
         { patient: { phone: { contains: search } } },
@@ -69,6 +73,13 @@ export async function GET(request: NextRequest) {
     if (date) {
       const dateObj = new Date(date)
       where.scheduledDate = dateObj
+    }
+
+    if (!date && (dateFrom || dateTo)) {
+      const range: { gte?: Date; lte?: Date } = {}
+      if (dateFrom) range.gte = new Date(dateFrom)
+      if (dateTo) range.lte = new Date(dateTo)
+      where.scheduledDate = range
     }
 
     if (doctorId) {
