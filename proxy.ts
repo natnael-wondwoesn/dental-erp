@@ -3,6 +3,7 @@ import { getProductTier } from '@/lib/product-tier'
 import { evaluateApiLicenseGate } from '@/lib/licensing/api-gate'
 import { isPlatformControlPlane } from '@/lib/platform-mode'
 import { evaluateSaaSGate } from '@/lib/saas/gate'
+import { serializePolicyHeader } from '@/lib/saas/policy-header'
 
 /**
  * Tier gate.
@@ -157,7 +158,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     }
     const saas = await evaluateSaaSGate(request)
     if (saas.response) return saas.response
-    if (saas.access) requestHeaders.set('x-dental-saas-policy', JSON.stringify(saas.access))
+    if (saas.access) requestHeaders.set('x-dental-saas-policy', serializePolicyHeader(saas.access))
     if (
       request.nextUrl.pathname.startsWith('/api/') &&
       !['GET', 'HEAD', 'OPTIONS'].includes(request.method) &&
